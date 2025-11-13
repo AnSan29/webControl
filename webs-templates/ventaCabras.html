@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cabras de La Guajira - Tradición y Sostenibilidad</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --color-primario: #6b705c;
+        --color-secundario: #a9927d;
+        --color-terciario: #bcb8b1;
+        --color-cuaternario: #f2e8cf;
+        --color-claro: #fefae0;
+        --color-texto: #333;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Georgia", serif;
+      }
+
+      body {
+        color: var(--color-texto);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      /* Estilos del navbar */
+      .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background-color: rgba(107, 112, 92, 0.9);
+        z-index: 1000;
+        padding: 15px 0;
+        transition: all 0.3s ease;
+      }
+
+      .navbar.scrolled {
+        padding: 10px 0;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+      }
+
+      .logo {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--color-claro);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+      }
+
+      .logo i {
+        margin-right: 10px;
+      }
+
+      .nav-links {
+        display: flex;
+        list-style: none;
+      }
+
+      .nav-links li {
+        margin-left: 25px;
+      }
+
+      .nav-links a {
+        color: var(--color-claro);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+        position: relative;
+      }
+
+      .nav-links a::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -5px;
+        left: 0;
+        background-color: var(--color-cuaternario);
+        transition: width 0.3s ease;
+      }
+
+      .nav-links a:hover::after {
+        width: 100%;
+      }
+
+      .menu-toggle {
+        display: none;
+        color: var(--color-claro);
+        font-size: 24px;
+        cursor: pointer;
+      }
+
+      /* Sección Hero */
+      .hero {
+        height: 100vh;
+        background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+          url("https://picsum.photos/seed/goats-la-guajira/1600/900.jpg");
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: white;
+        padding: 0 20px;
+      }
+
+      .hero-content {
+        max-width: 800px;
+      }
+
+      .hero h1 {
+        font-size: 3.5rem;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      .hero p {
+        font-size: 1.5rem;
+        margin-bottom: 30px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 12px 30px;
+        background-color: var(--color-primario);
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        border: 2px solid var(--color-primario);
+      }
+
+      .btn:hover {
+        background-color: transparent;
+        color: var(--color-primario);
+      }
+
+      .btn-outline {
+        background-color: transparent;
+        color: white;
+        margin-left: 15px;
+      }
+
+      .btn-outline:hover {
+        background-color: white;
+        color: var(--color-primario);
+      }
+
+      /* Sección Sobre el Proyecto */
+      .section {
+        padding: 80px 0;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      .section-title {
+        text-align: center;
+        margin-bottom: 60px;
+      }
+
+      .section-title h2 {
+        font-size: 2.5rem;
+        color: var(--color-primario);
+        margin-bottom: 15px;
+        position: relative;
+        display: inline-block;
+      }
+
+      .section-title h2::after {
+        content: "";
+        position: absolute;
+        width: 50%;
+        height: 3px;
+        bottom: -10px;
+        left: 25%;
+        background-color: var(--color-secundario);
+      }
+
+      .about-content {
+        display: flex;
+        align-items: center;
+        gap: 40px;
+        margin-bottom: 60px;
+      }
+
+      .about-text {
+        flex: 1;
+      }
+
+      .about-text h3 {
+        font-size: 1.8rem;
+        color: var(--color-primario);
+        margin-bottom: 20px;
+      }
+
+      .about-text p {
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+      }
+
+      .about-image {
+        flex: 1;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .about-image img {
+        width: 100%;
+        height: auto;
+        display: block;
+        transition: transform 0.5s ease;
+      }
+
+      .about-image:hover img {
+        transform: scale(1.05);
+      }
+
+      /* Sección Productos */
+      .products {
+        background-color: var(--color-cuaternario);
+      }
+
+      .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+      }
+
+      .product-card {
+        background-color: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .product-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+      }
+
+      .product-image {
+        height: 200px;
+        overflow: hidden;
+      }
+
+      .product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+
+      .product-card:hover .product-image img {
+        transform: scale(1.1);
+      }
+
+      .product-info {
+        padding: 20px;
+      }
+
+      .product-info h3 {
+        color: var(--color-primario);
+        margin-bottom: 10px;
+      }
+
+      .product-info p {
+        margin-bottom: 15px;
+      }
+
+      .product-price {
+        font-weight: bold;
+        color: var(--color-secundario);
+        font-size: 1.2rem;
+      }
+
+      /* Sección Galería */
+      .gallery {
+        background-color: white;
+      }
+
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+      }
+
+      .gallery-item {
+        height: 250px;
+        overflow: hidden;
+        border-radius: 5px;
+        cursor: pointer;
+        position: relative;
+      }
+
+      .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+
+      .gallery-item:hover img {
+        transform: scale(1.1);
+      }
+
+      .gallery-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(107, 112, 92, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .gallery-item:hover .gallery-overlay {
+        opacity: 1;
+      }
+
+      .gallery-overlay i {
+        color: white;
+        font-size: 2rem;
+      }
+
+      /* Sección Contacto */
+      .contact {
+        background-color: var(--color-cuaternario);
+      }
+
+      .contact-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+      }
+
+      .contact-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .contact-info h3 {
+        color: var(--color-primario);
+        margin-bottom: 20px;
+        font-size: 1.8rem;
+      }
+
+      .contact-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .contact-item i {
+        font-size: 1.5rem;
+        color: var(--color-primario);
+        margin-right: 15px;
+        width: 30px;
+        text-align: center;
+      }
+
+      .contact-form {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--color-primario);
+        font-weight: bold;
+      }
+
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-family: inherit;
+        font-size: 1rem;
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 120px;
+      }
+
+      /* Footer */
+      .footer {
+        background-color: var(--color-primario);
+        color: white;
+        padding: 60px 0 20px;
+      }
+
+      .footer-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 40px;
+        margin-bottom: 40px;
+      }
+
+      .footer-section h3 {
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+      }
+
+      .footer-section p {
+        margin-bottom: 15px;
+      }
+
+      .footer-links {
+        list-style: none;
+      }
+
+      .footer-links li {
+        margin-bottom: 10px;
+      }
+
+      .footer-links a {
+        color: white;
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      .footer-links a:hover {
+        color: var(--color-cuaternario);
+      }
+
+      .social-links {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .social-links a {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 40px;
+        height: 40px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        color: white;
+        transition: background-color 0.3s ease;
+      }
+
+      .social-links a:hover {
+        background-color: var(--color-secundario);
+      }
+
+      .map-container {
+        margin-top: 20px;
+        height: 250px;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .map-container iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+
+      .footer-bottom {
+        text-align: center;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 0.9rem;
+      }
+
+      /* Lightbox para galería */
+      .lightbox {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+      }
+
+      .lightbox.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .lightbox-content {
+        max-width: 90%;
+        max-height: 90%;
+        position: relative;
+      }
+
+      .lightbox-content img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .lightbox-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .nav-links {
+          position: fixed;
+          top: 70px;
+          left: -100%;
+          width: 100%;
+          height: calc(100vh - 70px);
+          background-color: var(--color-primario);
+          flex-direction: column;
+          justify-content: flex-start;
+          align-items: center;
+          padding-top: 50px;
+          transition: left 0.3s ease;
+        }
+
+        .nav-links.active {
+          left: 0;
+        }
+
+        .nav-links li {
+          margin: 15px 0;
+        }
+
+        .menu-toggle {
+          display: block;
+        }
+
+        .hero h1 {
+          font-size: 2.5rem;
+        }
+
+        .hero p {
+          font-size: 1.2rem;
+        }
+
+        .about-content {
+          flex-direction: column;
+        }
+
+        .contact-content {
+          grid-template-columns: 1fr;
+        }
+
+        .btn-outline {
+          margin-left: 0;
+          margin-top: 15px;
+          display: block;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+      <div class="nav-container">
+        <a href="#" class="logo">
+          <i class="fas fa-horse"></i>
+          Cabras de La Guajira
+        </a>
+        <ul class="nav-links" id="navLinks">
+          <li><a href="#inicio">Inicio</a></li>
+          <li><a href="#proyecto">Proyecto</a></li>
+          <li><a href="#productos">Productos</a></li>
+          <li><a href="#galeria">Galería</a></li>
+          <li><a href="#contacto">Contacto</a></li>
+        </ul>
+        <div class="menu-toggle" id="menuToggle">
+          <i class="fas fa-bars"></i>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Sección Hero -->
+    <section class="hero" id="inicio">
+      <div class="hero-content">
+        <h1>Tradición y Sostenibilidad</h1>
+        <p>Descubre el proyecto de cría de cabras en La Guajira</p>
+        <div>
+          <a href="#proyecto" class="btn">Conocer más</a>
+          <a href="#productos" class="btn btn-outline">Ver productos</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección Sobre el Proyecto -->
+    <section class="section" id="proyecto">
+      <div class="container">
+        <div class="section-title">
+          <h2>Nuestro Proyecto</h2>
+        </div>
+        <div class="about-content">
+          <div class="about-text">
+            <h3>Tradiciones que nutren la tierra</h3>
+            <p>
+              En La Guajira, hemos desarrollado un proyecto sostenible de cría
+              de cabras que combina las tradiciones ancestrales con prácticas
+              modernas de cuidado animal y respeto por el medio ambiente.
+            </p>
+            <p>
+              Nuestro enfoque se centra en la calidad de vida de los animales,
+              la producción de productos lácteos y cárnicos de excelencia, y el
+              desarrollo económico de las comunidades locales.
+            </p>
+            <p>
+              Trabajamos en armonía con el ecosistema desértico de la región,
+              implementando técnicas de pastoreo rotativo y utilizando recursos
+              naturales de manera responsable.
+            </p>
+          </div>
+          <div class="about-image">
+            <img
+              src="https://picsum.photos/seed/goat-farm/600/400.jpg"
+              alt="Granja de cabras"
+            />
+          </div>
+        </div>
+        <div class="about-content">
+          <div class="about-image">
+            <img
+              src="https://picsum.photos/seed/goat-herding/600/400.jpg"
+              alt="Pastoreo de cabras"
+            />
+          </div>
+          <div class="about-text">
+            <h3>Compromiso con la sostenibilidad</h3>
+            <p>
+              Nuestro proyecto no solo se enfoca en la producción, sino también
+              en la preservación de las tradiciones wayúu y el desarrollo
+              económico sostenible de la región.
+            </p>
+            <p>
+              Implementamos prácticas de agricultura regenerativa que mejoran la
+              salud del suelo y aumentan la biodiversidad, creando un sistema
+              resiliente frente al cambio climático.
+            </p>
+            <p>
+              Colaboramos estrechamente con las comunidades locales,
+              proporcionando capacitación, empleo y oportunidades de desarrollo
+              económico que respetan su cultura y formas de vida.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección Productos -->
+    <section class="section products" id="productos">
+      <div class="container">
+        <div class="section-title">
+          <h2>Nuestros Productos</h2>
+        </div>
+        <div class="products-grid">
+          <div class="product-card">
+            <div class="product-image">
+              <img
+                src="https://picsum.photos/seed/goat-cheese/400/300.jpg"
+                alt="Queso de cabra"
+              />
+            </div>
+            <div class="product-info">
+              <h3>Queso Artesanal</h3>
+              <p>
+                Elaborado con leche fresca de nuestras cabras, siguiendo recetas
+                tradicionales que garantizan un sabor único y textura
+                inigualable.
+              </p>
+              <div class="product-price">$12.500/kg</div>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="product-image">
+              <img
+                src="https://picsum.photos/seed/goat-milk/400/300.jpg"
+                alt="Leche de cabra"
+              />
+            </div>
+            <div class="product-info">
+              <h3>Leche Fresca</h3>
+              <p>
+                Leche de cabra 100% natural, rica en nutrientes y con
+                propiedades digestivas superiores a la leche de vaca.
+              </p>
+              <div class="product-price">$3.500/L</div>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="product-image">
+              <img
+                src="https://picsum.photos/seed/goat-yogurt/400/300.jpg"
+                alt="Yogur de cabra"
+              />
+            </div>
+            <div class="product-info">
+              <h3>Yogur Natural</h3>
+              <p>
+                Yogur cremoso elaborado con leche de cabra, sin aditivos
+                artificiales, ideal para una alimentación saludable.
+              </p>
+              <div class="product-price">$5.200/unidad</div>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="product-image">
+              <img
+                src="https://picsum.photos/seed/goat-meat/400/300.jpg"
+                alt="Carne de cabra"
+              />
+            </div>
+            <div class="product-info">
+              <h3>Carne Premium</h3>
+              <p>
+                Carne de cabra de alta calidad, criada en pastizales naturales,
+                con bajo contenido graso y excelente sabor.
+              </p>
+              <div class="product-price">$18.900/kg</div>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="product-image">
+              <img
+                src="https://picsum.photos/seed/goat-soap/400/300.jpg"
+                alt="Jabón de leche de cabra"
+              />
+            </div>
+            <div class="product-info">
+              <h3>Jabón Artesanal</h3>
+              <p>
+                Jabón elaborado con leche de cabra y ingredientes naturales,
+                ideal para el cuidado de la piel.
+              </p>
+              <div class="product-price">$8.700/unidad</div>
+            </div>
+          </div>
+          <div class="product-card">
+            <div class="product-image">
+              <img
+                src="https://picsum.photos/seed/goat-caramel/400/300.jpg"
+                alt="Dulce de leche"
+              />
+            </div>
+            <div class="product-info">
+              <h3>Dulce de Leche</h3>
+              <p>
+                Exquisito dulce de leche de cabra, con una textura cremosa y un
+                sabor equilibrado que deleitará tu paladar.
+              </p>
+              <div class="product-price">$7.300/frasco</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección Galería -->
+    <section class="section gallery" id="galeria">
+      <div class="container">
+        <div class="section-title">
+          <h2>Galería</h2>
+        </div>
+        <div class="gallery-grid">
+          <div class="gallery-item">
+            <img
+              src="https://picsum.photos/seed/goat1/500/500.jpg"
+              alt="Imagen 1"
+            />
+            <div class="gallery-overlay">
+              <i class="fas fa-search-plus"></i>
+            </div>
+          </div>
+          <div class="gallery-item">
+            <img
+              src="https://picsum.photos/seed/goat2/500/500.jpg"
+              alt="Imagen 2"
+            />
+            <div class="gallery-overlay">
+              <i class="fas fa-search-plus"></i>
+            </div>
+          </div>
+          <div class="gallery-item">
+            <img
+              src="https://picsum.photos/seed/goat3/500/500.jpg"
+              alt="Imagen 3"
+            />
+            <div class="gallery-overlay">
+              <i class="fas fa-search-plus"></i>
+            </div>
+          </div>
+          <div class="gallery-item">
+            <img
+              src="https://picsum.photos/seed/goat4/500/500.jpg"
+              alt="Imagen 4"
+            />
+            <div class="gallery-overlay">
+              <i class="fas fa-search-plus"></i>
+            </div>
+          </div>
+          <div class="gallery-item">
+            <img
+              src="https://picsum.photos/seed/goat5/500/500.jpg"
+              alt="Imagen 5"
+            />
+            <div class="gallery-overlay">
+              <i class="fas fa-search-plus"></i>
+            </div>
+          </div>
+          <div class="gallery-item">
+            <img
+              src="https://picsum.photos/seed/goat6/500/500.jpg"
+              alt="Imagen 6"
+            />
+            <div class="gallery-overlay">
+              <i class="fas fa-search-plus"></i>
+            </div>
+          </div>
+          <div class="gallery-item">
+            <img
+              src="https://picsum.photos/seed/goat7/500/500.jpg"
+              alt="Imagen 7"
+            />
+            <div class="gallery-overlay">
+              <i class="fas fa-search-plus"></i>
+            </div>
+          </div>
+          <div class="gallery-item">
+            <img
+              src="https://picsum.photos/seed/goat8/500/500.jpg"
+              alt="Imagen 8"
+            />
+            <div class="gallery-overlay">
+              <i class="fas fa-search-plus"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sección Contacto -->
+    <section class="section contact" id="contacto">
+      <div class="container">
+        <div class="section-title">
+          <h2>Contacto</h2>
+        </div>
+        <div class="contact-content">
+          <div class="contact-info">
+            <h3>Visítanos</h3>
+            <div class="contact-item">
+              <i class="fas fa-map-marker-alt"></i>
+              <p>Carretera a Manaure, Km 12<br />La Guajira, Colombia</p>
+            </div>
+            <div class="contact-item">
+              <i class="fas fa-phone"></i>
+              <p>+57 312 456 7890</p>
+            </div>
+            <div class="contact-item">
+              <i class="fas fa-envelope"></i>
+              <p>info@cabrasdelaguajira.com</p>
+            </div>
+            <div class="contact-item">
+              <i class="fas fa-clock"></i>
+              <p>
+                Lunes a Sábado: 8:00 AM - 6:00 PM<br />Domingo: 9:00 AM - 2:00
+                PM
+              </p>
+            </div>
+          </div>
+          <div class="contact-form">
+            <h3>Envíanos un mensaje</h3>
+            <form id="contactForm">
+              <div class="form-group">
+                <label for="name">Nombre completo</label>
+                <input type="text" id="name" name="name" required />
+              </div>
+              <div class="form-group">
+                <label for="email">Correo electrónico</label>
+                <input type="email" id="email" name="email" required />
+              </div>
+              <div class="form-group">
+                <label for="subject">Asunto</label>
+                <input type="text" id="subject" name="subject" required />
+              </div>
+              <div class="form-group">
+                <label for="message">Mensaje</label>
+                <textarea id="message" name="message" required></textarea>
+              </div>
+              <button type="submit" class="btn">Enviar mensaje</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h3>Cabras de La Guajira</h3>
+            <p>
+              Un proyecto sostenible que combina tradición y modernidad para
+              llevar productos de calidad a tu hogar.
+            </p>
+            <div class="social-links">
+              <a href="#"><i class="fab fa-facebook-f"></i></a>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-instagram"></i></a>
+              <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+          </div>
+          <div class="footer-section">
+            <h3>Enlaces rápidos</h3>
+            <ul class="footer-links">
+              <li><a href="#inicio">Inicio</a></li>
+              <li><a href="#proyecto">Proyecto</a></li>
+              <li><a href="#productos">Productos</a></li>
+              <li><a href="#galeria">Galería</a></li>
+              <li><a href="#contacto">Contacto</a></li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h3>Productos</h3>
+            <ul class="footer-links">
+              <li><a href="#">Queso Artesanal</a></li>
+              <li><a href="#">Leche Fresca</a></li>
+              <li><a href="#">Yogur Natural</a></li>
+              <li><a href="#">Carne Premium</a></li>
+              <li><a href="#">Jabón Artesanal</a></li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h3>Ubicación</h3>
+            <p>Visítanos en nuestra granja en La Guajira</p>
+            <div class="map-container">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3916.2945112383365!2d-72.90748658571368!3d11.544601891866538!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e8f9f7e5e5e5e5e%3A0x5e5e5e5e5e5e5e5e!2sLa%20Guajira%2C%20Colombia!5e0!3m2!1ses!2s!4v1621234567890!5m2!1ses!2s"
+                allowfullscreen=""
+                loading="lazy"
+              ></iframe>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>
+            &copy; 2023 Cabras de La Guajira. Todos los derechos reservados.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Lightbox para galería -->
+    <div class="lightbox" id="lightbox">
+      <div class="lightbox-content">
+        <span class="lightbox-close" id="lightboxClose">&times;</span>
+        <img src="" alt="Imagen ampliada" id="lightboxImage" />
+      </div>
+    </div>
+
+    <script>
+      // Navbar scroll effect
+      window.addEventListener("scroll", function () {
+        const navbar = document.getElementById("navbar");
+        if (window.scrollY > 50) {
+          navbar.classList.add("scrolled");
+        } else {
+          navbar.classList.remove("scrolled");
+        }
+      });
+
+      // Mobile menu toggle
+      const menuToggle = document.getElementById("menuToggle");
+      const navLinks = document.getElementById("navLinks");
+
+      menuToggle.addEventListener("click", function () {
+        navLinks.classList.toggle("active");
+      });
+
+      // Close mobile menu when clicking on a link
+      document.querySelectorAll(".nav-links a").forEach((link) => {
+        link.addEventListener("click", function () {
+          navLinks.classList.remove("active");
+        });
+      });
+
+      // Smooth scrolling for navigation links
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+
+          const targetId = this.getAttribute("href");
+          if (targetId === "#") return;
+
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            window.scrollTo({
+              top: targetElement.offsetTop - 70,
+              behavior: "smooth",
+            });
+          }
+        });
+      });
+
+      // Gallery lightbox
+      const galleryItems = document.querySelectorAll(".gallery-item");
+      const lightbox = document.getElementById("lightbox");
+      const lightboxImage = document.getElementById("lightboxImage");
+      const lightboxClose = document.getElementById("lightboxClose");
+
+      galleryItems.forEach((item) => {
+        item.addEventListener("click", function () {
+          const imgSrc = this.querySelector("img").getAttribute("src");
+          lightboxImage.setAttribute("src", imgSrc);
+          lightbox.classList.add("active");
+        });
+      });
+
+      lightboxClose.addEventListener("click", function () {
+        lightbox.classList.remove("active");
+      });
+
+      lightbox.addEventListener("click", function (e) {
+        if (e.target === lightbox) {
+          lightbox.classList.remove("active");
+        }
+      });
+
+      // Contact form submission
+      const contactForm = document.getElementById("contactForm");
+
+      contactForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        // Aquí normalmente enviarías los datos del formulario a un servidor
+        // Para este ejemplo, solo mostraremos un mensaje de éxito
+
+        // Crear un elemento para mostrar el mensaje
+        const successMessage = document.createElement("div");
+        successMessage.style.position = "fixed";
+        successMessage.style.top = "50%";
+        successMessage.style.left = "50%";
+        successMessage.style.transform = "translate(-50%, -50%)";
+        successMessage.style.backgroundColor = "var(--color-primario)";
+        successMessage.style.color = "white";
+        successMessage.style.padding = "20px 30px";
+        successMessage.style.borderRadius = "5px";
+        successMessage.style.zIndex = "3000";
+        successMessage.style.boxShadow = "0 5px 15px rgba(0, 0, 0, 0.2)";
+        successMessage.textContent =
+          "¡Mensaje enviado con éxito! Nos pondremos en contacto pronto.";
+
+        document.body.appendChild(successMessage);
+
+        // Resetear el formulario
+        contactForm.reset();
+
+        // Eliminar el mensaje después de 3 segundos
+        setTimeout(() => {
+          successMessage.style.opacity = "0";
+          successMessage.style.transition = "opacity 0.5s ease";
+
+          setTimeout(() => {
+            document.body.removeChild(successMessage);
+          }, 500);
+        }, 3000);
+      });
+
+      // Animación de elementos al hacer scroll
+      const animateOnScroll = function () {
+        const elements = document.querySelectorAll(
+          ".about-content, .product-card, .gallery-item"
+        );
+
+        elements.forEach((element) => {
+          const elementPosition = element.getBoundingClientRect().top;
+          const windowHeight = window.innerHeight;
+
+          if (elementPosition < windowHeight - 100) {
+            element.style.opacity = "1";
+            element.style.transform = "translateY(0)";
+          }
+        });
+      };
+
+      // Establecer estado inicial para los elementos
+      document.addEventListener("DOMContentLoaded", function () {
+        const elements = document.querySelectorAll(
+          ".about-content, .product-card, .gallery-item"
+        );
+
+        elements.forEach((element) => {
+          element.style.opacity = "0";
+          element.style.transform = "translateY(20px)";
+          element.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+        });
+
+        // Ejecutar la animación una vez al cargar la página
+        animateOnScroll();
+      });
+
+      // Ejecutar la animación al hacer scroll
+      window.addEventListener("scroll", animateOnScroll);
+    </script>
+  </body>
+</html>
