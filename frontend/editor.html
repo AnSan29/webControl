@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor - Control de Sitios</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container flex items-center justify-between">
+            <a href="/dashboard" class="navbar-brand">🎨 Control de Sitios</a>
+            <ul class="navbar-nav">
+                <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
+                <li><span class="nav-link active">Editor</span></li>
+                <li><a href="#" onclick="logout()" class="nav-link">Cerrar Sesión</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main style="padding: 2rem 0;">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: 700;">
+                        <span id="siteName">Editor</span>
+                    </h1>
+                    <div id="syncStatus" style="margin-top: 0.5rem; display: none;">
+                        <span class="badge badge-info">🔄 Auto-sincronización activada</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button onclick="saveSite()" class="btn btn-success">💾 Guardar</button>
+                    <button onclick="publishSite()" class="btn btn-primary">🚀 Publicar</button>
+                    <a href="/dashboard" class="btn btn-outline">← Volver</a>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid var(--border);">
+                <button onclick="showTab('content')" class="tab-btn active" id="tab-content">Contenido</button>
+                <button onclick="showTab('stats')" class="tab-btn" id="tab-stats">Estadísticas</button>
+            </div>
+
+            <!-- Content Tab -->
+            <div id="contentTab">
+                <form id="editorForm">
+                    <div class="card mb-4">
+                        <div class="card-header">Información Básica</div>
+                        <div class="form-group">
+                            <label class="form-label">Nombre del Sitio</label>
+                            <input type="text" id="name" name="name" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Descripción</label>
+                            <textarea id="description" name="description" class="form-textarea"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">Sección Hero (Principal)</div>
+                        <div class="form-group">
+                            <label class="form-label">Título Principal</label>
+                            <input type="text" id="hero_title" name="hero_title" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Subtítulo</label>
+                            <input type="text" id="hero_subtitle" name="hero_subtitle" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Imagen Hero</label>
+                            <div class="image-preview-container">
+                                <div id="heroImagePreview" class="image-preview">
+                                    <span class="image-preview-placeholder">🖼️ Vista previa de imagen</span>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                    <button type="button" onclick="document.getElementById('hero_image_file').click()" class="btn btn-outline" style="flex: 1;">
+                                        📤 Subir Imagen
+                                    </button>
+                                    <button type="button" onclick="toggleUrlInput('hero')" class="btn btn-outline" style="flex: 1;">
+                                        🔗 Usar URL
+                                    </button>
+                                </div>
+                                <input type="file" id="hero_image_file" accept="image/*" style="display: none;" onchange="uploadImage(this, 'hero_image', 'heroImagePreview')">
+                                <input type="url" id="hero_image" name="hero_image" class="form-input" placeholder="O pega una URL aquí..." onchange="updateImagePreview('hero_image', 'heroImagePreview')" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">Sobre Nosotros</div>
+                        <div class="form-group">
+                            <label class="form-label">Texto</label>
+                            <textarea id="about_text" name="about_text" class="form-textarea" rows="6"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Imagen Sobre Nosotros</label>
+                            <div class="image-preview-container">
+                                <div id="aboutImagePreview" class="image-preview">
+                                    <span class="image-preview-placeholder">🖼️ Vista previa de imagen</span>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                    <button type="button" onclick="document.getElementById('about_image_file').click()" class="btn btn-outline" style="flex: 1;">
+                                        📤 Subir Imagen
+                                    </button>
+                                    <button type="button" onclick="toggleUrlInput('about')" class="btn btn-outline" style="flex: 1;">
+                                        🔗 Usar URL
+                                    </button>
+                                </div>
+                                <input type="file" id="about_image_file" accept="image/*" style="display: none;" onchange="uploadImage(this, 'about_image', 'aboutImagePreview')">
+                                <input type="url" id="about_image" name="about_image" class="form-input" placeholder="O pega una URL aquí..." onchange="updateImagePreview('about_image', 'aboutImagePreview')" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">Información de Contacto</div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" id="contact_email" name="contact_email" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Teléfono</label>
+                            <input type="tel" id="contact_phone" name="contact_phone" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">💬 WhatsApp (Número con código de país)</label>
+                            <div class="whatsapp-input-container">
+                                <div class="whatsapp-icon-badge">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                                    </svg>
+                                </div>
+                                <input type="tel" id="whatsapp_number" name="whatsapp_number" class="form-input" placeholder="+573001234567" style="flex: 1;">
+                            </div>
+                            <small style="color: #666; margin-top: 0.5rem; display: block;">Ejemplo: +573001234567 (incluye código de país)</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Dirección</label>
+                            <input type="text" id="contact_address" name="contact_address" class="form-input">
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">📱 Redes Sociales</div>
+                        <div class="social-inputs-grid">
+                            <div class="social-input-group">
+                                <div class="social-icon-badge" style="background: #1877F2;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                    </svg>
+                                </div>
+                                <div class="social-input-content">
+                                    <label class="form-label">Facebook</label>
+                                    <input type="url" id="facebook_url" name="facebook_url" class="form-input" placeholder="https://facebook.com/tupagina">
+                                </div>
+                            </div>
+                            
+                            <div class="social-input-group">
+                                <div class="social-icon-badge" style="background: linear-gradient(45deg, #F58529, #DD2A7B, #8134AF);">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                                    </svg>
+                                </div>
+                                <div class="social-input-content">
+                                    <label class="form-label">Instagram</label>
+                                    <input type="url" id="instagram_url" name="instagram_url" class="form-input" placeholder="https://instagram.com/tuusuario">
+                                </div>
+                            </div>
+                            
+                            <div class="social-input-group">
+                                <div class="social-icon-badge" style="background: #000000;">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                        <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z"/>
+                                    </svg>
+                                </div>
+                                <div class="social-input-content">
+                                    <label class="form-label">TikTok</label>
+                                    <input type="url" id="tiktok_url" name="tiktok_url" class="form-input" placeholder="https://tiktok.com/@tuusuario">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>🛍️ Productos/Servicios</span>
+                            <button type="button" onclick="addNewProduct()" class="btn btn-primary" style="font-size: 0.875rem; padding: 0.5rem 1rem;">
+                                ➕ Agregar Producto
+                            </button>
+                        </div>
+                        <div id="productsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; padding: 1rem;">
+                            <!-- Los productos se cargarán aquí dinámicamente -->
+                        </div>
+                        <div id="noProductsMessage" style="text-align: center; padding: 3rem; color: #9CA3AF;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
+                            <p>No hay productos agregados</p>
+                            <button type="button" onclick="addNewProduct()" class="btn btn-outline" style="margin-top: 1rem;">
+                                Agregar Primer Producto
+                            </button>
+                        </div>
+                        <!-- Hidden textarea para enviar al backend -->
+                        <textarea id="products_json" name="products_json" style="display: none;"></textarea>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>🖼️ Galería de Imágenes</span>
+                            <button type="button" onclick="addNewGalleryImage()" class="btn btn-primary" style="font-size: 0.875rem; padding: 0.5rem 1rem;">
+                                ➕ Agregar Imagen
+                            </button>
+                        </div>
+                        <div id="galleryContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; padding: 1rem;">
+                            <!-- Las imágenes se cargarán aquí dinámicamente -->
+                        </div>
+                        <div id="noGalleryMessage" style="text-align: center; padding: 3rem; color: #9CA3AF;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">🖼️</div>
+                            <p>No hay imágenes en la galería</p>
+                            <button type="button" onclick="addNewGalleryImage()" class="btn btn-outline" style="margin-top: 1rem;">
+                                Agregar Primera Imagen
+                            </button>
+                        </div>
+                        <!-- Hidden textarea para enviar al backend -->
+                        <textarea id="gallery_images_input" style="display: none;"></textarea>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">🎨 Personalización de Colores</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <div class="form-group">
+                                <label class="form-label">Color Primario</label>
+                                <div class="color-picker-container">
+                                    <input type="color" id="primary_color" name="primary_color" class="color-input" value="#FF6347" onchange="updateColorPreview('primary')">
+                                    <div class="color-preview-box" id="primaryColorPreview">
+                                        <div class="color-preview-swatch"></div>
+                                        <span class="color-preview-label">Color Principal</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Color Secundario</label>
+                                <div class="color-picker-container">
+                                    <input type="color" id="secondary_color" name="secondary_color" class="color-input" value="#27AE60" onchange="updateColorPreview('secondary')">
+                                    <div class="color-preview-box" id="secondaryColorPreview">
+                                        <div class="color-preview-swatch"></div>
+                                        <span class="color-preview-label">Color Secundario</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="color-preview-demo" style="margin-top: 1.5rem;">
+                            <p style="font-size: 0.875rem; color: #6B7280; margin-bottom: 1rem;">Vista previa de colores en tu sitio:</p>
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                                <button class="btn" id="demoButtonPrimary" style="pointer-events: none;">Botón Primario</button>
+                                <button class="btn" id="demoButtonSecondary" style="pointer-events: none;">Botón Secundario</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4">
+                        <div class="card-header">Configuración Avanzada</div>
+                        <div class="form-group">
+                            <label class="form-label">URL del Logo</label>
+                            <input type="url" id="logo_url" name="logo_url" class="form-input" placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Dominio Personalizado</label>
+                            <input type="text" id="custom_domain" name="custom_domain" class="form-input">
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Stats Tab -->
+            <div id="statsTab" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalVisits">0</div>
+                        <div class="stat-label">Visitas Totales</div>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">Visitas por Día (Últimos 7 días)</div>
+                    <canvas id="visitsChart"></canvas>
+                </div>
+
+                <div class="card mt-4" id="siteInfoCard">
+                    <div class="card-header">Información del Sitio</div>
+                    <div id="siteInfo"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        let currentSiteId = null;
+        let chart = null;
+
+        async function loadSite() {
+            const isAuth = await checkAuth();
+            if (!isAuth) return;
+
+            // Obtener ID del sitio desde URL
+            const path = window.location.pathname;
+            currentSiteId = path.split('/').pop();
+
+            try {
+                const response = await fetchAPI(`/api/sites/${currentSiteId}`);
+                const site = await response.json();
+
+                // Llenar formulario
+                document.getElementById('siteName').textContent = site.name;
+                document.getElementById('name').value = site.name || '';
+                document.getElementById('description').value = site.description || '';
+                document.getElementById('hero_title').value = site.hero_title || '';
+                document.getElementById('hero_subtitle').value = site.hero_subtitle || '';
+                document.getElementById('hero_image').value = site.hero_image || '';
+                document.getElementById('about_text').value = site.about_text || '';
+                document.getElementById('about_image').value = site.about_image || '';
+                document.getElementById('contact_email').value = site.contact_email || '';
+                document.getElementById('contact_phone').value = site.contact_phone || '';
+                document.getElementById('whatsapp_number').value = site.whatsapp_number || '';
+                document.getElementById('contact_address').value = site.contact_address || '';
+                document.getElementById('facebook_url').value = site.facebook_url || '';
+                document.getElementById('instagram_url').value = site.instagram_url || '';
+                document.getElementById('tiktok_url').value = site.tiktok_url || '';
+                document.getElementById('primary_color').value = site.primary_color || '#FF6347';
+                document.getElementById('secondary_color').value = site.secondary_color || '#27AE60';
+                document.getElementById('logo_url').value = site.logo_url || '';
+                document.getElementById('custom_domain').value = site.custom_domain || '';
+
+                // Cargar productos en tarjetas visuales
+                loadProductCards(site.products_json);
+
+                // Cargar galería de imágenes en formato visual
+                loadGalleryImages(site.gallery_images);
+
+                // Actualizar previews de imágenes
+                updateImagePreview('hero_image', 'heroImagePreview');
+                updateImagePreview('about_image', 'aboutImagePreview');
+
+                // Actualizar previews de colores
+                updateColorPreview('primary');
+                updateColorPreview('secondary');
+
+                // Mostrar badge de auto-sincronización si está publicado
+                const syncStatus = document.getElementById('syncStatus');
+                if (site.is_published) {
+                    syncStatus.style.display = 'block';
+                } else {
+                    syncStatus.style.display = 'none';
+                }
+
+                // Cargar estadísticas
+                await loadStats();
+            } catch (error) {
+                console.error('Error loading site:', error);
+                showNotification('Error al cargar sitio', 'error');
+            }
+        }
+
+        async function saveSite() {
+            const formData = new FormData(document.getElementById('editorForm'));
+            const data = Object.fromEntries(formData);
+
+            // Serializar productos desde las tarjetas visuales
+            data.products_json = JSON.stringify(window.productsData || []);
+
+            // Serializar galería desde las tarjetas visuales
+            data.gallery_images = JSON.stringify(window.galleryData || []);
+
+            try {
+                const response = await fetchAPI(`/api/sites/${currentSiteId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    showNotification('Cambios guardados exitosamente', 'success');
+                    
+                    // Obtener información del sitio para saber si está publicado
+                    const siteResponse = await fetchAPI(`/api/sites/${currentSiteId}`);
+                    const siteData = await siteResponse.json();
+                    
+                    // Si el sitio está publicado, republicar automáticamente
+                    if (siteData.is_published) {
+                        showNotification('Actualizando sitio en GitHub Pages...', 'info');
+                        
+                        try {
+                            const publishResponse = await fetchAPI(`/api/sites/${currentSiteId}/publish`, {
+                                method: 'POST'
+                            });
+                            
+                            const publishData = await publishResponse.json();
+                            
+                            if (publishResponse.ok) {
+                                setTimeout(() => {
+                                    showNotification('✅ Sitio actualizado en GitHub Pages', 'success');
+                                }, 1500);
+                                
+                                // Mostrar info sobre el tiempo de espera
+                                if (publishData.info) {
+                                    setTimeout(() => {
+                                        showNotification('⏳ Los cambios pueden tardar 1-2 minutos en verse reflejados', 'info');
+                                    }, 3000);
+                                }
+                            } else {
+                                setTimeout(() => {
+                                    showNotification('⚠️ Error al actualizar en GitHub Pages', 'warning');
+                                }, 1500);
+                            }
+                        } catch (error) {
+                            console.error('Error republishing:', error);
+                            setTimeout(() => {
+                                showNotification('⚠️ Error al actualizar en GitHub Pages', 'warning');
+                            }, 1500);
+                        }
+                    }
+                } else {
+                    showNotification('Error al guardar', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving:', error);
+                showNotification('Error al guardar', 'error');
+            }
+        }
+
+        async function publishSite() {
+            if (!confirm('¿Deseas publicar este sitio en GitHub Pages?')) return;
+
+            showNotification('Publicando sitio...', 'info');
+
+            try {
+                const response = await fetchAPI(`/api/sites/${currentSiteId}/publish`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showNotification('Sitio publicado exitosamente', 'success');
+                    
+                    // Activar badge de auto-sincronización
+                    const syncStatus = document.getElementById('syncStatus');
+                    syncStatus.style.display = 'block';
+                    
+                    // Mostrar mensaje informativo sobre el tiempo de espera
+                    if (data.info) {
+                        setTimeout(() => {
+                            showNotification(data.info, 'info');
+                        }, 1500);
+                    }
+                    
+                    // Mostrar advertencia si existe
+                    if (data.warning) {
+                        setTimeout(() => {
+                            showNotification(data.warning, 'warning');
+                        }, 3000);
+                    }
+                    
+                    if (data.url) {
+                        setTimeout(() => {
+                            window.open(data.url, '_blank');
+                        }, 4000);
+                    }
+                } else {
+                    showNotification(data.detail || 'Error al publicar', 'error');
+                }
+            } catch (error) {
+                console.error('Error publishing:', error);
+                showNotification('Error al publicar', 'error');
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetchAPI(`/api/stats/${currentSiteId}`);
+                const data = await response.json();
+
+                document.getElementById('totalVisits').textContent = formatNumber(data.total_visits);
+
+                // Renderizar gráfico
+                const ctx = document.getElementById('visitsChart');
+                
+                if (chart) {
+                    chart.destroy();
+                }
+
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.visits_by_day.map(v => new Date(v.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })),
+                        datasets: [{
+                            label: 'Visitas',
+                            data: data.visits_by_day.map(v => v.visits),
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Info del sitio
+                const siteResponse = await fetchAPI(`/api/sites/${currentSiteId}`);
+                const site = await siteResponse.json();
+                
+                document.getElementById('siteInfo').innerHTML = `
+                    <p><strong>Modelo:</strong> ${getModelIcon(site.model_type)} ${getModelName(site.model_type)}</p>
+                    <p><strong>Estado:</strong> ${site.is_published ? '<span class="badge badge-success">Publicado</span>' : '<span class="badge badge-warning">Borrador</span>'}</p>
+                    ${site.github_url ? `<p><strong>URL:</strong> <a href="${site.github_url}" target="_blank">${site.github_url}</a></p>` : ''}
+                    <p><strong>Creado:</strong> ${formatDate(site.created_at)}</p>
+                    <p><strong>Actualizado:</strong> ${formatDate(site.updated_at)}</p>
+                `;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function showTab(tab) {
+            document.getElementById('contentTab').style.display = tab === 'content' ? 'block' : 'none';
+            document.getElementById('statsTab').style.display = tab === 'stats' ? 'block' : 'none';
+            
+            document.getElementById('tab-content').classList.toggle('active', tab === 'content');
+            document.getElementById('tab-stats').classList.toggle('active', tab === 'stats');
+
+            if (tab === 'stats') {
+                loadStats();
+            }
+        }
+
+        loadSite();
+    </script>
+
+    <style>
+        .tab-btn {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #6B7280;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+    </style>
+
+    <script>
+        // Variables globales para manejar productos y galería
+        window.productsData = [];
+        window.galleryData = [];
+
+        // ========== PREVIEW DE IMÁGENES ==========
+
+        function updateImagePreview(inputId, previewId) {
+            const input = document.getElementById(inputId);
+            const preview = document.getElementById(previewId);
+            const url = input.value.trim();
+            
+            if (url) {
+                preview.style.backgroundImage = `url('${url}')`;
+                preview.classList.add('has-image');
+            } else {
+                preview.style.backgroundImage = '';
+                preview.classList.remove('has-image');
+            }
+        }
+
+        // ========== PREVIEW DE COLORES ==========
+
+        function updateColorPreview(type) {
+            const colorInput = document.getElementById(`${type}_color`);
+            const previewBox = document.getElementById(`${type}ColorPreview`);
+            const demoButton = document.getElementById(`demoButton${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            const color = colorInput.value;
+            
+            // Actualizar swatch
+            const swatch = previewBox.querySelector('.color-preview-swatch');
+            swatch.style.backgroundColor = color;
+            
+            // Actualizar botón de demostración
+            demoButton.style.backgroundColor = color;
+            demoButton.style.borderColor = color;
+        }
+
+        // ========== GESTIÓN DE PRODUCTOS ==========
+
+        function loadProductCards(productsJson) {
+            try {
+                const products = productsJson ? JSON.parse(productsJson) : [];
+                window.productsData = products;
+                renderProducts();
+            } catch (e) {
+                console.error('Error parsing products:', e);
+                window.productsData = [];
+                renderProducts();
+            }
+        }
+
+        function renderProducts() {
+            const container = document.getElementById('productsContainer');
+            const noProductsMsg = document.getElementById('noProductsMessage');
+            
+            if (window.productsData.length === 0) {
+                container.style.display = 'none';
+                noProductsMsg.style.display = 'block';
+                return;
+            }
+            
+            container.style.display = 'grid';
+            noProductsMsg.style.display = 'none';
+            
+            container.innerHTML = window.productsData.map((product, index) => `
+                <div class="product-card" data-index="${index}">
+                    <div class="product-image" style="background-image: url('${product.image || 'https://via.placeholder.com/400x300?text=Sin+Imagen'}');">
+                        <button class="product-delete-btn" onclick="deleteProduct(${index})" title="Eliminar">
+                            🗑️
+                        </button>
+                    </div>
+                    <div class="product-content">
+                        <input type="text" class="product-name-input" value="${product.name || ''}" placeholder="Nombre del producto" onchange="updateProduct(${index}, 'name', this.value)">
+                        <textarea class="product-description-input" placeholder="Descripción" onchange="updateProduct(${index}, 'description', this.value)">${product.description || ''}</textarea>
+                        <input type="text" class="product-price-input" value="${product.price || ''}" placeholder="Precio" onchange="updateProduct(${index}, 'price', this.value)">
+                        <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                            <button type="button" onclick="document.getElementById('product_image_${index}').click()" class="btn btn-outline" style="flex: 1; font-size: 0.75rem; padding: 0.4rem;">
+                                📤 Subir
+                            </button>
+                            <button type="button" onclick="toggleProductUrlInput(${index})" class="btn btn-outline" style="flex: 1; font-size: 0.75rem; padding: 0.4rem;">
+                                🔗 URL
+                            </button>
+                        </div>
+                        <input type="file" id="product_image_${index}" accept="image/*" style="display: none;" onchange="uploadProductImage(this, ${index})">
+                        <input type="url" id="product_url_${index}" class="product-image-input" value="${product.image || ''}" placeholder="URL de la imagen" onchange="updateProduct(${index}, 'image', this.value)" style="display: none;">
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addNewProduct() {
+            window.productsData.push({
+                name: "Nuevo Producto",
+                description: "Describe tu producto aquí",
+                price: "0",
+                image: "https://via.placeholder.com/400x300?text=Agregar+Imagen"
+            });
+            renderProducts();
+            showNotification('Producto agregado', 'success');
+        }
+
+        function updateProduct(index, field, value) {
+            if (window.productsData[index]) {
+                window.productsData[index][field] = value;
+                
+                // Si se actualiza la imagen, refrescar el preview
+                if (field === 'image') {
+                    renderProducts();
+                }
+            }
+        }
+
+        function deleteProduct(index) {
+            if (confirm('¿Eliminar este producto?')) {
+                window.productsData.splice(index, 1);
+                renderProducts();
+                showNotification('Producto eliminado', 'success');
+            }
+        }
+
+        // ========== GESTIÓN DE GALERÍA ==========
+
+        function loadGalleryImages(galleryJson) {
+            try {
+                const images = galleryJson ? JSON.parse(galleryJson) : [];
+                window.galleryData = images;
+                renderGallery();
+            } catch (e) {
+                console.error('Error parsing gallery:', e);
+                window.galleryData = [];
+                renderGallery();
+            }
+        }
+
+        function renderGallery() {
+            const container = document.getElementById('galleryContainer');
+            const noGalleryMsg = document.getElementById('noGalleryMessage');
+            
+            if (window.galleryData.length === 0) {
+                container.style.display = 'none';
+                noGalleryMsg.style.display = 'block';
+                return;
+            }
+            
+            container.style.display = 'grid';
+            noGalleryMsg.style.display = 'none';
+            
+            container.innerHTML = window.galleryData.map((imageUrl, index) => `
+                <div class="gallery-item" data-index="${index}">
+                    <div class="gallery-image" style="background-image: url('${imageUrl}');">
+                        <button class="gallery-delete-btn" onclick="deleteGalleryImage(${index})" title="Eliminar">
+                            🗑️
+                        </button>
+                    </div>
+                    <input type="url" class="gallery-url-input" value="${imageUrl}" placeholder="URL de la imagen" onchange="updateGalleryImage(${index}, this.value)">
+                </div>
+            `).join('');
+        }
+
+        function addNewGalleryImage() {
+            // Mostrar opciones: subir o URL
+            const choice = confirm('¿Deseas subir una imagen desde tu computadora?\n\nOK = Subir archivo\nCancelar = Usar URL');
+            
+            if (choice) {
+                // Crear input file temporal
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        await uploadGalleryImage(file);
+                    }
+                };
+                input.click();
+            } else {
+                // Pedir URL
+                const url = prompt('Ingresa la URL de la imagen:', 'https://');
+                if (url && url.trim() !== 'https://') {
+                    window.galleryData.push(url.trim());
+                    renderGallery();
+                    showNotification('Imagen agregada a la galería', 'success');
+                }
+            }
+        }
+
+        function updateGalleryImage(index, value) {
+            if (window.galleryData[index] !== undefined) {
+                window.galleryData[index] = value;
+                renderGallery();
+            }
+        }
+
+        function deleteGalleryImage(index) {
+            if (confirm('¿Eliminar esta imagen de la galería?')) {
+                window.galleryData.splice(index, 1);
+                renderGallery();
+                showNotification('Imagen eliminada', 'success');
+            }
+        }
+
+        // Función para agregar un producto de ejemplo
+        function addProductTemplate() {
+            const productsTextarea = document.getElementById('products_json');
+            let products = [];
+            
+            try {
+                const currentValue = productsTextarea.value.trim();
+                if (currentValue) {
+                    products = JSON.parse(currentValue);
+                }
+            } catch (e) {
+                products = [];
+            }
+            
+            // Agregar producto de ejemplo
+            products.push({
+                name: "Producto Ejemplo",
+                description: "Descripción del producto",
+                price: "50000",
+                image: "https://via.placeholder.com/400x300"
+            });
+            
+            // Actualizar textarea con formato bonito
+            productsTextarea.value = JSON.stringify(products, null, 2);
+            showNotification('Producto de ejemplo agregado', 'success');
+        }
+
+        // ========== FUNCIONES DE UPLOAD DE IMÁGENES ==========
+
+        async function uploadImage(fileInput, targetInputId, previewId) {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // Validar tipo
+            if (!file.type.startsWith('image/')) {
+                showNotification('Por favor selecciona una imagen válida', 'error');
+                return;
+            }
+
+            // Validar tamaño (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('La imagen es muy grande. Máximo 5MB', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('site_id', currentSiteId);
+
+            try {
+                showNotification('Subiendo imagen...', 'info');
+                
+                const response = await fetchAPI('/api/upload-image', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {} // Sin Content-Type para FormData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Actualizar el input con la URL de la imagen subida
+                    const urlInput = document.getElementById(targetInputId);
+                    urlInput.value = window.location.origin + data.url;
+                    
+                    // Actualizar preview
+                    updateImagePreview(targetInputId, previewId);
+                    
+                    showNotification('✅ Imagen subida exitosamente', 'success');
+                } else {
+                    showNotification('Error al subir imagen', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error al subir imagen', 'error');
+            }
+        }
+
+        async function uploadProductImage(fileInput, productIndex) {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // Validar
+            if (!file.type.startsWith('image/')) {
+                showNotification('Por favor selecciona una imagen válida', 'error');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('La imagen es muy grande. Máximo 5MB', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('site_id', currentSiteId);
+
+            try {
+                showNotification('Subiendo imagen...', 'info');
+                
+                const response = await fetchAPI('/api/upload-image', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {}
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Actualizar producto con la nueva URL
+                    const imageUrl = window.location.origin + data.url;
+                    updateProduct(productIndex, 'image', imageUrl);
+                    renderProducts();
+                    
+                    showNotification('✅ Imagen subida exitosamente', 'success');
+                } else {
+                    showNotification('Error al subir imagen', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error al subir imagen', 'error');
+            }
+        }
+
+        async function uploadGalleryImage(file) {
+            if (!file) return;
+
+            // Validar
+            if (!file.type.startsWith('image/')) {
+                showNotification('Por favor selecciona una imagen válida', 'error');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('La imagen es muy grande. Máximo 5MB', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('site_id', currentSiteId);
+
+            try {
+                showNotification('Subiendo imagen...', 'info');
+                
+                const response = await fetchAPI('/api/upload-image', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {}
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Agregar a galería
+                    const imageUrl = window.location.origin + data.url;
+                    window.galleryData.push(imageUrl);
+                    renderGallery();
+                    
+                    showNotification('✅ Imagen subida exitosamente', 'success');
+                } else {
+                    showNotification('Error al subir imagen', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error al subir imagen', 'error');
+            }
+        }
+
+        function toggleUrlInput(type) {
+            const urlInput = document.getElementById(`${type}_image`);
+            if (urlInput.style.display === 'none') {
+                urlInput.style.display = 'block';
+                urlInput.focus();
+            } else {
+                urlInput.style.display = 'none';
+            }
+        }
+
+        function toggleProductUrlInput(index) {
+            const urlInput = document.getElementById(`product_url_${index}`);
+            if (urlInput.style.display === 'none') {
+                urlInput.style.display = 'block';
+                urlInput.focus();
+            } else {
+                urlInput.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

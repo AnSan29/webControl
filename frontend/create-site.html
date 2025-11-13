@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Sitio - Control de Sitios</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container flex items-center justify-between">
+            <a href="/dashboard" class="navbar-brand">🎨 Control de Sitios</a>
+            <ul class="navbar-nav">
+                <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
+                <li><a href="/models" class="nav-link">Modelos</a></li>
+                <li><a href="/create-site" class="nav-link active">Crear Sitio</a></li>
+                <li><a href="#" onclick="logout()" class="nav-link">Cerrar Sesión</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main style="padding: 2rem 0;">
+        <div class="container" style="max-width: 800px;">
+            <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 2rem;">Crear Nuevo Sitio</h1>
+            
+            <div class="card">
+                <form id="createSiteForm">
+                    <div class="form-group">
+                        <label class="form-label">Modelo de Negocio</label>
+                        <select id="model_type" name="model_type" class="form-select" required>
+                            <option value="">Selecciona un modelo...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Nombre del Negocio</label>
+                        <input type="text" id="name" name="name" class="form-input" placeholder="Ej: Artesanías La Tradición" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Descripción</label>
+                        <textarea id="description" name="description" class="form-textarea" placeholder="Describe tu negocio..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Título Principal</label>
+                        <input type="text" id="hero_title" name="hero_title" class="form-input" placeholder="Ej: Bienvenido a mi negocio">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Subtítulo</label>
+                        <input type="text" id="hero_subtitle" name="hero_subtitle" class="form-input" placeholder="Ej: Productos de calidad">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Sobre Nosotros</label>
+                        <textarea id="about_text" name="about_text" class="form-textarea" placeholder="Cuéntanos sobre tu negocio..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email de Contacto</label>
+                        <input type="email" id="contact_email" name="contact_email" class="form-input" placeholder="contacto@example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Teléfono</label>
+                        <input type="tel" id="contact_phone" name="contact_phone" class="form-input" placeholder="+1 234 567 8900">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Dirección</label>
+                        <input type="text" id="contact_address" name="contact_address" class="form-input" placeholder="Calle Principal #123">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Dominio Personalizado (Opcional)</label>
+                        <input type="text" id="custom_domain" name="custom_domain" class="form-input" placeholder="www.minegocio.com">
+                        <small style="color: #6B7280;">Necesitarás configurar los DNS de tu dominio</small>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="submit" class="btn btn-primary">Crear Sitio</button>
+                        <a href="/dashboard" class="btn btn-outline">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        async function init() {
+            const isAuth = await checkAuth();
+            if (!isAuth) return;
+
+            // Cargar modelos en el select
+            const models = await loadBusinessModels();
+            const select = document.getElementById('model_type');
+            
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model.id;
+                option.textContent = `${model.icon} ${model.name}`;
+                select.appendChild(option);
+            });
+
+            // Si viene modelo en URL, pre-seleccionarlo
+            const urlParams = new URLSearchParams(window.location.search);
+            const modelParam = urlParams.get('model');
+            if (modelParam) {
+                select.value = modelParam;
+            }
+        }
+
+        document.getElementById('createSiteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const response = await fetchAPI('/api/sites', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification('Sitio creado exitosamente', 'success');
+                    setTimeout(() => {
+                        window.location.href = `/editor/${result.id}`;
+                    }, 1000);
+                } else {
+                    showNotification(result.detail || 'Error al crear sitio', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error al crear sitio', 'error');
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
