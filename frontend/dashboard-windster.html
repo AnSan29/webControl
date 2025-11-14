@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - WebControl Studio</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+<!-- Navbar -->
+<nav class="bg-white border-b border-gray-200 fixed z-30 w-full">
+    <div class="px-3 py-3 lg:px-5 lg:pl-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center justify-start">
+                <button id="toggleSidebarMobile" aria-expanded="true" aria-controls="sidebar" class="lg:hidden mr-2 text-gray-600 hover:text-gray-900 cursor-pointer p-2 hover:bg-gray-100 focus:bg-gray-100 focus:ring-2 focus:ring-gray-100 rounded">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+                <a href="/dashboard-windster.html" class="text-xl font-bold flex items-center lg:ml-2.5">
+                    <i class="fas fa-globe text-blue-600 mr-2"></i>
+                    <span class="self-center whitespace-nowrap">WebControl Studio</span> 
+                </a>
+            </div>
+            <div class="flex items-center">
+                <button id="userMenuButton" type="button" class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300">
+                    <span class="sr-only">Abrir menú de usuario</span>
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </button>
+                <div id="userMenu" class="hidden z-50 my-4 text-base list-none bg-white rounded divide-y divide-gray-100 shadow absolute right-0 top-12">
+                    <div class="py-3 px-4">
+                        <span class="block text-sm text-gray-900" id="userName">Admin</span>
+                        <span class="block text-sm font-medium text-gray-500 truncate" id="userEmail">admin@webcontrol.com</span>
+                    </div>
+                    <ul class="py-1">
+                        <li>
+                            <a href="#" onclick="logout()" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Cerrar sesión</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="fixed hidden z-20 h-full top-0 left-0 pt-16 lg:flex flex-shrink-0 flex-col w-64 transition-width duration-75" aria-label="Sidebar">
+    <div class="relative flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white pt-0">
+        <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+            <div class="flex-1 px-3 bg-white divide-y space-y-1">
+                <ul class="space-y-2 pb-2">
+                    <li>
+                        <a href="/dashboard-windster.html" class="text-base text-gray-900 font-normal rounded-lg flex items-center p-2 bg-gray-100 group">
+                            <i class="fas fa-th-large w-6 h-6 text-gray-500 group-hover:text-gray-900 transition duration-75"></i>
+                            <span class="ml-3">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/create-site-windster.html" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2 group">
+                            <i class="fas fa-plus-circle w-6 h-6 text-gray-500 group-hover:text-gray-900 transition duration-75"></i>
+                            <span class="ml-3">Crear Sitio</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/models-windster.html" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2 group">
+                            <i class="fas fa-layer-group w-6 h-6 text-gray-500 group-hover:text-gray-900 transition duration-75"></i>
+                            <span class="ml-3">Modelos</span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="space-y-2 pt-2">
+                    <a href="https://github.com/AnSan29/webControl" target="_blank" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 group transition duration-75 flex items-center p-2">
+                        <i class="fab fa-github w-6 h-6 text-gray-500 group-hover:text-gray-900 transition duration-75"></i>
+                        <span class="ml-3">GitHub</span>
+                    </a>
+                    <a href="#" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 group transition duration-75 flex items-center p-2">
+                        <i class="fas fa-book w-6 h-6 text-gray-500 group-hover:text-gray-900 transition duration-75"></i>
+                        <span class="ml-3">Documentación</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<div class="bg-gray-900 opacity-50 hidden fixed inset-0 z-10" id="sidebarBackdrop"></div>
+
+<!-- Main Content -->
+<div class="flex overflow-hidden bg-white pt-16">
+    <div id="main-content" class="h-full w-full bg-gray-50 relative overflow-y-auto lg:ml-64">
+        <main>
+            <div class="pt-6 px-4">
+                <!-- Page Title -->
+                <div class="mb-4">
+                    <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+                    <p class="mt-2 text-sm text-gray-600">Gestiona todos tus sitios web desde un solo lugar</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white rounded-lg shadow p-6 border border-gray-200 fade-in">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                                    <i class="fas fa-globe text-blue-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Total Sitios</p>
+                                <p class="text-2xl font-bold text-gray-900" id="totalSites">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow p-6 border border-gray-200 fade-in" style="animation-delay: 0.1s">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
+                                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Publicados</p>
+                                <p class="text-2xl font-bold text-gray-900" id="publishedSites">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow p-6 border border-gray-200 fade-in" style="animation-delay: 0.2s">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 rounded-lg bg-yellow-100 flex items-center justify-center">
+                                    <i class="fas fa-pencil-alt text-yellow-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">En Borrador</p>
+                                <p class="text-2xl font-bold text-gray-900" id="draftSites">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow p-6 border border-gray-200 fade-in" style="animation-delay: 0.3s">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                                    <i class="fas fa-eye text-purple-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-500">Visitas Totales</p>
+                                <p class="text-2xl font-bold text-gray-900" id="totalViews">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="mb-6 flex flex-col sm:flex-row gap-4">
+                    <a href="/create-site-windster.html" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-plus mr-2"></i>
+                        Crear Nuevo Sitio
+                    </a>
+                    <button onclick="refreshDashboard()" class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        Actualizar
+                    </button>
+                </div>
+
+                <!-- Sites Table -->
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h2 class="text-xl font-semibold text-gray-900">Mis Sitios Web</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Sitio
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Modelo
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Estado
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Visitas
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Acciones
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="sitesTableBody" class="bg-white divide-y divide-gray-200">
+                                <!-- Sites will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="hidden bg-white rounded-lg shadow p-12 text-center">
+                    <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                        <i class="fas fa-globe text-gray-400 text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-medium text-gray-900 mb-2">No tienes sitios web aún</h3>
+                    <p class="text-gray-500 mb-6">Comienza creando tu primer sitio web con nuestros modelos predefinidos</p>
+                    <a href="/create-site-windster.html" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700">
+                        <i class="fas fa-plus mr-2"></i>
+                        Crear Mi Primer Sitio
+                    </a>
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:8000/api';
+    let token = localStorage.getItem('token');
+
+    // Toggle mobile sidebar
+    const toggleSidebarMobile = document.getElementById('toggleSidebarMobile');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+    toggleSidebarMobile.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
+        sidebarBackdrop.classList.toggle('hidden');
+    });
+
+    sidebarBackdrop.addEventListener('click', () => {
+        sidebar.classList.add('hidden');
+        sidebarBackdrop.classList.add('hidden');
+    });
+
+    // User menu toggle
+    const userMenuButton = document.getElementById('userMenuButton');
+    const userMenu = document.getElementById('userMenu');
+
+    userMenuButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        userMenu.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!userMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
+            userMenu.classList.add('hidden');
+        }
+    });
+
+    // Check authentication
+    if (!token) {
+        window.location.href = '/login.html';
+    }
+
+    // Load user info
+    async function loadUserInfo() {
+        try {
+            const response = await fetch(`${API_URL}/me`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            document.getElementById('userName').textContent = data.username;
+            document.getElementById('userEmail').textContent = data.email;
+        } catch (error) {
+            console.error('Error loading user info:', error);
+        }
+    }
+
+    // Load dashboard stats
+    async function loadStats() {
+        try {
+            const response = await fetch(`${API_URL}/dashboard/stats`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const stats = await response.json();
+            
+            document.getElementById('totalSites').textContent = stats.total_sites || 0;
+            document.getElementById('publishedSites').textContent = stats.published_sites || 0;
+            document.getElementById('draftSites').textContent = stats.draft_sites || 0;
+            document.getElementById('totalViews').textContent = stats.total_visits || 0;
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+
+    // Load sites
+    async function loadSites() {
+        try {
+            const response = await fetch(`${API_URL}/sites`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const sites = await response.json();
+
+            const tbody = document.getElementById('sitesTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const table = tbody.closest('.bg-white');
+
+            if (sites.length === 0) {
+                table.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            table.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+
+            tbody.innerHTML = sites.map(site => `
+                <tr class="hover:bg-gray-50 fade-in">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <div class="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                                    <i class="fas fa-${getModelIcon(site.model_type)} text-blue-600"></i>
+                                </div>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${site.name}</div>
+                                <div class="text-sm text-gray-500">${site.description || 'Sin descripción'}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                            ${getModelName(site.model_type)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${site.is_published 
+                            ? '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"><i class="fas fa-check-circle mr-1"></i> Publicado</span>'
+                            : '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800"><i class="fas fa-pencil-alt mr-1"></i> Borrador</span>'
+                        }
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div class="flex items-center">
+                            <i class="fas fa-eye mr-2 text-gray-400"></i>
+                            ${site.visits || 0}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                        <a href="/editor-windster.html?id=${site.id}" class="text-blue-600 hover:text-blue-900">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        ${site.github_url 
+                            ? `<a href="${site.github_url}" target="_blank" class="text-green-600 hover:text-green-900">
+                                <i class="fas fa-external-link-alt"></i> Ver
+                            </a>`
+                            : ''
+                        }
+                        <button onclick="deleteSite(${site.id})" class="text-red-600 hover:text-red-900">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading sites:', error);
+        }
+    }
+
+    function getModelIcon(modelType) {
+        const icons = {
+            'artesanias': 'palette',
+            'cocina': 'utensils',
+            'belleza': 'cut',
+            'adecuaciones': 'tools',
+            'chivos': 'paw'
+        };
+        return icons[modelType] || 'globe';
+    }
+
+    function getModelName(modelType) {
+        const names = {
+            'artesanias': 'Artesanías',
+            'cocina': 'Cocina',
+            'belleza': 'Belleza',
+            'adecuaciones': 'Adecuaciones',
+            'chivos': 'Ganadería'
+        };
+        return names[modelType] || modelType;
+    }
+
+    async function deleteSite(id) {
+        if (!confirm('¿Estás seguro de que quieres eliminar este sitio?')) return;
+
+        try {
+            await fetch(`${API_URL}/sites/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            await refreshDashboard();
+        } catch (error) {
+            console.error('Error deleting site:', error);
+            alert('Error al eliminar el sitio');
+        }
+    }
+
+    async function refreshDashboard() {
+        await Promise.all([loadStats(), loadSites()]);
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        window.location.href = '/login.html';
+    }
+
+    // Initialize
+    loadUserInfo();
+    refreshDashboard();
+</script>
+
+</body>
+</html>
