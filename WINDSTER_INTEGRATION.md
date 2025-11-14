@@ -18,11 +18,10 @@ WebControl Studio ahora utiliza la plantilla **Windster v1.1.0** (Tailwind CSS D
 
 ```
 frontend/
-├── dashboard-windster.html      # Dashboard principal con plantilla Windster
-├── create-site-windster.html    # Crear sitio con plantilla Windster  
-├── editor-windster.html         # Editor de sitio con plantilla Windster
-├── models-windster.html         # Catálogo de modelos con plantilla Windster
-└── login-windster.html          # Login con plantilla Windster
+├── dashboard-windster.html      # Dashboard principal (Windster)
+├── create-site-windster.html    # Asistente guiado para nuevos sitios
+├── models-windster.html         # Biblioteca completa de modelos
+└── login-windster.html          # Login moderno Tailwind
 ```
 
 ### Archivos Originales (Mantenidos)
@@ -31,7 +30,7 @@ frontend/
 frontend/
 ├── dashboard.html               # Dashboard original
 ├── create-site.html             # Crear sitio original
-├── editor.html                  # Editor original
+├── editor.html                  # Editor visual (rediseñado con Windster)
 ├── models.html                  # Modelos original
 └── login.html                   # Login original
 ```

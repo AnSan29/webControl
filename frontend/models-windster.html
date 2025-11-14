@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelos de negocio | WebControl Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-p1CmS7C1LlN0JFDaRao7IhiHBpjz2uVH54camzato3trENcGukdxbYlR5Blt3F4iAfDdc0AGJi/7w3W7C04+4A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+            100% { transform: translateY(0); }
+        }
+        .float-card {
+            animation: float 6s ease-in-out infinite;
+        }
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+            transition: all 0.2s ease;
+        }
+        .filter-chip.active {
+            background: #2563eb;
+            color: white;
+            border-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-gray-200 fixed z-30 w-full">
+        <div class="px-3 py-3 lg:px-5 lg:pl-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center justify-start">
+                    <button id="toggleSidebarMobile" class="lg:hidden mr-2 text-gray-600 hover:text-gray-900 cursor-pointer p-2 hover:bg-gray-100 focus:bg-gray-100 focus:ring-2 focus:ring-gray-100 rounded">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
+                    </button>
+                    <a href="/dashboard" class="text-xl font-bold flex items-center lg:ml-2.5">
+                        <i class="fas fa-globe text-blue-600 mr-2"></i>
+                        <span>WebControl Studio</span>
+                    </a>
+                </div>
+                <div class="flex items-center">
+                    <button id="userMenuButton" type="button" class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300">
+                        <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </button>
+                    <div id="userMenu" class="hidden z-50 my-4 text-base list-none bg-white rounded divide-y divide-gray-100 shadow absolute right-0 top-12">
+                        <div class="py-3 px-4">
+                            <span class="block text-sm text-gray-900" id="userName">Admin</span>
+                            <span class="block text-sm font-medium text-gray-500 truncate" id="userEmail">admin@webcontrol.com</span>
+                        </div>
+                        <ul class="py-1">
+                            <li>
+                                <a href="#" onclick="logout()" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Cerrar sesión</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed hidden z-20 h-full top-0 left-0 pt-16 lg:flex flex-shrink-0 flex-col w-64 transition-width duration-75" aria-label="Sidebar">
+        <div class="relative flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white pt-0">
+            <div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+                <div class="flex-1 px-3 bg-white divide-y space-y-1">
+                    <ul class="space-y-2 pb-2">
+                        <li>
+                            <a href="/dashboard" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2 group">
+                                <i class="fas fa-th-large w-6 h-6 text-gray-500 group-hover:text-gray-900"></i>
+                                <span class="ml-3">Dashboard</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/create-site" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2 group">
+                                <i class="fas fa-plus-circle w-6 h-6 text-gray-500 group-hover:text-gray-900"></i>
+                                <span class="ml-3">Crear Sitio</span>
+                            </a>
+                        </li>
+                        <li>
+                            <span class="text-base text-blue-700 font-semibold rounded-lg flex items-center p-2 bg-blue-50 border border-blue-100">
+                                <i class="fas fa-layer-group w-6 h-6 text-blue-500"></i>
+                                <span class="ml-3">Modelos</span>
+                            </span>
+                        </li>
+                    </ul>
+                    <div class="space-y-2 pt-2">
+                        <a href="https://github.com/AnSan29/webControl" target="_blank" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2">
+                            <i class="fab fa-github w-6 h-6 text-gray-500"></i>
+                            <span class="ml-3">Repositorio</span>
+                        </a>
+                        <a href="/dashboard" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2">
+                            <i class="fas fa-book-open w-6 h-6 text-gray-500"></i>
+                            <span class="ml-3">Guías rápidas</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="bg-gray-900 opacity-50 hidden fixed inset-0 z-10" id="sidebarBackdrop"></div>
+
+    <!-- Main Content -->
+    <div class="flex overflow-hidden bg-white pt-16">
+        <div id="main-content" class="h-full w-full bg-gray-50 relative overflow-y-auto lg:ml-64">
+            <main>
+                <div class="pt-6 px-4">
+                    <div class="mb-8">
+                        <p class="text-sm font-semibold text-blue-600 uppercase tracking-wide">Modelos preconfigurados</p>
+                        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                            <div>
+                                <h1 class="text-3xl font-bold text-gray-900">Biblioteca de experiencias</h1>
+                                <p class="mt-2 text-gray-600">Elige una plantilla curada para cada tipo de negocio y publícala en minutos.</p>
+                            </div>
+                            <div class="flex flex-wrap gap-3">
+                                <button id="filterAll" class="filter-chip active">Todos</button>
+                                <button data-filter="artesanias" class="filter-chip">Artesanías</button>
+                                <button data-filter="cocina" class="filter-chip">Gastronomía</button>
+                                <button data-filter="belleza" class="filter-chip">Belleza</button>
+                                <button data-filter="adecuaciones" class="filter-chip">Servicios</button>
+                                <button data-filter="chivos" class="filter-chip">Agro</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-[2fr,1fr] gap-6 mb-8">
+                        <div class="bg-white rounded-2xl shadow p-6 border border-gray-100">
+                            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-500">Nuevo</p>
+                                    <h2 class="text-2xl font-bold text-gray-900 mt-1">Plantillas con storytelling</h2>
+                                    <p class="text-gray-600 mt-2">Cada modelo incluye textos, imágenes y paletas listas para personalizar.</p>
+                                </div>
+                                <a href="/create-site" class="inline-flex items-center px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/30 hover:bg-blue-700">
+                                    <i class="fas fa-wand-magic mr-2"></i>
+                                    Crear con asistente
+                                </a>
+                            </div>
+                        </div>
+                        <div class="float-card bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl shadow-xl p-6">
+                            <p class="text-sm uppercase tracking-wide text-white/80">Tip estratégico</p>
+                            <h3 class="text-2xl font-bold mt-2">Duplica un modelo, edita y publica versiones estacionales en segundos.</h3>
+                            <p class="mt-3 text-white/80">Ideal para campañas navideñas o lanzamientos relámpago.</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-6 flex flex-col sm:flex-row gap-4">
+                        <div class="flex-1 relative">
+                            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400"><i class="fas fa-search"></i></span>
+                            <input id="searchInput" type="text" placeholder="Buscar modelo por nombre, concepto o industria" class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-200 focus:border-blue-500" />
+                        </div>
+                        <button id="sortButton" class="inline-flex items-center px-5 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50">
+                            <i class="fas fa-sort mr-2"></i>
+                            Ordenar por popularidad
+                        </button>
+                    </div>
+
+                    <div id="modelsGrid" class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                        <!-- Cards dynamically injected -->
+                    </div>
+
+                    <div id="emptyState" class="hidden mt-12 text-center bg-white border border-dashed border-gray-200 rounded-2xl p-12">
+                        <div class="mx-auto w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl mb-4">
+                            <i class="fas fa-shapes"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900">No encontramos resultados</h3>
+                        <p class="mt-2 text-gray-500">Ajusta los filtros o prueba con otro término de búsqueda.</p>
+                        <button onclick="resetFilters()" class="mt-4 inline-flex items-center px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold">
+                            Restablecer filtros
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        const toggleSidebarMobile = document.getElementById('toggleSidebarMobile');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+        const userMenuButton = document.getElementById('userMenuButton');
+        const userMenu = document.getElementById('userMenu');
+        const modelsGrid = document.getElementById('modelsGrid');
+        const emptyState = document.getElementById('emptyState');
+        const searchInput = document.getElementById('searchInput');
+        const sortButton = document.getElementById('sortButton');
+        const filterChips = document.querySelectorAll('.filter-chip');
+        let modelsData = [];
+        let currentFilter = 'all';
+        let sortDesc = true;
+
+        toggleSidebarMobile.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+            sidebarBackdrop.classList.toggle('hidden');
+        });
+        sidebarBackdrop.addEventListener('click', () => {
+            sidebar.classList.add('hidden');
+            sidebarBackdrop.classList.add('hidden');
+        });
+
+        userMenuButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userMenu.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!userMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
+                userMenu.classList.add('hidden');
+            }
+        });
+
+        async function loadUserProfile() {
+            try {
+                const response = await fetchAPI('/api/me');
+                if (!response) return;
+                const data = await response.json();
+                document.getElementById('userName').textContent = data.email.split('@')[0];
+                document.getElementById('userEmail').textContent = data.email;
+            } catch (error) {
+                console.error('Error loading profile', error);
+            }
+        }
+
+        function normalizePalette(palette) {
+            if (!palette) return null;
+            return {
+                primary: palette.primary || palette.primary_color,
+                secondary: palette.secondary || palette.secondary_color,
+                accent: palette.accent || palette.tertiary || palette.accent_color,
+                background: palette.background || palette.neutral || palette.background_color
+            };
+        }
+
+        function renderPaletteStrips(palette, fallbackPalette) {
+            const colors = [];
+            const source = palette || fallbackPalette || {};
+            if (source.primary) colors.push(source.primary);
+            if (source.secondary) colors.push(source.secondary);
+            if (source.accent) colors.push(source.accent);
+            if (source.background) colors.push(source.background);
+            return colors.length
+                ? colors.map(color => `<span class="flex-1 h-2 rounded-full" style="background:${color}"></span>`).join('')
+                : '<span class="text-xs text-gray-400">Sin paleta</span>';
+        }
+
+        function renderModels(models) {
+            if (!models.length) {
+                modelsGrid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+                modelsGrid.innerHTML = models.map(model => {
+                    const curated = getPalettesForModel(model.id);
+                    const normalizedPalette = normalizePalette(model.palette);
+                    const initialPalette = curated[0] || normalizedPalette;
+                return `
+                    <article class="bg-white rounded-2xl shadow-md border border-gray-100 hover:shadow-xl transition p-6 flex flex-col">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <div class="text-3xl">${model.icon || '🎨'}</div>
+                                <h3 class="mt-3 text-xl font-bold text-gray-900">${model.name}</h3>
+                                <p class="text-sm text-gray-500">${model.concept || ''}</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-600">${model.industry || 'Negocio local'}</span>
+                        </div>
+                        <p class="mt-4 text-gray-600 flex-1">${model.description}</p>
+                            <div class="mt-4 flex gap-2" id="palette-bars-${model.id}">
+                                ${renderPaletteStrips(initialPalette, normalizedPalette)}
+                            </div>
+                            ${curated.length ? `
+                            <div class="mt-4">
+                                <label class="text-xs font-semibold text-gray-500 uppercase">Paleta recomendada</label>
+                                <select class="palette-select mt-2 w-full rounded-xl border border-gray-200 py-2.5 px-3 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500" data-model="${model.id}">
+                                    ${curated.map((palette, index) => `<option value="${palette.id}" ${index === 0 ? 'selected' : ''}>${palette.label}</option>`).join('')}
+                                </select>
+                            </div>` : ''}
+                        <div class="mt-6 flex flex-wrap gap-2 text-xs text-gray-500">
+                            ${(model.tags || []).map(tag => `<span class="px-2 py-1 rounded-full bg-gray-100">${tag}</span>`).join('')}
+                        </div>
+                        <div class="mt-6 grid grid-cols-2 gap-3">
+                            <a href="/create-site?model=${model.id}" class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold">
+                                <i class="fas fa-play mr-2"></i>
+                                Usar modelo
+                            </a>
+                                <button onclick='showPalette("${model.id}", ${JSON.stringify(model.palette || {})})' class="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50">
+                                <i class="fas fa-palette mr-2"></i>
+                                Paleta
+                            </button>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+                setupPaletteSelects();
+        }
+
+        function applyFilters() {
+            const term = searchInput.value.toLowerCase();
+            let filtered = [...modelsData];
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(model => model.id === currentFilter);
+            }
+            if (term) {
+                filtered = filtered.filter(model => (
+                    model.name.toLowerCase().includes(term) ||
+                    (model.description || '').toLowerCase().includes(term) ||
+                    (model.concept || '').toLowerCase().includes(term)
+                ));
+            }
+            filtered.sort((a, b) => sortDesc ? (b.score || 0) - (a.score || 0) : (a.score || 0) - (b.score || 0));
+            renderModels(filtered);
+        }
+
+        function showPalette(modelId, paletteFromModel) {
+            const curated = getPalettesForModel(modelId);
+            const normalized = normalizePalette(paletteFromModel);
+            const paletteList = curated.length ? curated : (normalized ? [{ label: 'Base del modelo', ...normalized }] : []);
+            if (!paletteList.length) {
+                alert('Este modelo aún no tiene paletas definidas.');
+                return;
+            }
+            const message = paletteList.map(palette => `${palette.label || 'Paleta'}:\n  Primario: ${palette.primary}\n  Secundario: ${palette.secondary}\n  Acento: ${palette.accent}\n  Fondo: ${palette.background}`).join('\n\n');
+            alert(`Paletas disponibles:\n\n${message}`);
+        }
+
+        function setupPaletteSelects() {
+            document.querySelectorAll('.palette-select').forEach(select => {
+                select.addEventListener('change', (event) => {
+                    const modelId = event.target.dataset.model;
+                    const palette = findPaletteForModel(modelId, event.target.value);
+                    const bars = document.getElementById(`palette-bars-${modelId}`);
+                    if (palette && bars) {
+                        bars.innerHTML = renderPaletteStrips(palette);
+                    }
+                });
+            });
+        }
+
+        filterChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                filterChips.forEach(c => c.classList.remove('active', 'bg-blue-600', 'text-white'));
+                chip.classList.add('active', 'bg-blue-600', 'text-white');
+                currentFilter = chip.dataset.filter || 'all';
+                applyFilters();
+            });
+        });
+
+        searchInput.addEventListener('input', () => applyFilters());
+        sortButton.addEventListener('click', () => {
+            sortDesc = !sortDesc;
+            sortButton.querySelector('i').classList.toggle('fa-sort-amount-down');
+            sortButton.querySelector('i').classList.toggle('fa-sort-amount-up');
+            applyFilters();
+        });
+
+        async function init() {
+            const isAuth = await checkAuth();
+            if (!isAuth) return;
+            await loadUserProfile();
+            const modelsResponse = await loadBusinessModels();
+            modelsData = modelsResponse || [];
+            modelsData = modelsData.map((model, index) => ({ ...model, score: modelsData.length - index }));
+            applyFilters();
+        }
+
+        init();
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+
+        function resetFilters() {
+            currentFilter = 'all';
+            searchInput.value = '';
+            document.querySelectorAll('.filter-chip').forEach((chip, idx) => {
+                chip.classList.toggle('bg-blue-600', idx === 0);
+                chip.classList.toggle('text-white', idx === 0);
+                if (idx === 0) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+            applyFilters();
+        }
+    </script>
+</body>
+</html>

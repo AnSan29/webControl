@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingresar | WebControl Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                            950: '#172554'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-p1CmS7C1LlN0JFDaRao7IhiHBpjz2uVH54camzato3trENcGukdxbYlR5Blt3F4iAfDdc0AGJi/7w3W7C04+4A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body class="bg-slate-950">
+    <div class="min-h-screen flex flex-col lg:flex-row">
+        <!-- Brand Panel -->
+        <section class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary-800 text-white">
+            <div class="absolute inset-0 bg-gradient-to-br from-primary-900 via-primary-700 to-slate-900 opacity-95"></div>
+            <div class="relative z-10 flex flex-col justify-between p-12 space-y-12">
+                <div>
+                    <div class="flex items-center space-x-3 text-2xl font-semibold">
+                        <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                            <i class="fas fa-globe text-white text-xl"></i>
+                        </div>
+                        <span>WebControl Studio</span>
+                    </div>
+                    <h1 class="mt-10 text-4xl font-bold leading-tight">Crea, personaliza y publica sitios profesionales en minutos.</h1>
+                    <p class="mt-6 text-lg text-white/80">Gestiona múltiples negocios, centraliza tus métricas y publica directamente en GitHub Pages sin salir del panel.</p>
+                </div>
+                <div class="space-y-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+                            <i class="fas fa-chart-line text-white"></i>
+                        </div>
+                        <div>
+                            <p class="text-white font-semibold">Panel analítico en tiempo real</p>
+                            <p class="text-white/70 text-sm">Monitorea visitas, publicaciones y desempeño de cada sitio.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+                            <i class="fas fa-rocket text-white"></i>
+                        </div>
+                        <div>
+                            <p class="text-white font-semibold">Publicación automática</p>
+                            <p class="text-white/70 text-sm">Integración directa con GitHub Pages y dominios personalizados.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="absolute -bottom-20 -right-24 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+        </section>
+
+        <!-- Form Panel -->
+        <section class="flex-1 flex items-center justify-center bg-white">
+            <div class="w-full max-w-md p-8">
+                <div class="mb-8">
+                    <p class="text-sm font-semibold text-primary-600 tracking-wide uppercase">Bienvenido de nuevo</p>
+                    <h2 class="mt-2 text-3xl font-bold text-slate-900">Panel administrativo</h2>
+                    <p class="mt-2 text-slate-500">Usa tus credenciales para acceder al dashboard. ¿Aún no tienes una cuenta? Contacta al administrador.</p>
+                </div>
+
+                <div id="loginAlert" class="hidden mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"></div>
+
+                <form id="loginForm" class="space-y-6">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-slate-700">Correo electrónico</label>
+                        <div class="mt-2 relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+                            <input type="email" id="email" name="username" required autocomplete="email" class="block w-full rounded-xl border border-slate-200 py-3 pl-10 pr-3 text-slate-900 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200" placeholder="admin@example.com">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-slate-700">Contraseña</label>
+                        <div class="mt-2 relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" id="password" name="password" required autocomplete="current-password" class="block w-full rounded-xl border border-slate-200 py-3 pl-10 pr-12 text-slate-900 shadow-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-200" placeholder="••••••••">
+                            <button type="button" id="togglePassword" class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-primary-500">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center text-sm text-slate-600">
+                            <input id="rememberMe" type="checkbox" class="rounded border-slate-300 text-primary-600 focus:ring-primary-500">
+                            <span class="ml-2">Mantener sesión activa</span>
+                        </label>
+                        <a href="https://github.com/AnSan29/webControl" target="_blank" class="text-sm font-medium text-primary-600 hover:text-primary-700">Ver documentación</a>
+                    </div>
+
+                    <button id="loginButton" type="submit" class="w-full inline-flex items-center justify-center rounded-xl bg-primary-600 px-4 py-3 font-semibold text-white shadow-lg shadow-primary-600/30 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition">
+                        <span id="loginButtonText" class="inline-flex items-center">
+                            <i class="fas fa-arrow-right-to-bracket mr-2"></i>
+                            Ingresar
+                        </span>
+                        <span id="loginSpinner" class="ml-3 hidden h-5 w-5 border-2 border-white/40 border-t-white rounded-full animate-spin"></span>
+                    </button>
+                </form>
+
+                <p class="mt-8 text-center text-sm text-slate-500">Soporte 24/7 • Deploy automático • Seguridad JWT</p>
+            </div>
+        </section>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 right-6 hidden rounded-2xl bg-slate-900 text-white px-5 py-3 shadow-xl"></div>
+
+    <script>
+        const loginAlert = document.getElementById('loginAlert');
+        const loginButton = document.getElementById('loginButton');
+        const loginSpinner = document.getElementById('loginSpinner');
+        const loginButtonText = document.getElementById('loginButtonText');
+        const toast = document.getElementById('toast');
+
+        if (localStorage.getItem('token')) {
+            window.location.href = '/dashboard';
+        }
+
+        document.getElementById('togglePassword').addEventListener('click', () => {
+            const passwordInput = document.getElementById('password');
+            const icon = document.querySelector('#togglePassword i');
+            const isVisible = passwordInput.type === 'text';
+            passwordInput.type = isVisible ? 'password' : 'text';
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+
+        function setLoading(state) {
+            loginButton.disabled = state;
+            loginSpinner.classList.toggle('hidden', !state);
+            loginButtonText.classList.toggle('hidden', state);
+        }
+
+        function showAlert(message) {
+            loginAlert.textContent = message;
+            loginAlert.classList.remove('hidden');
+        }
+
+        function showToast(message, type = 'success') {
+            toast.textContent = message;
+            toast.classList.remove('hidden');
+            toast.classList.remove('bg-slate-900', 'bg-red-600');
+            toast.classList.add(type === 'success' ? 'bg-slate-900' : 'bg-red-600');
+            setTimeout(() => toast.classList.add('hidden'), 3200);
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            loginAlert.classList.add('hidden');
+            setLoading(true);
+
+            const formData = new FormData(event.target);
+
+            try {
+                const response = await fetch('/api/login', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('email', data.email);
+                    if (document.getElementById('rememberMe').checked) {
+                        localStorage.setItem('remember_login', 'true');
+                    }
+                    showToast('Autenticación exitosa');
+                    setTimeout(() => window.location.href = '/dashboard', 600);
+                } else {
+                    showAlert(data.detail || 'Credenciales inválidas.');
+                }
+            } catch (error) {
+                showAlert('No se pudo conectar con el servidor. Intenta nuevamente.');
+            } finally {
+                setLoading(false);
+            }
+        });
+    </script>
+</body>
+</html>

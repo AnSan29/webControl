@@ -51,11 +51,13 @@ webcontrol_studio/
 │       ├── github_api.py    # GitHub Pages integration
 │       └── template_engine.py # Dynamic HTML/CSS generation
 ├── frontend/
-│   ├── login.html           # Sistema de autenticación
-│   ├── dashboard.html       # Panel principal
-│   ├── models.html          # Selección de modelos
-│   ├── create-site.html     # Creación de sitios
-│   ├── editor.html          # Editor visual ⭐ NUEVO
+│   ├── login-windster.html  # Login moderno (por defecto)
+│   ├── dashboard-windster.html # Dashboard profesional con Windster
+│   ├── models-windster.html # Catálogo de plantillas
+│   ├── create-site-windster.html # Asistente guiado de creación
+│   ├── editor.html          # Editor visual ⭐ NUEVO (rediseñado)
+│   ├── login.html           # Versión clásica (legacy)
+│   ├── dashboard.html       # Dashboard original (legacy)
 │   └── static/
 │       ├── css/
 │       │   └── main.css     # Estilos profesionales

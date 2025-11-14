@@ -69,13 +69,20 @@ with open(Path(__file__).parent / "seed_data.json", 'r', encoding='utf-8') as f:
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Página de login"""
-    with open(frontend_path / "login.html", 'r', encoding='utf-8') as f:
+    with open(frontend_path / "login-windster.html", 'r', encoding='utf-8') as f:
         return f.read()
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard():
-    """Panel principal"""
+    """Panel principal - Windster version"""
+    with open(frontend_path / "dashboard-windster.html", 'r', encoding='utf-8') as f:
+        return f.read()
+
+
+@app.get("/dashboard-old", response_class=HTMLResponse)
+async def dashboard_old():
+    """Panel principal - Versión original"""
     with open(frontend_path / "dashboard.html", 'r', encoding='utf-8') as f:
         return f.read()
 
@@ -83,14 +90,14 @@ async def dashboard():
 @app.get("/models", response_class=HTMLResponse)
 async def models_page():
     """Página de modelos"""
-    with open(frontend_path / "models.html", 'r', encoding='utf-8') as f:
+    with open(frontend_path / "models-windster.html", 'r', encoding='utf-8') as f:
         return f.read()
 
 
 @app.get("/create-site", response_class=HTMLResponse)
 async def create_site_page():
     """Página de crear sitio"""
-    with open(frontend_path / "create-site.html", 'r', encoding='utf-8') as f:
+    with open(frontend_path / "create-site-windster.html", 'r', encoding='utf-8') as f:
         return f.read()
 
 
