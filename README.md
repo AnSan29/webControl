@@ -139,6 +139,23 @@ El panel estará disponible en: `http://localhost:8000`
 
 ⚠️ **Importante**: Cambia estas credenciales en producción.
 
+## 🖼️ Imágenes alojadas en Google Drive
+
+Puedes seguir usando enlaces de Google Drive para logos, galerías y aliados, pero asegúrate de cumplir estas reglas:
+
+1. **Comparte el archivo como “Cualquier persona con el enlace” (lector)** desde Google Drive para evitar respuestas 403.
+2. Copia el vínculo público (`https://drive.google.com/file/d/<ID>/view?...` o `...open?id=<ID>`). No es necesario editarlo manualmente.
+3. Pega el enlace en el panel. El backend llama al helper `normalize_drive_image` para convertirlo automáticamente a `https://drive.google.com/uc?export=view&id=<ID>` y así usarlo en `<img>`.
+
+> Si Google sigue bloqueando la carga (algunos tenants aplican políticas estrictas de cookies), habilitamos el helper `drive_preview_iframe` que genera un `<iframe src="https://drive.google.com/file/d/<ID>/preview">` como último recurso.
+
+```jinja2
+{# Ejemplo opcional dentro de una plantilla #}
+{{ drive_preview_iframe(logo_url, max_width="180px", height="180px") }}
+```
+
+Google recomienda hospedar recursos estáticos (logos, banners) en servicios especializados como Cloudinary, Azure Blob Storage, GitHub Releases o un bucket S3 cuando se necesite máxima disponibilidad.
+
 ## 🎨 Modelos de Negocio y Paletas
 
 | Modelo | Colores | Concepto |

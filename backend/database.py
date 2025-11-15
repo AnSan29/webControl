@@ -2,9 +2,14 @@ from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, B
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
+from pathlib import Path
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./db.sqlite3")
+BASE_DIR = Path(__file__).resolve().parent
+DEFAULT_DB_PATH = BASE_DIR / "db.sqlite3"
+DEFAULT_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

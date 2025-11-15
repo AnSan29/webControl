@@ -1,7 +1,23 @@
 from jinja2 import Template
 import json
-import os
 from pathlib import Path
+
+from backend.template_helpers import normalize_drive_image, extract_drive_id
+
+
+def drive_preview_iframe(url: str, max_width: str = "200px", height: str = "160px") -> str:
+    """Fallback para incrustar un iframe de Drive cuando la URL directa retorna 403."""
+    file_id = extract_drive_id(url or "")
+    if not file_id:
+        return ""
+
+    iframe = (
+        f'<iframe src="https://drive.google.com/file/d/{file_id}/preview" '
+        f'style="border:0;width:100%;max-width:{max_width};height:{height};" '
+        'allow="autoplay" loading="lazy"></iframe>'
+    )
+    return iframe
+
 
 class TemplateEngine:
     """Motor de plantillas para generar sitios"""
@@ -22,6 +38,8 @@ class TemplateEngine:
     def render_template(self, template_content: str, context: dict) -> str:
         """Renderizar plantilla con contexto"""
         template = Template(template_content)
+        template.globals["normalize_drive_image"] = normalize_drive_image
+        template.globals["drive_preview_iframe"] = drive_preview_iframe
         return template.render(**context)
     
     def generate_site(self, model_type: str, site_data: dict) -> dict:
@@ -47,14 +65,58 @@ class TemplateEngine:
             raise ValueError(f"Modelo no encontrado: {model_type}")
         
         # Preparar contexto para las plantillas
+        raw_logo = (
+            site_data.get("logo_url")
+            or site_data.get("logo_drive_url")
+            or site_data.get("logo")
+        )
+        normalized_logo = self.normalize_media_url(raw_logo or "")
+        normalized_hero = self.normalize_media_url(site_data.get("hero_image", ""))
+        normalized_about = self.normalize_media_url(site_data.get("about_image", ""))
+
+        products = self._load_json_list(site_data.get("products_json", "[]"))
+        for product in products:
+            image_url = product.get("image")
+            if image_url:
+                product["image"] = self.normalize_media_url(image_url)
+
+        gallery_images = self._load_json_list(site_data.get("gallery_images", "[]"))
+        gallery_images = [self.normalize_media_url(url) for url in gallery_images if url]
+
+        supporter_logos_input = self._load_json_list(site_data.get("supporter_logos_json", "[]"))
+        supporter_logos = []
+        for supporter in supporter_logos_input:
+            logo_url = self.normalize_media_url(supporter.get("url") or supporter.get("image", ""))
+            if logo_url:
+                supporter_logos.append({
+                    "name": supporter.get("name", "Aliado"),
+                    "url": logo_url
+                })
+
+        default_supporters = [
+            {
+                "name": "Ministerio de Minas y Energía",
+                "url": self.normalize_media_url(site_data.get("supporter_logo_minas", "") or "https://drive.google.com/file/d/1Rgpfd7yZcUM4meVBcvsEax6rfGIF60Qw/view?usp=drive_link")
+            },
+            {
+                "name": "Universidad de La Guajira",
+                "url": self.normalize_media_url(site_data.get("supporter_logo_uniguajira", "") or "https://drive.google.com/file/d/1RQ1G43M60E46mwsPMNFOWANISB3WKyBI/view?usp=drive_link")
+            },
+            {
+                "name": "Proyecto Reconversión Laboral",
+                "url": self.normalize_media_url(site_data.get("supporter_logo_project", "") or "https://drive.google.com/file/d/1maQ1FoXyzxfoS_sq6qN-oRLiPELKF_yV/view?usp=drive_link")
+            }
+        ]
+        supporter_logos = [logo for logo in supporter_logos if logo.get("url")] or default_supporters
+
         context = {
             "site_name": site_data.get("name", "Mi Negocio"),
             "site_description": site_data.get("description", ""),
             "hero_title": site_data.get("hero_title", site_data.get("name", "Mi Negocio")),
             "hero_subtitle": site_data.get("hero_subtitle", "Bienvenido a nuestro sitio"),
-            "hero_image": site_data.get("hero_image", ""),
+            "hero_image": normalized_hero,
             "about_text": site_data.get("about_text", "Sobre nosotros..."),
-            "about_image": site_data.get("about_image", ""),
+            "about_image": normalized_about,
             "contact_email": site_data.get("contact_email", ""),
             "contact_phone": site_data.get("contact_phone", ""),
             "contact_address": site_data.get("contact_address", ""),
@@ -62,13 +124,14 @@ class TemplateEngine:
             "facebook_url": site_data.get("facebook_url", ""),
             "instagram_url": site_data.get("instagram_url", ""),
             "tiktok_url": site_data.get("tiktok_url", ""),
-            "logo_url": site_data.get("logo_url", ""),
+            "logo_url": normalized_logo,
             "primary_color": site_data.get("primary_color", model_config["palette"]["primary"]),
             "secondary_color": site_data.get("secondary_color", model_config["palette"]["secondary"]),
             "palette": model_config["palette"],
             "model_icon": model_config["icon"],
-            "products": json.loads(site_data.get("products_json", "[]")),
-            "gallery_images": json.loads(site_data.get("gallery_images", "[]")),
+            "products": products,
+            "gallery_images": gallery_images,
+            "supporter_logos": supporter_logos,
             "current_year": 2025
         }
         
@@ -87,6 +150,21 @@ class TemplateEngine:
         files["tracking.js"] = self.generate_tracking_script(site_data.get("id"))
         
         return files
+
+    @staticmethod
+    def normalize_media_url(url: str) -> str:
+        """Normalizar URLs de imágenes reutilizando el helper especializado."""
+        return normalize_drive_image(url)
+
+    @staticmethod
+    def _load_json_list(raw_value: str) -> list:
+        """Convertir cadenas JSON en listas seguras para plantillas."""
+        try:
+            data = json.loads(raw_value or "[]")
+        except json.JSONDecodeError:
+            return []
+
+        return data if isinstance(data, list) else []
     
     def generate_generic_template(self, context: dict, model_config: dict) -> str:
         """Generar plantilla HTML genérica"""

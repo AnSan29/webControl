@@ -3,6 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from pathlib import Path
@@ -29,6 +30,7 @@ from auth import (
 )
 from utils.github_api import GitHubPublisher
 from utils.template_engine import TemplateEngine
+from .template_helpers import normalize_drive_image
 
 # Inicializar app
 app = FastAPI(
@@ -52,6 +54,9 @@ uploads_path = Path(__file__).parent.parent / "uploads"
 app.mount("/static", StaticFiles(directory=frontend_path / "static"), name="static")
 app.mount("/uploads", StaticFiles(directory=uploads_path), name="uploads")
 
+templates = Jinja2Templates(directory=str(frontend_path))
+templates.env.globals["normalize_drive_image"] = normalize_drive_image
+
 # Inicializar servicios
 template_engine = TemplateEngine()
 
@@ -67,45 +72,39 @@ with open(Path(__file__).parent / "seed_data.json", 'r', encoding='utf-8') as f:
 # ============= RUTAS FRONTEND =============
 
 @app.get("/", response_class=HTMLResponse)
-async def root():
+async def root(request: Request):
     """Página de login"""
-    with open(frontend_path / "login-windster.html", 'r', encoding='utf-8') as f:
-        return f.read()
+    return templates.TemplateResponse("login-windster.html", {"request": request})
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard():
+async def dashboard(request: Request):
     """Panel principal - Windster version"""
-    with open(frontend_path / "dashboard-windster.html", 'r', encoding='utf-8') as f:
-        return f.read()
+    return templates.TemplateResponse("dashboard-windster.html", {"request": request})
 
 
 @app.get("/dashboard-old", response_class=HTMLResponse)
-async def dashboard_old():
+async def dashboard_old(request: Request):
     """Panel principal - Versión original"""
-    with open(frontend_path / "dashboard.html", 'r', encoding='utf-8') as f:
-        return f.read()
+    return templates.TemplateResponse("dashboard.html", {"request": request})
 
 
 @app.get("/models", response_class=HTMLResponse)
-async def models_page():
+async def models_page(request: Request):
     """Página de modelos"""
-    with open(frontend_path / "models-windster.html", 'r', encoding='utf-8') as f:
-        return f.read()
+    return templates.TemplateResponse("models-windster.html", {"request": request})
 
 
 @app.get("/create-site", response_class=HTMLResponse)
-async def create_site_page():
+async def create_site_page(request: Request):
     """Página de crear sitio"""
-    with open(frontend_path / "create-site-windster.html", 'r', encoding='utf-8') as f:
-        return f.read()
+    return templates.TemplateResponse("create-site-windster.html", {"request": request})
 
 
 @app.get("/editor/{site_id}", response_class=HTMLResponse)
-async def editor_page(site_id: int):
+async def editor_page(site_id: int, request: Request):
     """Página de editor"""
-    with open(frontend_path / "editor.html", 'r', encoding='utf-8') as f:
-        return f.read()
+    return templates.TemplateResponse("editor.html", {"request": request, "site_id": site_id})
 
 
 # ============= API AUTH =============

@@ -14,7 +14,7 @@
         <div class="container">
             <div class="header-logo">
                 {% if logo_url %}
-                <img src="{{ logo_url }}" alt="{{ site_name }}" class="logo-img">
+                <img src="{{ normalize_drive_image(logo_url) }}" alt="{{ site_name }}" class="logo-img">
                 {% else %}
                 <span class="logo-badge">{{ model_icon }}</span>
                 {% endif %}

@@ -14,7 +14,7 @@
         <div class="container">
             <div class="navbar-brand">
                 {% if logo_url %}
-                <img src="{{ logo_url }}" alt="{{ site_name }}" class="logo">
+                <img src="{{ normalize_drive_image(logo_url) }}" alt="{{ site_name }}" class="logo">
                 {% else %}
                 <span class="logo-icon">{{ model_icon }}</span>
                 {% endif %}
