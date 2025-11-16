@@ -1,0 +1,78 @@
+{
+  "Nombre comercial": {
+    "value": "QA Control Artesanías 195713",
+    "found": true
+  },
+  "Descripción": {
+    "value": "Auditoría integral del flujo de datos",
+    "found": true
+  },
+  "Título hero": {
+    "value": "Hero control 195713",
+    "found": true
+  },
+  "Subtítulo hero": {
+    "value": "Catálogo maestro de contenidos",
+    "found": true
+  },
+  "Texto sobre nosotros": {
+    "value": "Este sitio de prueba verifica que cada campo pueda viajar desde los formularios hasta la publicación final.",
+    "found": true
+  },
+  "Correo de contacto": {
+    "value": "control@example.com",
+    "found": true
+  },
+  "Teléfono": {
+    "value": "+57 300 111 2233",
+    "found": true
+  },
+  "Dirección": {
+    "value": "Carrera 7 #77-77, Bogotá",
+    "found": true
+  },
+  "WhatsApp": {
+    "value": "+573001112233",
+    "found": false
+  },
+  "Facebook": {
+    "value": "https://facebook.com/control-total",
+    "found": true
+  },
+  "Instagram": {
+    "value": "https://instagram.com/control-total",
+    "found": true
+  },
+  "TikTok": {
+    "value": "https://tiktok.com/@controltotal",
+    "found": true
+  },
+  "Color primario": {
+    "value": "#7C3AED",
+    "found": true
+  },
+  "Color secundario": {
+    "value": "#F97316",
+    "found": true
+  },
+  "Producto 1: nombre": {
+    "value": "Pulsera Identidad 195713",
+    "found": true
+  },
+  "Producto 1: descripción": {
+    "value": "Pieza creada para validar el flujo de productos.",
+    "found": true
+  },
+  "Producto 1: precio": {
+    "value": "$120.000",
+    "found": true
+  },
+  "Galería 1: URL": {
+    "value": "https://picsum.photos/seed/gallery-control-1/1200/900",
+    "found": true
+  },
+  "Galería 2: URL": {
+    "value": "https://picsum.photos/seed/gallery-control-2/1200/900",
+    "found": true
+  }
+}

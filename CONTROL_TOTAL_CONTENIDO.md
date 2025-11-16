@@ -335,3 +335,100 @@ Todas las plantillas soportan:
 **Versión**: 2.0 - Control Total de Contenido
 
 **Fecha**: Noviembre 2025
+
+## 🧾 Formularios y checklist de captura
+
+### Formulario de creación (`frontend/create-site-windster.html`)
+
+1. **Modelo y nombre**
+    - `model_type`: desbloquea paletas y seed data.
+    - `palette_choice`: rellena `primary_color` y `secondary_color` ocultos.
+    - `name`, `custom_domain`, `description`.
+2. **Mensaje principal**
+    - `hero_title`, `hero_subtitle`, `about_text` inicial.
+3. **Contacto y redes**
+    - `contact_email`, `contact_phone`, `contact_address`, `whatsapp_number`.
+    - `facebook_url`, `instagram_url` (TikTok se captura luego en el editor).
+4. **Acción**
+    - Enviar = crea registro `Site` con defaults del modelo y abre el editor listo para completar el resto de los campos.
+
+### Formulario de edición (`frontend/editor.html`)
+
+El editor secciones-carta permite completar **todo** el set de campos soportado:
+
+- **Estado del sitio**: nombre, descripción corta, botón de publicar.
+- **Sección Hero**: `hero_title`, `hero_subtitle`, `hero_image` (subida directa → `/api/upload-image` o URL manual).
+- **Sobre nosotros**: `about_text`, `about_image`.
+- **Logos y aliados**: `logo_url` y carrusel de logos (se guarda como JSON en `supporter_logos_json`).
+- **Contacto**: `contact_email`, `contact_phone`, `contact_address`, `whatsapp_number` (con ayuda visual para solo cifras).
+- **Redes**: `facebook_url`, `instagram_url`, `tiktok_url`.
+- **Productos y servicios**: constructor dinámico que serializa a `products_json` (cada tarjeta incluye nombre, descripción, precio, imagen).
+- **Galería**: lista de URLs en `gallery_images` (sección con previsualización).
+- **Colores**: selectores `primary_color`, `secondary_color` + paletas curadas por modelo.
+- **Configuración avanzada**: `logo_url`, `custom_domain` persistentes.
+
+### Matriz UI → Base de datos → Template Engine
+
+| Grupo UI | Campo / ID HTML | Clave en payload/BD (`Site`) | Uso final en plantillas (`template_engine`) |
+| --- | --- | --- | --- |
+| Identidad | `name` | `Site.name` | `<title>`, hero `h1`, footer |
+| SEO | `description` | `Site.description` | meta description, secciones intro |
+| Hero | `hero_title`, `hero_subtitle`, `hero_image` | `Site.hero_title`, `Site.hero_subtitle`, `Site.hero_image` | Cabecera, CTA, fondos (con `normalize_drive_image`) |
+| Story | `about_text`, `about_image` | `Site.about_text`, `Site.about_image` | Sección “Sobre nosotros” |
+| Contacto | `contact_email`, `contact_phone`, `contact_address` | Columnas homónimas | Bloque de contacto y footer |
+| WhatsApp | `whatsapp_number` | `Site.whatsapp_number` (se normaliza quitando `+` y espacios antes de generar `wa.me`) | Botón flotante + icono en footer |
+| Redes | `facebook_url`, `instagram_url`, `tiktok_url` | Columnas homónimas | Iconos condicionales en footer |
+| Logo | `logo_url` | `Site.logo_url` | Header / SEO fallback |
+| Colores | `primary_color`, `secondary_color` (+ paletas modelo) | Columnas homónimas | `styles.css` (variables CSS) + tokens en HTML |
+| Productos | UI dinámica → `products_json` | `Site.products_json` (JSON) | Cards en sección productos |
+| Galería | `gallery_images_input` | `Site.gallery_images` (JSON) | Grilla de imágenes |
+| Dominio | `custom_domain` | `Site.custom_domain` | Configuración para CNAME en despliegue |
+
+> 📝 **Normalizaciones clave**: `template_engine` reutiliza `normalize_media_url` y `drive_preview_iframe`; el script de auditoría aplica `sanitize_whatsapp` antes de buscar el valor en el HTML generado.
+
+## 🔍 Auditoría automatizada y verificación con `curl`
+
+1. **Generar un sitio de prueba completo**
+
+```bash
+/home/mrmontero/Documentos/webcontrol_studio/.venv/bin/python scripts/variable_flow_audit.py
+```
+
+Este comando:
+- Hace login en `/api/login` con las credenciales del entorno.
+- Crea un sitio modelo artesanías con valores únicos.
+- Lee el `Site` almacenado y renderiza los archivos con `TemplateEngine`.
+- Guarda todo en `qa_artifacts/content_audit_<timestamp>/` junto a `site_payload.json`, `site_data.json` y `verification_matrix.json` (todas las variables quedan marcadas como **OK**).
+
+2. **Verificar el despliegue generado con `curl`**
+
+```bash
+cd /home/mrmontero/Documentos/webcontrol_studio/qa_artifacts/content_audit_20251116_195820
+python -m http.server 8099 &
+curl -I http://127.0.0.1:8099/index.html
+curl http://127.0.0.1:8099/index.html | head -n 10
+kill %1
+```
+
+Resultado sample:
+
+```
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/3.12.3
+Content-type: text/html
+...
+<!DOCTYPE html>
+<html lang="es">
+<head>
+     <title>QA Control Artesanías 195820</title>
+     <meta name="description" content="Auditoría integral del flujo de datos">
+```
+
+> Así comprobamos, sin depender de GitHub Pages, que el paquete generado contiene todos los contenidos y que los encabezados HTTP responden correctamente.
+
+3. **Ubicar la evidencia**
+    - HTML/CSS/JS finales: `qa_artifacts/content_audit_20251116_195820/{index.html, styles.css, tracking.js}`.
+    - Payload original vs. datos persistidos: `site_payload.json` y `site_data.json`.
+    - Matriz de verificaciones campo a campo: `verification_matrix.json` (todas las entradas en `found: true`).
+
+Con este flujo no queda ningún campo sin rastrear: los formularios guían la captura, la base lo persiste, las plantillas lo reflejan y la auditoría automática + `curl` certifican que el despliegue sirve exactamente los contenidos esperados.
