@@ -398,6 +398,95 @@ Este comando:
 - Hace login en `/api/login` con las credenciales del entorno.
 - Crea un sitio modelo artesanías con valores únicos.
 - Lee el `Site` almacenado y renderiza los archivos con `TemplateEngine`.
+
+## 🌐 Publicación real y validación vía `curl`
+
+> Contexto: se publicó el **sitio ID 4** y se validó el despliegue final en GitHub Pages (`https://ReconvencionLaboralGuajira.github.io/sitio-qa-curl-4/`).
+
+1. **Reiniciar el backend** (evita sockets colgados de uvicorn):
+
+        ```bash
+        pkill -f "uvicorn" || true
+        PYTHONPATH=/home/mrmontero/Documentos/webcontrol_studio \
+        /home/mrmontero/Documentos/webcontrol_studio/.venv/bin/uvicorn backend.main:app --reload
+        ```
+
+2. **Login con cURL** y guardar el token (archivo `/tmp/webcontrol_login.json`):
+
+        ```bash
+        curl -sS -X POST http://127.0.0.1:8000/api/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"'$ADMIN_EMAIL'","password":"'$ADMIN_PASSWORD'"}' \
+            | tee /tmp/webcontrol_login.json
+        export ACCESS_TOKEN=$(jq -r '.access_token' /tmp/webcontrol_login.json)
+        ```
+
+3. **Publicar el sitio 4** (respuesta guardada en `/tmp/site_publish_response.json`):
+
+        ```bash
+        curl -sS -X POST http://127.0.0.1:8000/api/sites/4/publish \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            | tee /tmp/site_publish_response.json
+        ```
+
+        Resultado: `{ "message": "Sitio publicado exitosamente", "url": "https://ReconvencionLaboralGuajira.github.io/sitio-qa-curl-4/" }`.
+
+4. **Esperar a que GitHub Pages esté activo** (HTTP 200) y conservar cuerpo/headers:
+
+        ```bash
+        PUBLISHED_URL="https://ReconvencionLaboralGuajira.github.io/sitio-qa-curl-4/"
+        until curl -sS -o /tmp/site_publish_body.html -D /tmp/site_publish_headers.txt "$PUBLISHED_URL"; do
+            echo "GitHub Pages aún propagando..."
+            sleep 10
+        done
+        head -n 20 /tmp/site_publish_headers.txt
+        ```
+
+        - Varios intentos devolvieron `404 Not Found` hasta que GitHub Pages completó el build.
+        - El último intento registró `HTTP/2 200` con los headers finales en `/tmp/site_publish_headers.txt`.
+
+5. **Scrape de contenido final** para asegurar que el HTML público refleja los datos esperados:
+
+        ```bash
+        python - <<'PY'
+        from bs4 import BeautifulSoup
+        from pathlib import Path
+
+        html = Path('/tmp/site_publish_body.html').read_text()
+        soup = BeautifulSoup(html, 'html.parser')
+
+        hero = soup.select_one('.hero-content')
+        report = {
+                'hero_title': hero.find('h2').get_text(strip=True),
+                'hero_subtitle': hero.find('p').get_text(strip=True),
+                'contact_email': soup.select_one('a[href^="mailto:"]').get_text(strip=True),
+                'whatsapp_link': soup.select_one('a[href^="https://wa.me/"]')['href'],
+        }
+        print(report)
+        PY
+        ```
+
+        Salida observada:
+
+        ```text
+        {
+            'hero_title': 'Transformamos fibras en historias',
+            'hero_subtitle': 'Colecciones hechas a mano desde La Guajira',
+            'contact_email': 'qa-curl@example.com',
+            'whatsapp_link': 'https://wa.me/573015559988'
+        }
+        ```
+
+6. **Artefactos generados** (útiles para auditoría posterior):
+
+| Archivo | Contenido |
+| --- | --- |
+| `/tmp/webcontrol_login.json` | Token y payload devuelto por `/api/login`. |
+| `/tmp/site_publish_response.json` | Respuesta completa del POST `/api/sites/4/publish`. |
+| `/tmp/site_publish_headers.txt` | Últimos headers HTTP/2 200 recibidos desde GitHub Pages. |
+| `/tmp/site_publish_body.html` | HTML final del sitio publicado (base para scraping). |
+
+> ✅ Con esto se documenta el flujo completo **publicar → esperar propagación → validar contenido real** usando únicamente `curl` + `BeautifulSoup`.
 - Guarda todo en `qa_artifacts/content_audit_<timestamp>/` junto a `site_payload.json`, `site_data.json` y `verification_matrix.json` (todas las variables quedan marcadas como **OK**).
 
 2. **Verificar el despliegue generado con `curl`**
@@ -432,3 +521,84 @@ Content-type: text/html
     - Matriz de verificaciones campo a campo: `verification_matrix.json` (todas las entradas en `found: true`).
 
 Con este flujo no queda ningún campo sin rastrear: los formularios guían la captura, la base lo persiste, las plantillas lo reflejan y la auditoría automática + `curl` certifican que el despliegue sirve exactamente los contenidos esperados.
+
+## 🧪 Pruebas rigurosas con `curl` + scraping (nov 16)
+
+1. **Autenticación vía `curl`**
+     ```bash
+     curl -s -X POST \
+         -d 'username=mariomontero942@gmail.com&password=M@rio1027' \
+         http://127.0.0.1:8000/api/login > /tmp/webcontrol_login.json
+     ```
+     - Se extrae el token (`/tmp/webcontrol_token.txt`) para reusar en todas las peticiones protegidas.
+
+2. **Creación de un sitio real por API**
+     ```bash
+     TOKEN=$(cat /tmp/webcontrol_token.txt)
+     curl -s -X POST http://127.0.0.1:8000/api/sites \
+         -H "Authorization: Bearer $TOKEN" \
+         -H 'Content-Type: application/json' \
+         --data @/tmp/site_payload.json > /tmp/site_create_response.json
+     ```
+     - Payload incluye todos los campos: hero, contacto, redes, productos (ver `/tmp/site_payload.json`).
+     - Respuesta: `{ "id": 4, "name": "Sitio QA Curl", ... }`.
+     - Se consultó inmediatamente: `curl -s -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8000/api/sites/4 > /tmp/site_detail_4.json` para confirmar persistencia.
+
+3. **Renderizado del sitio y verificación de cabeceras HTTP**
+     ```bash
+     python - <<'PY'
+     from pathlib import Path
+     import json, sys
+     sys.path.insert(0, str(Path('.').resolve()))
+     from backend.utils.template_engine import TemplateEngine
+     data = json.load(open('/tmp/site_detail_4.json'))
+     data['products_json'] = json.dumps(data.get('products', []))
+     data['gallery_images'] = json.dumps(data.get('gallery_images', []))
+     out = Path('qa_artifacts/curl_site_4'); out.mkdir(parents=True, exist_ok=True)
+     files = TemplateEngine().generate_site(data['model_type'], data)
+     for name, content in files.items():
+             (out / name).write_text(content, encoding='utf-8')
+     PY
+
+     cd qa_artifacts/curl_site_4
+     python -m http.server 8123 &
+     curl -I http://127.0.0.1:8123/index.html > /tmp/site4_headers.txt
+     curl -s http://127.0.0.1:8123/index.html > /tmp/site4_page.html
+     kill <PID>
+     ```
+     - Cabeceras devueltas: `HTTP/1.0 200 OK`, `Content-type: text/html`, `Content-Length: 28 714`.
+
+4. **Scraping con BeautifulSoup**
+     ```bash
+     python - <<'PY'
+     from bs4 import BeautifulSoup
+     from pathlib import Path
+     import json
+     html = Path('/tmp/site4_page.html').read_text(encoding='utf-8')
+     soup = BeautifulSoup(html, 'html.parser')
+     checks = {
+             'hero_title': soup.find(['h1','h2']).get_text(strip=True),
+             'contact_email': 'qa-curl@example.com' in html,
+             'whatsapp_link': any('https://wa.me' in (a.get('href') or '') for a in soup.find_all('a')),
+             'product_names': [h.get_text(strip=True) for h in soup.select('.product-card h3')[:2]],
+             'gallery_images': [img.get('src') for img in soup.select('.gallery-card img')[:2]],
+     }
+     Path('/tmp/site4_scrape.json').write_text(json.dumps(checks, indent=2, ensure_ascii=False), encoding='utf-8')
+     print(json.dumps(checks, indent=2, ensure_ascii=False))
+     PY
+     ```
+     - Salida principal:
+         ```json
+         {
+             "hero_title": "Sitio QA Curl",
+             "contact_email": true,
+             "whatsapp_link": true,
+             "product_names": ["Hamaca Wayuu QA"],
+             "gallery_images": [
+                 "https://picsum.photos/seed/curl-gallery-1/1200/900",
+                 "https://picsum.photos/seed/curl-gallery-2/1200/900"
+             ]
+         }
+         ```
+
+> 📌 Nota: el backend almacena `price` como string sin símbolo (`50.000`), por lo que el template muestra ese formato. Todo el resto de los campos se conserva sin alteraciones.

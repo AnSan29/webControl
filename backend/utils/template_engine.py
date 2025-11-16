@@ -2,7 +2,13 @@ from jinja2 import Template
 import json
 from pathlib import Path
 
-from backend.template_helpers import normalize_drive_image, extract_drive_id
+from backend.template_helpers import (
+    normalize_drive_image,
+    extract_drive_id,
+    optimize_media_url,
+    optimize_logo_url,
+    supporter_initials,
+)
 
 
 def drive_preview_iframe(url: str, max_width: str = "200px", height: str = "160px") -> str:
@@ -70,44 +76,23 @@ class TemplateEngine:
             or site_data.get("logo_drive_url")
             or site_data.get("logo")
         )
-        normalized_logo = self.normalize_media_url(raw_logo or "")
-        normalized_hero = self.normalize_media_url(site_data.get("hero_image", ""))
-        normalized_about = self.normalize_media_url(site_data.get("about_image", ""))
+        normalized_logo = optimize_logo_url(raw_logo or "")
+        normalized_hero = optimize_media_url(site_data.get("hero_image", ""), max_width=1600, quality=85)
+        normalized_about = optimize_media_url(site_data.get("about_image", ""), max_width=1280, quality=85)
 
         products = self._load_json_list(site_data.get("products_json", "[]"))
         for product in products:
             image_url = product.get("image")
             if image_url:
-                product["image"] = self.normalize_media_url(image_url)
+                product["image"] = optimize_media_url(image_url, max_width=900, quality=80)
 
         gallery_images = self._load_json_list(site_data.get("gallery_images", "[]"))
-        gallery_images = [self.normalize_media_url(url) for url in gallery_images if url]
-
-        supporter_logos_input = self._load_json_list(site_data.get("supporter_logos_json", "[]"))
-        supporter_logos = []
-        for supporter in supporter_logos_input:
-            logo_url = self.normalize_media_url(supporter.get("url") or supporter.get("image", ""))
-            if logo_url:
-                supporter_logos.append({
-                    "name": supporter.get("name", "Aliado"),
-                    "url": logo_url
-                })
-
-        default_supporters = [
-            {
-                "name": "Ministerio de Minas y Energía",
-                "url": self.normalize_media_url(site_data.get("supporter_logo_minas", "") or "https://drive.google.com/file/d/1Rgpfd7yZcUM4meVBcvsEax6rfGIF60Qw/view?usp=drive_link")
-            },
-            {
-                "name": "Universidad de La Guajira",
-                "url": self.normalize_media_url(site_data.get("supporter_logo_uniguajira", "") or "https://drive.google.com/file/d/1RQ1G43M60E46mwsPMNFOWANISB3WKyBI/view?usp=drive_link")
-            },
-            {
-                "name": "Proyecto Reconversión Laboral",
-                "url": self.normalize_media_url(site_data.get("supporter_logo_project", "") or "https://drive.google.com/file/d/1maQ1FoXyzxfoS_sq6qN-oRLiPELKF_yV/view?usp=drive_link")
-            }
+        gallery_images = [
+            optimize_media_url(url, max_width=1024, quality=78)
+            for url in gallery_images if url
         ]
-        supporter_logos = [logo for logo in supporter_logos if logo.get("url")] or default_supporters
+
+        supporter_logos = self._build_supporters(site_data)
 
         context = {
             "site_name": site_data.get("name", "Mi Negocio"),
@@ -155,6 +140,53 @@ class TemplateEngine:
     def normalize_media_url(url: str) -> str:
         """Normalizar URLs de imágenes reutilizando el helper especializado."""
         return normalize_drive_image(url)
+
+    def _build_supporters(self, site_data: dict) -> list[dict]:
+        supporter_logos_input = self._load_json_list(site_data.get("supporter_logos_json", "[]"))
+        supporters: list[dict] = []
+
+        for supporter in supporter_logos_input:
+            raw = supporter.get("url") or supporter.get("image", "")
+            normalized = self.normalize_media_url(raw)
+            optimized = optimize_logo_url(raw)
+            if not (normalized or optimized):
+                continue
+            supporters.append({
+                "name": supporter.get("name", "Aliado"),
+                "url": normalized or optimized,
+                "optimized_url": optimized or normalized,
+                "initials": supporter_initials(supporter.get("name", "Aliado"))
+            })
+
+        if supporters:
+            return supporters
+
+        default_entries = [
+            {
+                "name": "Ministerio de Minas y Energía",
+                "url": site_data.get("supporter_logo_minas", "") or "https://drive.google.com/file/d/1Rgpfd7yZcUM4meVBcvsEax6rfGIF60Qw/view?usp=drive_link"
+            },
+            {
+                "name": "Universidad de La Guajira",
+                "url": site_data.get("supporter_logo_uniguajira", "") or "https://drive.google.com/file/d/1RQ1G43M60E46mwsPMNFOWANISB3WKyBI/view?usp=drive_link"
+            },
+            {
+                "name": "Proyecto Reconversión Laboral",
+                "url": site_data.get("supporter_logo_project", "") or "https://drive.google.com/file/d/1maQ1FoXyzxfoS_sq6qN-oRLiPELKF_yV/view?usp=drive_link"
+            }
+        ]
+
+        defaults = []
+        for entry in default_entries:
+            normalized = self.normalize_media_url(entry["url"])
+            optimized = optimize_logo_url(entry["url"])
+            defaults.append({
+                "name": entry["name"],
+                "url": normalized or optimized,
+                "optimized_url": optimized or normalized,
+                "initials": supporter_initials(entry["name"])
+            })
+        return defaults
 
     @staticmethod
     def _load_json_list(raw_value: str) -> list:

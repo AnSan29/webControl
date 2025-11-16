@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ site_name or "Artesanías Locales" }}</title>
-    <meta name="description" content="{{ site_description or 'Artesanías hechas a mano con identidad Wayuu' }}">
+    <title>Sitio QA Curl</title>
+    <meta name="description" content="Sitio creado via curl para pruebas rigurosas">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -29,10 +29,10 @@
     </script>
     <style>
             :root {
-                --primary: {{ primary_color or palette.primary or '#8B5E3C' }};
-                --secondary: {{ secondary_color or palette.secondary or '#CBB67C' }};
-                --accent: {{ palette.accent or '#E6B17E' }};
-                --neutral: {{ palette.neutral or '#FDF8F2' }};
+                --primary: #7C3AED;
+                --secondary: #F59E0B;
+                --accent: #F1E4C6;
+                --neutral: #D2A679;
                 --surface: #fffaf5;
                 --text: #1f140f;
                 --muted: #5c4c3f;
@@ -164,7 +164,7 @@
                 inset: 0;
                 background-image:
                     linear-gradient(120deg, rgba(15,12,10,0.82), rgba(139, 94, 60, 0.62)),
-                    url('{{ normalize_drive_image(hero_image) if hero_image else "https://images.unsplash.com/photo-1521540216272-a50305cd4421?auto=format&fit=crop&w=1600&q=80" }}');
+                    url('https://picsum.photos/seed/curl-hero/1600/900');
                 background-size: cover;
                 background-position: center;
                 filter: contrast(1.05);
@@ -481,41 +481,14 @@
                 gap: 1rem;
             }
 
-            .supporter-badge {
+            .supporters-logos img {
                 width: clamp(110px, 20vw, 160px);
-                height: 72px;
-                border-radius: 12px;
-                background: rgba(255,255,255,0.08);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0.5rem 0.75rem;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-                position: relative;
-            }
-
-            .supporter-badge img {
-                max-width: 100%;
-                max-height: 52px;
+                height: auto;
                 object-fit: contain;
-                filter: drop-shadow(0 4px 15px rgba(0,0,0,0.25));
-                transition: transform 0.25s ease;
-            }
-
-            .supporter-badge:hover img {
-                transform: scale(1.03);
-            }
-
-            .supporter-fallback {
-                display: none;
-                width: 100%;
-                height: 100%;
-                align-items: center;
-                justify-content: center;
-                font-weight: 600;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                color: rgba(255,255,255,0.9);
+                filter: drop-shadow(0 10px 25px rgba(0,0,0,0.25));
+                background: rgba(255,255,255,0.05);
+                border-radius: 12px;
+                padding: 0.75rem 1rem;
             }
 
             .whatsapp-btn {
@@ -580,12 +553,10 @@
             <div class="container">
                 <div class="nav">
                     <a href="#inicio" class="brand">
-                        {% if logo_url %}
-                            <img src="{{ normalize_drive_image(logo_url) }}" alt="Logo {{ site_name or 'Artesanías' }}" class="logo-img" loading="lazy">
-                        {% else %}
-                            <span class="logo-placeholder">{{ model_icon or '🎨' }}</span>
-                        {% endif %}
-                        <h1>{{ site_name or 'Artesanías locales' }}</h1>
+                        
+                            <img src="https://picsum.photos/seed/curl-logo/300/300" alt="Logo Sitio QA Curl" class="logo-img" loading="lazy">
+                        
+                        <h1>Sitio QA Curl</h1>
                     </a>
                     <nav>
                         <ul>
@@ -603,8 +574,8 @@
         <main>
             <section id="inicio" class="hero">
                 <div class="hero-content">
-                    <h2>{{ hero_title or site_name or 'Artesanías que cuentan historias' }}</h2>
-                    <p>{{ hero_subtitle or site_description or 'Cada pieza Wayuu preserva la identidad cultural y apoya a las comunidades artesanas.' }}</p>
+                    <h2>Transformamos fibras en historias</h2>
+                    <p>Colecciones hechas a mano desde La Guajira</p>
                     <div class="hero-actions">
                         <a href="#productos" class="btn btn-primary">Explorar colección</a>
                         <a href="#contacto" class="btn btn-outline">Quiero contactar</a>
@@ -617,20 +588,20 @@
                     <div class="section-header">
                         <span><i class="fa-solid fa-feather"></i> Tradición viva</span>
                         <h2>La historia detrás de cada tejido</h2>
-                        <p>{{ about_text or 'Preservamos el arte ancestral Wayuu garantizando comercio justo y piezas únicas elaboradas a mano.' }}</p>
+                        <p>Este experimento asegura que los campos del formulario llegan al render final.</p>
                     </div>
                     <div class="about-grid">
                         <div class="about-media">
-                            <img src="{{ normalize_drive_image(about_image) if about_image else 'https://images.unsplash.com/photo-1560067174-e553b3647601?auto=format&fit=crop&w=900&q=80' }}" alt="Taller artesanal" loading="lazy">
+                            <img src="https://picsum.photos/seed/curl-about/800/600" alt="Taller artesanal" loading="lazy">
                         </div>
                         <div class="about-content">
-                            <p>{{ about_text or 'En cada creación Wayuu convergen siglos de tradición, resiliencia y espiritualidad. Trabajamos de la mano con artesanas líderes para transformar historias en piezas memorables.' }}</p>
+                            <p>Este experimento asegura que los campos del formulario llegan al render final.</p>
                             <div class="about-highlight">
                                 “Cada color representa un paisaje, cada trama es un legado. Tejemos cultura para el mundo.”
                             </div>
                             <div class="contact-row">
                                 <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
-                                <span>{{ contact_address or 'La Guajira - Colombia' }}</span>
+                                <span>Carrera 1 #2-34, Riohacha</span>
                             </div>
                         </div>
                     </div>
@@ -645,29 +616,27 @@
                         <p>Selecciona los productos que quieres mostrar desde el panel de administración. Puedes incluir imágenes alojadas en Google Drive o cualquier servicio público.</p>
                     </div>
                     <div class="products-grid">
-                        {% if products and products|length > 0 %}
-                            {% for product in products %}
+                        
+                            
                             <article class="product-card">
-                                {% if product.image %}
+                                
                                     <div class="product-image">
-                                        <img src="{{ normalize_drive_image(product.image) }}" alt="{{ product.name or 'Producto artesanal' }}" loading="lazy">
+                                        <img src="https://picsum.photos/seed/curl-product/1024/768" alt="Hamaca Wayuu QA" loading="lazy">
                                     </div>
-                                {% endif %}
+                                
                                 <div class="product-body">
-                                    <h3>{{ product.name or 'Producto artesanal' }}</h3>
-                                    {% if product.description %}<p>{{ product.description }}</p>{% endif %}
-                                    {% if product.price %}
+                                    <h3>Hamaca Wayuu QA</h3>
+                                    <p>Producto validado en flujo curl</p>
+                                    
                                         <div class="product-meta">
-                                            <span>{{ product.price }}</span>
+                                            <span>50.000</span>
                                             <span>Hecho a mano</span>
                                         </div>
-                                    {% endif %}
+                                    
                                 </div>
                             </article>
-                            {% endfor %}
-                        {% else %}
-                            <p style="text-align:center; color: var(--muted);">Añade productos desde el panel para mostrarlos aquí.</p>
-                        {% endif %}
+                            
+                        
                     </div>
                 </div>
             </section>
@@ -680,18 +649,17 @@
                         <p>Carga fotografías de tus procesos, ferias o colecciones para conectar a tus clientes con la experiencia artesanal.</p>
                     </div>
                     <div class="gallery-grid">
-                        {% if gallery_images and gallery_images|length > 0 %}
-                            {% for image_url in gallery_images %}
+                        
+                            
                                 <div class="gallery-card">
-                                    <img src="{{ normalize_drive_image(image_url) }}" alt="Galería {{ site_name or 'artesanías' }}" loading="lazy">
+                                    <img src="https://picsum.photos/seed/curl-gallery-1/1200/900" alt="Galería Sitio QA Curl" loading="lazy">
                                 </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="gallery-card"><span>🎨</span></div>
-                            <div class="gallery-card"><span>🧶</span></div>
-                            <div class="gallery-card"><span>🌅</span></div>
-                            <div class="gallery-card"><span>🪡</span></div>
-                        {% endif %}
+                            
+                                <div class="gallery-card">
+                                    <img src="https://picsum.photos/seed/curl-gallery-2/1200/900" alt="Galería Sitio QA Curl" loading="lazy">
+                                </div>
+                            
+                        
                     </div>
                 </div>
             </section>
@@ -705,52 +673,52 @@
                     </div>
                     <div class="contact-grid">
                         <div class="contact-card">
-                            {% if contact_phone %}
+                            
                             <div class="contact-row">
                                 <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
                                 <div>
                                     <strong>Teléfono</strong><br>
-                                    <a href="tel:{{ contact_phone }}">{{ contact_phone }}</a>
+                                    <a href="tel:+57 301 555 9988">+57 301 555 9988</a>
                                 </div>
                             </div>
-                            {% endif %}
-                            {% if contact_email %}
+                            
+                            
                             <div class="contact-row">
                                 <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
                                 <div>
                                     <strong>Email</strong><br>
-                                    <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+                                    <a href="mailto:qa-curl@example.com">qa-curl@example.com</a>
                                 </div>
                             </div>
-                            {% endif %}
-                            {% if contact_address %}
+                            
+                            
                             <div class="contact-row">
                                 <div class="contact-icon"><i class="fa-solid fa-map-location-dot"></i></div>
                                 <div>
                                     <strong>Ubicación</strong><br>
-                                    <span>{{ contact_address }}</span>
+                                    <span>Carrera 1 #2-34, Riohacha</span>
                                 </div>
                             </div>
-                            {% endif %}
-                            {% if whatsapp_number or facebook_url or instagram_url or tiktok_url %}
+                            
+                            
                             <div>
                                 <strong>Redes y canales</strong>
                                 <div class="socials">
-                                    {% if whatsapp_number %}
-                                        <a href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}" aria-label="WhatsApp" rel="noopener" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
-                                    {% endif %}
-                                    {% if facebook_url %}
-                                        <a href="{{ facebook_url }}" aria-label="Facebook" rel="noopener" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
-                                    {% endif %}
-                                    {% if instagram_url %}
-                                        <a href="{{ instagram_url }}" aria-label="Instagram" rel="noopener" target="_blank"><i class="fa-brands fa-instagram"></i></a>
-                                    {% endif %}
-                                    {% if tiktok_url %}
-                                        <a href="{{ tiktok_url }}" aria-label="TikTok" rel="noopener" target="_blank"><i class="fa-brands fa-tiktok"></i></a>
-                                    {% endif %}
+                                    
+                                        <a href="https://wa.me/573015559988" aria-label="WhatsApp" rel="noopener" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
+                                    
+                                    
+                                        <a href="https://facebook.com/qa-curl" aria-label="Facebook" rel="noopener" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
+                                    
+                                    
+                                        <a href="https://instagram.com/qa.curl" aria-label="Instagram" rel="noopener" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+                                    
+                                    
+                                        <a href="https://tiktok.com/@qa-curl" aria-label="TikTok" rel="noopener" target="_blank"><i class="fa-brands fa-tiktok"></i></a>
+                                    
                                 </div>
                             </div>
-                            {% endif %}
+                            
                         </div>
                         <div class="contact-card" style="background: rgba(255,255,255,0.65);">
                             <h3 style="margin: 0; color: var(--primary);">Pedidos especiales</h3>
@@ -777,58 +745,32 @@
 
         <footer>
             <div class="container">
-                {% set allies = supporter_logos or [] %}
-                {% if allies %}
+                
+                
                 <div class="supporters">
                     <h3>Aliados que apoyan esta causa</h3>
                     <div class="supporters-logos">
-                        {% for supporter in allies %}
-                            <div class="supporter-badge">
-                                {% if supporter.optimized_url or supporter.url %}
-                                    <img src="{{ supporter.optimized_url or supporter.url }}"
-                                         alt="Logo {{ supporter.name }}"
-                                         width="180"
-                                         height="72"
-                                         loading="lazy"
-                                         decoding="async"
-                                         data-supporter-logo
-                                         data-supporter-name="{{ supporter.name }}">
-                                {% endif %}
-                                <span class="supporter-fallback" {% if supporter.optimized_url or supporter.url %}hidden{% endif %}>{{ supporter.initials }}</span>
-                            </div>
-                        {% endfor %}
+                        
+                            <img src="https://drive.google.com/uc?export=view&id=1Rgpfd7yZcUM4meVBcvsEax6rfGIF60Qw" alt="Logo Ministerio de Minas y Energía" loading="lazy">
+                        
+                            <img src="https://drive.google.com/uc?export=view&id=1RQ1G43M60E46mwsPMNFOWANISB3WKyBI" alt="Logo Universidad de La Guajira" loading="lazy">
+                        
+                            <img src="https://drive.google.com/uc?export=view&id=1maQ1FoXyzxfoS_sq6qN-oRLiPELKF_yV" alt="Logo Proyecto Reconversión Laboral" loading="lazy">
+                        
                     </div>
                 </div>
-                {% endif %}
-                <div>{{ site_name or 'Artesanías locales' }} &mdash; {{ site_description or 'Tejidos auténticos hechos a mano.' }}</div>
-                <small>&copy; {{ current_year }} {{ site_name or 'Artesanías locales' }}. Todos los derechos reservados.</small>
+                
+                <div>Sitio QA Curl &mdash; Sitio creado via curl para pruebas rigurosas</div>
+                <small>&copy; 2025 Sitio QA Curl. Todos los derechos reservados.</small>
             </div>
         </footer>
 
-        {% if whatsapp_number %}
-        <a class="whatsapp-btn" href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
+        
+        <a class="whatsapp-btn" href="https://wa.me/573015559988" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
             <i class="fa-brands fa-whatsapp"></i>
         </a>
-        {% endif %}
+        
 
-        <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('[data-supporter-logo]').forEach(function (img) {
-                img.addEventListener('error', function () {
-                    const wrapper = img.closest('.supporter-badge');
-                    if (!wrapper) {
-                        return;
-                    }
-                    const fallback = wrapper.querySelector('.supporter-fallback');
-                    img.remove();
-                    if (fallback) {
-                        fallback.hidden = false;
-                        fallback.style.display = 'flex';
-                    }
-                }, { once: true });
-            });
-        });
-        </script>
         <script src="tracking.js" defer></script>
     </body>
     </html>

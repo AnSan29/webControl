@@ -1,7 +1,22 @@
 """Helper functions for template rendering."""
 from __future__ import annotations
 
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse, urlunparse
+
+
+def _merge_query_params(url: str, new_params: dict[str, str | int]) -> str:
+    """Agregar o actualizar parámetros de consulta en una URL conservando los existentes."""
+    parsed = urlparse(url)
+    if not parsed.scheme:
+        return url
+
+    query = dict(parse_qsl(parsed.query, keep_blank_values=True))
+    for key, value in new_params.items():
+        if value is None:
+            continue
+        query[key] = str(value)
+
+    return urlunparse(parsed._replace(query=urlencode(query)))
 
 
 def _extract_drive_id(cleaned_url: str) -> str:
@@ -57,3 +72,55 @@ def extract_drive_id(url: str | None) -> str:
     if not url or not isinstance(url, str):
         return ""
     return _extract_drive_id(url.strip())
+
+
+def optimize_media_url(url: str | None, *, max_width: int = 1280, quality: int = 80) -> str:
+    """Normaliza y agrega parámetros de optimización a imágenes pesadas (Unsplash, Picsum, etc.)."""
+    normalized = normalize_drive_image(url)
+    if not normalized:
+        return ""
+
+    parsed = urlparse(normalized)
+    host = parsed.netloc.lower()
+
+    if "images.unsplash.com" in host:
+        params = {
+            "auto": "format",
+            "fit": "max",
+            "w": max_width,
+            "q": quality
+        }
+        return _merge_query_params(normalized, params)
+
+    if "picsum.photos" in host and "/seed/" not in parsed.path:
+        height = max(1, int(max_width * 0.625))
+        return f"https://picsum.photos/seed/webcontrol/{max_width}/{height}"
+
+    return normalized
+
+
+def optimize_logo_url(url: str | None, *, max_width: int = 420) -> str:
+    """Genera versiones livianas (miniaturas) para logos, especialmente desde Google Drive."""
+    if not url or not isinstance(url, str):
+        return ""
+
+    file_id = _extract_drive_id(url.strip())
+    if file_id:
+        width = max(64, min(max_width, 1024))
+        return f"https://drive.google.com/thumbnail?id={file_id}&sz=w{width}"
+
+    return normalize_drive_image(url)
+
+
+def supporter_initials(label: str | None) -> str:
+    """Obtiene iniciales amigables para mostrar como fallback de logos."""
+    if not label:
+        return "AL"
+
+    tokens = [chunk for chunk in label.replace("_", " ").split() if chunk]
+    if not tokens:
+        return "AL"
+
+    first = tokens[0][0]
+    last = tokens[-1][0] if len(tokens) > 1 else (tokens[0][1] if len(tokens[0]) > 1 else tokens[0][0])
+    return f"{first}{last}".upper()

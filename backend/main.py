@@ -150,6 +150,24 @@ async def get_models():
     return BUSINESS_MODELS
 
 
+@app.get("/api/qa/http-status/{status_code}")
+async def qa_http_status(
+    status_code: int,
+    current_admin = Depends(get_current_admin)
+):
+    """Exponer respuestas controladas para auditorías HTTP."""
+    if status_code == 200:
+        return {"status": 200, "detail": "Respuesta de prueba 200"}
+    if status_code == 404:
+        raise HTTPException(status_code=404, detail="Respuesta de prueba 404 controlada")
+    if status_code == 500:
+        raise HTTPException(status_code=500, detail="Respuesta de prueba 500 controlada")
+
+    raise HTTPException(
+        status_code=400,
+        detail="Código no soportado. Usa 200, 404 o 500"
+    )
+
 # ============= API SITES =============
 
 @app.get("/api/sites")
