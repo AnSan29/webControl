@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor Visual | WebControl Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .control-section {
+            background: #ffffff;
+            border: 1px solid rgb(243 244 246);
+            border-radius: 1.5rem;
+            padding: 1.25rem;
+        }
+        .control-section h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #111827;
+        }
+        .control-section p {
+            font-size: 0.875rem;
+            color: #6B7280;
+        }
+        .input-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.25rem;
+        }
+        .input-control {
+            width: 100%;
+            border-radius: 0.9rem;
+            border: 1px solid rgb(229 231 235);
+            padding: 0.55rem 0.75rem;
+            font-size: 0.9rem;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .input-control:focus {
+            outline: none;
+            border-color: rgb(59 130 246);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        .dual-inputs {
+            display: grid;
+            gap: 0.75rem;
+        }
+        @media (min-width: 768px) {
+            .dual-inputs {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div class="min-h-screen">
+        <header class="fixed inset-x-0 top-0 z-30 bg-white/95 border-b border-gray-200 backdrop-blur">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a href="/dashboard" class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-globe text-blue-600"></i>
+                        WebControl Studio
+                    </a>
+                    <span class="text-gray-300">|</span>
+                    <div class="text-sm text-gray-500" id="editorBreadcrumb">Editor visual</div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="autoPreviewBadge" class="hidden items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                        <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
+                        Preview activo
+                    </button>
+                    <button type="button" class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50" onclick="window.location.href='/dashboard'">
+                        <i class="fas fa-arrow-left"></i>
+                        Volver al panel
+                    </button>
+                    <button type="button" class="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50" onclick="editorVisual.saveSite()">
+                        <i class="fas fa-floppy-disk"></i>
+                        Guardar
+                    </button>
+                    <button type="button" class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold shadow-lg shadow-blue-600/20 hover:bg-blue-700" onclick="editorVisual.publishSite()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        Publicar
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="pt-24 pb-10">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
+                <div class="grid gap-6 xl:grid-cols-[400px,1fr]">
+                    <div class="space-y-6" id="controlsPanel">
+                        <section class="control-section">
+                            <div>
+                                <h3>Identidad del sitio</h3>
+                                <p>Define el nombre, categoría y colores base.</p>
+                            </div>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="input-label">Nombre del negocio</label>
+                                    <input type="text" class="input-control" data-field="name" placeholder="Ej: Artesanías Wayuu">
+                                </div>
+                                <div>
+                                    <label class="input-label">Descripción</label>
+                                    <textarea class="input-control" rows="2" data-field="description" placeholder="Resumen para SEO"></textarea>
+                                </div>
+                                <div>
+                                    <label class="input-label">Modelo</label>
+                                    <select class="input-control" data-field="model_type" id="modelSelect"></select>
+                                </div>
+                                <div class="dual-inputs">
+                                    <div>
+                                        <label class="input-label">Color primario</label>
+                                        <input type="color" class="input-control h-12" data-field="primary_color">
+                                    </div>
+                                    <div>
+                                        <label class="input-label">Color secundario</label>
+                                        <input type="color" class="input-control h-12" data-field="secondary_color">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="input-label">Logo (URL o Google Drive)</label>
+                                    <input type="url" class="input-control" data-field="logo_url" placeholder="https://drive.google.com/file/d/...">
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="control-section">
+                            <div>
+                                <h3>Sección hero</h3>
+                                <p>Título, subtítulo e imagen principal.</p>
+                            </div>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="input-label">Título</label>
+                                    <input type="text" class="input-control" data-field="hero_title" placeholder="Cada fibra cuenta una historia">
+                                </div>
+                                <div>
+                                    <label class="input-label">Subtítulo</label>
+                                    <textarea class="input-control" rows="2" data-field="hero_subtitle" placeholder="Describe el valor principal"></textarea>
+                                </div>
+                                <div>
+                                    <label class="input-label">Imagen hero (URL)</label>
+                                    <input type="url" class="input-control" data-field="hero_image" placeholder="https://drive.google.com/file/d/...">
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="control-section">
+                            <div>
+                                <h3>Sobre nosotros</h3>
+                                <p>Historia, valores e imagen del taller.</p>
+                            </div>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="input-label">Descripción</label>
+                                    <textarea class="input-control" rows="3" data-field="about_text" placeholder="Comparte la historia de tu marca"></textarea>
+                                </div>
+                                <div>
+                                    <label class="input-label">Imagen de la sección</label>
+                                    <input type="url" class="input-control" data-field="about_image" placeholder="https://">
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="control-section">
+                            <div>
+                                <h3>Contacto & Redes</h3>
+                                <p>Haz que te encuentren fácilmente.</p>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="dual-inputs">
+                                    <div>
+                                        <label class="input-label">Email</label>
+                                        <input type="email" class="input-control" data-field="contact_email" placeholder="contacto@tuempresa.com">
+                                    </div>
+                                    <div>
+                                        <label class="input-label">Teléfono</label>
+                                        <input type="text" class="input-control" data-field="contact_phone" placeholder="(+57) 300 000 0000">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="input-label">Dirección</label>
+                                    <input type="text" class="input-control" data-field="contact_address" placeholder="Calle 123 #45-67">
+                                </div>
+                                <div>
+                                    <label class="input-label">WhatsApp</label>
+                                    <input type="text" class="input-control" data-field="whatsapp_number" placeholder="573001234567">
+                                </div>
+                                <div class="dual-inputs">
+                                    <div>
+                                        <label class="input-label">Facebook</label>
+                                        <input type="url" class="input-control" data-field="facebook_url" placeholder="https://facebook.com/">
+                                    </div>
+                                    <div>
+                                        <label class="input-label">Instagram</label>
+                                        <input type="url" class="input-control" data-field="instagram_url" placeholder="https://instagram.com/">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="input-label">TikTok</label>
+                                    <input type="url" class="input-control" data-field="tiktok_url" placeholder="https://tiktok.com/@...">
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="control-section" id="productsSection">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3>Productos / servicios</h3>
+                                    <p>Administra las tarjetas visibles.</p>
+                                </div>
+                                <button type="button" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600" onclick="editorVisual.addProduct()">
+                                    <i class="fas fa-plus"></i> Añadir
+                                </button>
+                            </div>
+                            <div class="space-y-3" id="productsList"></div>
+                            <p class="text-sm text-gray-400" id="productsEmpty">Sin elementos aún.</p>
+                        </section>
+
+                        <section class="control-section" id="gallerySection">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3>Galería visual</h3>
+                                    <p>Fotos destacadas del taller.</p>
+                                </div>
+                                <button type="button" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600" onclick="editorVisual.addGalleryImage()">
+                                    <i class="fas fa-plus"></i> Añadir
+                                </button>
+                            </div>
+                            <div class="space-y-3" id="galleryList"></div>
+                            <p class="text-sm text-gray-400" id="galleryEmpty">Agrega la primera imagen para comenzar.</p>
+                        </section>
+                    </div>
+
+                    <div class="space-y-6">
+                        <section class="bg-white border border-gray-100 rounded-3xl shadow-xl overflow-hidden">
+                            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Vista previa</p>
+                                    <h2 class="text-lg font-semibold text-gray-900" id="previewSiteName">Sin cargar</h2>
+                                </div>
+                                <button type="button" class="text-sm text-gray-500 hover:text-gray-800" onclick="editorVisual.refreshPreview(true)">
+                                    <i class="fas fa-rotate mr-1"></i> Forzar render
+                                </button>
+                            </div>
+                            <div class="bg-slate-900/80">
+                                <iframe id="sitePreviewFrame" title="Vista previa del sitio" class="w-full h-[720px] bg-white" loading="lazy" referrerpolicy="no-referrer"></iframe>
+                            </div>
+                        </section>
+                        <section class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5" id="siteMeta">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Estado</p>
+                                    <p class="text-lg font-semibold text-gray-900" id="siteStatus">Cargando...</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Modelo</p>
+                                    <p class="text-lg font-semibold text-gray-900" id="siteModel">-</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 grid gap-3 text-sm text-gray-500">
+                                <p>Última actualización: <span id="siteUpdatedAt">—</span></p>
+                                <p>GitHub Pages: <a href="#" id="siteGithubLink" class="text-blue-600" target="_blank" rel="noopener">Sin publicar</a></p>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        window.__SITE_ID__ = {{ site_id }};
+    </script>
+    <script src="/static/js/editor-visual.js"></script>
+</body>
+</html>

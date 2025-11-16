@@ -80,17 +80,25 @@ class TemplateEngine:
         normalized_hero = optimize_media_url(site_data.get("hero_image", ""), max_width=1600, quality=85)
         normalized_about = optimize_media_url(site_data.get("about_image", ""), max_width=1280, quality=85)
 
-        products = self._load_json_list(site_data.get("products_json", "[]"))
+        products_source = site_data.get("products")
+        if products_source is None:
+            products_source = site_data.get("products_json", "[]")
+
+        products = self._load_json_list(products_source)
         for product in products:
             image_url = product.get("image")
             if image_url:
                 product["image"] = optimize_media_url(image_url, max_width=900, quality=80)
 
-        gallery_images = self._load_json_list(site_data.get("gallery_images", "[]"))
-        gallery_images = [
-            optimize_media_url(url, max_width=1024, quality=78)
-            for url in gallery_images if url
-        ]
+        raw_gallery = self._load_json_list(site_data.get("gallery_images", "[]"))
+        gallery_images = []
+        for url in raw_gallery:
+            if not url:
+                continue
+            normalized = self.normalize_media_url(url)
+            gallery_images.append(
+                optimize_media_url(normalized or url, max_width=1024, quality=78)
+            )
 
         supporter_logos = self._build_supporters(site_data)
 
@@ -189,11 +197,14 @@ class TemplateEngine:
         return defaults
 
     @staticmethod
-    def _load_json_list(raw_value: str) -> list:
-        """Convertir cadenas JSON en listas seguras para plantillas."""
+    def _load_json_list(raw_value) -> list:
+        """Convertir cadenas JSON (o listas ya parseadas) en listas seguras."""
+        if isinstance(raw_value, list):
+            return raw_value
+
         try:
             data = json.loads(raw_value or "[]")
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, TypeError):
             return []
 
         return data if isinstance(data, list) else []
