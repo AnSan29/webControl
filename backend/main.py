@@ -68,6 +68,10 @@ with open(Path(__file__).parent / "models.json", 'r', encoding='utf-8') as f:
 with open(Path(__file__).parent / "seed_data.json", 'r', encoding='utf-8') as f:
     SEED_DATA = json.load(f)
 
+# ============= FEATURE FLAGS =============
+# Habilitar GPT-5 para todos los clientes (controlado por ENV, por defecto true)
+GPT5_ENABLED = os.getenv("GPT5_ENABLED", "true").lower() in ("1", "true", "yes", "on")
+
 
 # ============= RUTAS FRONTEND =============
 
@@ -104,7 +108,7 @@ async def create_site_page(request: Request):
 @app.get("/editor/{site_id}", response_class=HTMLResponse)
 async def editor_page(site_id: int, request: Request):
     """Página de editor"""
-    return templates.TemplateResponse("editor.html", {"request": request, "site_id": site_id})
+    return templates.TemplateResponse("editor-visual.html", {"request": request, "site_id": site_id})
 
 
 # ============= API AUTH =============
@@ -139,6 +143,16 @@ async def get_me(current_admin = Depends(get_current_admin)):
     return {
         "email": current_admin.email,
         "id": current_admin.id
+    }
+
+
+# ============= API FLAGS =============
+
+@app.get("/api/flags")
+async def get_flags():
+    """Obtener banderas de características para clientes."""
+    return {
+        "gpt5_enabled": GPT5_ENABLED
     }
 
 
@@ -300,6 +314,8 @@ async def update_site(
         if hasattr(site, key) and key != "id":
             if key == "products":
                 setattr(site, "products_json", json.dumps(value))
+            elif key == "gallery_images" and isinstance(value, list):
+                setattr(site, "gallery_images", json.dumps(value))
             else:
                 setattr(site, key, value)
     
@@ -310,6 +326,32 @@ async def update_site(
         "id": site.id,
         "message": "Sitio actualizado exitosamente"
     }
+
+
+@app.post("/api/sites/preview", response_class=HTMLResponse)
+async def preview_site(request: Request, current_admin = Depends(get_current_admin)):
+    """Generar una vista previa HTML en caliente para el editor visual."""
+    payload = await request.json()
+    model_type = payload.get("model_type")
+
+    if not model_type:
+        raise HTTPException(status_code=400, detail="model_type es requerido")
+
+    site_data = payload.copy()
+    # Asegurar defaults mínimos para evitar llaves faltantes en plantillas
+    site_data.setdefault("name", "Vista previa")
+    site_data.setdefault("hero_title", site_data.get("name", ""))
+    site_data.setdefault("hero_subtitle", "")
+
+    try:
+        files = template_engine.generate_site(model_type, site_data)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    html = files.get("index.html", "")
+    return HTMLResponse(content=html)
 
 
 @app.delete("/api/sites/{site_id}")

@@ -74,7 +74,11 @@ class TemplateEngine:
         normalized_hero = self.normalize_media_url(site_data.get("hero_image", ""))
         normalized_about = self.normalize_media_url(site_data.get("about_image", ""))
 
-        products = self._load_json_list(site_data.get("products_json", "[]"))
+        products_source = site_data.get("products")
+        if products_source is None:
+            products_source = site_data.get("products_json", "[]")
+
+        products = self._load_json_list(products_source)
         for product in products:
             image_url = product.get("image")
             if image_url:
@@ -83,7 +87,8 @@ class TemplateEngine:
         gallery_images = self._load_json_list(site_data.get("gallery_images", "[]"))
         gallery_images = [self.normalize_media_url(url) for url in gallery_images if url]
 
-        supporter_logos_input = self._load_json_list(site_data.get("supporter_logos_json", "[]"))
+        supporter_source = site_data.get("supporter_logos") or site_data.get("supporter_logos_json", "[]")
+        supporter_logos_input = self._load_json_list(supporter_source)
         supporter_logos = []
         for supporter in supporter_logos_input:
             logo_url = self.normalize_media_url(supporter.get("url") or supporter.get("image", ""))
@@ -157,11 +162,14 @@ class TemplateEngine:
         return normalize_drive_image(url)
 
     @staticmethod
-    def _load_json_list(raw_value: str) -> list:
-        """Convertir cadenas JSON en listas seguras para plantillas."""
+    def _load_json_list(raw_value) -> list:
+        """Convertir cadenas JSON (o listas ya parseadas) en listas seguras."""
+        if isinstance(raw_value, list):
+            return raw_value
+
         try:
             data = json.loads(raw_value or "[]")
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, TypeError):
             return []
 
         return data if isinstance(data, list) else []
