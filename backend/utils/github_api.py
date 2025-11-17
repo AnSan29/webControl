@@ -1,6 +1,5 @@
 from github import Github, GithubException
 import os
-import base64
 import json
 import time
 from typing import Optional
@@ -155,12 +154,9 @@ class GitHubPublisher:
             return {"success": False, "error": str(e)}
     
     def upload_binary_file(self, repo_name: str, file_path: str, file_content: bytes, commit_message: str = "Upload image"):
-        """Subir archivo binario (imagen) al repositorio"""
+        """Subir archivo binario (imagen) al repositorio sin doble codificación."""
         try:
             repo = self.user.get_repo(repo_name)
-            
-            # Convertir bytes a base64
-            content_base64 = base64.b64encode(file_content).decode('utf-8')
             
             # Intentar obtener el archivo existente
             try:
@@ -168,7 +164,7 @@ class GitHubPublisher:
                 repo.update_file(
                     path=file_path,
                     message=commit_message,
-                    content=content_base64,
+                    content=file_content,
                     sha=file.sha,
                     branch="main"
                 )
@@ -177,7 +173,7 @@ class GitHubPublisher:
                 repo.create_file(
                     path=file_path,
                     message=commit_message,
-                    content=content_base64,
+                    content=file_content,
                     branch="main"
                 )
             
@@ -361,7 +357,7 @@ class GitHubPublisher:
             uploads_dir = Path(__file__).parent.parent.parent / "uploads"
             if uploads_dir.exists():
                 for image_file in uploads_dir.glob("*"):
-                    if image_file.is_file() and image_file.suffix.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+                    if image_file.is_file() and image_file.suffix.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']:
                         try:
                             with open(image_file, 'rb') as f:
                                 image_content = f.read()

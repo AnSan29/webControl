@@ -8,6 +8,7 @@ from backend.template_helpers import (
     optimize_media_url,
     optimize_logo_url,
     supporter_initials,
+    normalize_local_asset,
 )
 
 
@@ -76,9 +77,14 @@ class TemplateEngine:
             or site_data.get("logo_drive_url")
             or site_data.get("logo")
         )
+        raw_logo = normalize_local_asset(raw_logo)
         normalized_logo = optimize_logo_url(raw_logo or "")
-        normalized_hero = optimize_media_url(site_data.get("hero_image", ""), max_width=1600, quality=85)
-        normalized_about = optimize_media_url(site_data.get("about_image", ""), max_width=1280, quality=85)
+
+        raw_hero = normalize_local_asset(site_data.get("hero_image", ""))
+        normalized_hero = optimize_media_url(raw_hero, max_width=1600, quality=85)
+
+        raw_about = normalize_local_asset(site_data.get("about_image", ""))
+        normalized_about = optimize_media_url(raw_about, max_width=1280, quality=85)
 
         products_source = site_data.get("products")
         if products_source is None:
@@ -87,8 +93,11 @@ class TemplateEngine:
         products = self._load_json_list(products_source)
         for product in products:
             image_url = product.get("image")
-            if image_url:
-                product["image"] = optimize_media_url(image_url, max_width=900, quality=80)
+            canonical_image = normalize_local_asset(image_url)
+            if canonical_image:
+                product["image"] = optimize_media_url(canonical_image, max_width=900, quality=80)
+            else:
+                product["image"] = canonical_image
 
         raw_gallery = self._load_json_list(site_data.get("gallery_images", "[]"))
         gallery_images = []
@@ -146,8 +155,9 @@ class TemplateEngine:
 
     @staticmethod
     def normalize_media_url(url: str) -> str:
-        """Normalizar URLs de imágenes reutilizando el helper especializado."""
-        return normalize_drive_image(url)
+        """Normalizar URLs locales/Drive para que las plantillas usen rutas válidas."""
+        canonical = normalize_local_asset(url)
+        return normalize_drive_image(canonical)
 
     def _build_supporters(self, site_data: dict) -> list[dict]:
         supporter_logos_input = self._load_json_list(site_data.get("supporter_logos_json", "[]"))
@@ -155,6 +165,7 @@ class TemplateEngine:
 
         for supporter in supporter_logos_input:
             raw = supporter.get("url") or supporter.get("image", "")
+            raw = normalize_local_asset(raw)
             normalized = self.normalize_media_url(raw)
             optimized = optimize_logo_url(raw)
             if not (normalized or optimized):

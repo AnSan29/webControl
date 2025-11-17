@@ -30,7 +30,8 @@ from auth import (
 )
 from utils.github_api import GitHubPublisher
 from utils.template_engine import TemplateEngine
-from .template_helpers import normalize_drive_image
+from utils.asset_manager import ensure_local_asset
+from .template_helpers import normalize_drive_image, normalize_local_asset
 
 # Inicializar app
 app = FastAPI(
@@ -51,8 +52,10 @@ app.add_middleware(
 # Montar archivos estáticos
 frontend_path = Path(__file__).parent.parent / "frontend"
 uploads_path = Path(__file__).parent.parent / "uploads"
+uploads_path.mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory=frontend_path / "static"), name="static")
 app.mount("/uploads", StaticFiles(directory=uploads_path), name="uploads")
+app.mount("/images", StaticFiles(directory=uploads_path), name="images")
 
 templates = Jinja2Templates(directory=str(frontend_path))
 templates.env.globals["normalize_drive_image"] = normalize_drive_image
@@ -67,6 +70,84 @@ with open(Path(__file__).parent / "models.json", 'r', encoding='utf-8') as f:
 # Cargar datos semilla
 with open(Path(__file__).parent / "seed_data.json", 'r', encoding='utf-8') as f:
     SEED_DATA = json.load(f)
+
+
+def _canonicalize_asset_value(value):
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        cleaned = normalize_local_asset(value)
+        return normalize_drive_image(cleaned)
+    return value
+
+
+def _coerce_list(value):
+    if isinstance(value, list):
+        return value
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value or "[]")
+            if isinstance(parsed, list):
+                return parsed
+        except json.JSONDecodeError:
+            return []
+    return []
+
+
+def _canonicalize_gallery(value):
+    gallery_items = []
+    for item in _coerce_list(value):
+        gallery_items.append(_canonicalize_asset_value(item))
+    return gallery_items
+
+
+def _canonicalize_products(value):
+    products = []
+    for item in _coerce_list(value):
+        if not isinstance(item, dict):
+            continue
+        entry = item.copy()
+        entry["image"] = _canonicalize_asset_value(entry.get("image"))
+        products.append(entry)
+    return products
+
+
+def _localize_asset_for_publish(value):
+    canonical = _canonicalize_asset_value(value)
+    if not canonical:
+        return canonical, False
+    if canonical.startswith("images/"):
+        return canonical, False
+    local_path, downloaded = ensure_local_asset(canonical)
+    if local_path and local_path != canonical:
+        return local_path, True
+    return canonical, False
+
+
+def _localize_gallery_for_publish(value):
+    gallery_items = []
+    changed = False
+    for item in _coerce_list(value):
+        localized, was_downloaded = _localize_asset_for_publish(item)
+        gallery_items.append(localized)
+        if was_downloaded:
+            changed = True
+    return gallery_items, changed
+
+
+def _localize_products_for_publish(value):
+    products = []
+    changed = False
+    for item in _coerce_list(value):
+        if not isinstance(item, dict):
+            continue
+        entry = item.copy()
+        localized, was_downloaded = _localize_asset_for_publish(entry.get("image"))
+        entry["image"] = localized
+        products.append(entry)
+        if was_downloaded:
+            changed = True
+    return products, changed
 
 # ============= FEATURE FLAGS =============
 # Habilitar GPT-5 para todos los clientes (controlado por ENV, por defecto true)
@@ -225,11 +306,13 @@ async def get_site(
         gallery_images = json.loads(site.gallery_images) if site.gallery_images else []
     except:
         gallery_images = []
+    gallery_images = _canonicalize_gallery(gallery_images)
     
     try:
         products = json.loads(site.products_json) if site.products_json else []
     except:
         products = []
+    products = _canonicalize_products(products)
     
     return {
         "id": site.id,
@@ -242,9 +325,9 @@ async def get_site(
         "is_published": site.is_published,
         "hero_title": site.hero_title,
         "hero_subtitle": site.hero_subtitle,
-        "hero_image": site.hero_image,
+    "hero_image": _canonicalize_asset_value(site.hero_image),
         "about_text": site.about_text,
-        "about_image": site.about_image,
+    "about_image": _canonicalize_asset_value(site.about_image),
         "contact_email": site.contact_email,
         "contact_phone": site.contact_phone,
         "whatsapp_number": site.whatsapp_number,
@@ -252,7 +335,7 @@ async def get_site(
         "facebook_url": site.facebook_url,
         "instagram_url": site.instagram_url,
         "tiktok_url": site.tiktok_url,
-        "logo_url": site.logo_url,
+    "logo_url": _canonicalize_asset_value(site.logo_url),
         "primary_color": site.primary_color,
         "secondary_color": site.secondary_color,
         "gallery_images": gallery_images,
@@ -276,6 +359,18 @@ async def create_site(
     # Cargar datos semilla si existen para este tipo de modelo
     seed_data = SEED_DATA.get(model_type, {})
     
+    gallery_input = data.get("gallery_images")
+    if gallery_input is None:
+        gallery_input = seed_data.get("gallery_images", [])
+    gallery_payload = _canonicalize_gallery(gallery_input)
+
+    products_input = (
+        data.get("products")
+        or data.get("products_json")
+        or seed_data.get("products", [])
+    )
+    products_payload = _canonicalize_products(products_input)
+
     # Crear sitio en BD usando datos semilla como valores por defecto
     site = Site(
         name=data.get("name", seed_data.get("site_name", "Nuevo Sitio")),
@@ -284,9 +379,9 @@ async def create_site(
         custom_domain=data.get("custom_domain"),
         hero_title=data.get("hero_title", seed_data.get("hero_title", data.get("name", ""))),
         hero_subtitle=data.get("hero_subtitle", seed_data.get("hero_subtitle", "")),
-        hero_image=data.get("hero_image", seed_data.get("hero_image", "")),
+        hero_image=_canonicalize_asset_value(data.get("hero_image", seed_data.get("hero_image", ""))),
         about_text=data.get("about_text", seed_data.get("about_text", "")),
-        about_image=data.get("about_image", seed_data.get("about_image", "")),
+        about_image=_canonicalize_asset_value(data.get("about_image", seed_data.get("about_image", ""))),
         contact_email=data.get("contact_email", seed_data.get("contact_email", "")),
         contact_phone=data.get("contact_phone", seed_data.get("contact_phone", "")),
         contact_address=data.get("contact_address", ""),
@@ -294,11 +389,11 @@ async def create_site(
         facebook_url=data.get("facebook_url", seed_data.get("facebook_url", "")),
         instagram_url=data.get("instagram_url", seed_data.get("instagram_url", "")),
         tiktok_url=data.get("tiktok_url", seed_data.get("tiktok_url", "")),
-        logo_url=data.get("logo_url", ""),
+        logo_url=_canonicalize_asset_value(data.get("logo_url", "")),
         primary_color=data.get("primary_color", ""),
         secondary_color=data.get("secondary_color", ""),
-        gallery_images=json.dumps(data.get("gallery_images", seed_data.get("gallery_images", []))),
-        products_json=json.dumps(data.get("products", seed_data.get("products", [])))
+        gallery_images=json.dumps(gallery_payload),
+        products_json=json.dumps(products_payload)
     )
     
     db.add(site)
@@ -326,16 +421,25 @@ async def update_site(
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
     
     data = await request.json()
+
+    for asset_field in ("hero_image", "about_image", "logo_url"):
+        if asset_field in data:
+            data[asset_field] = _canonicalize_asset_value(data[asset_field])
     
     # Actualizar campos
     for key, value in data.items():
+        if key == "products" or key == "products_json":
+            products_data = _canonicalize_products(value)
+            setattr(site, "products_json", json.dumps(products_data))
+            continue
+
+        if key == "gallery_images":
+            gallery_data = _canonicalize_gallery(value)
+            setattr(site, "gallery_images", json.dumps(gallery_data))
+            continue
+
         if hasattr(site, key) and key != "id":
-            if key == "products":
-                setattr(site, "products_json", json.dumps(value))
-            elif key == "gallery_images" and isinstance(value, list):
-                setattr(site, "gallery_images", json.dumps(value))
-            else:
-                setattr(site, key, value)
+            setattr(site, key, value)
     
     db.commit()
     db.refresh(site)
@@ -418,27 +522,30 @@ async def publish_site(
         import unicodedata
         import re
         
-        # Remover acentos y normalizar
-        name_normalized = unicodedata.normalize('NFKD', site.name).encode('ASCII', 'ignore').decode('ASCII')
-        # Convertir a slug válido para GitHub
-        repo_name = re.sub(r'[^a-zA-Z0-9\-]', '-', name_normalized.lower())
-        repo_name = re.sub(r'-+', '-', repo_name)  # Eliminar guiones múltiples
-        repo_name = f"{repo_name}-{site.id}".strip('-')
+        # Determinar nombre del repositorio destino
+        if site.github_repo:
+            desired_repo = site.github_repo
+        else:
+            name_normalized = unicodedata.normalize('NFKD', site.name).encode('ASCII', 'ignore').decode('ASCII')
+            desired_repo = re.sub(r'[^a-zA-Z0-9\-]', '-', name_normalized.lower())
+            desired_repo = re.sub(r'-+', '-', desired_repo)  # Eliminar guiones múltiples
+            desired_repo = f"{desired_repo}-{site.id}".strip('-')
+
+        print(f"🏷️  Nombre del repositorio: {desired_repo}")
+
+        repo_result = publisher.create_repository(
+            repo_name=desired_repo,
+            description=site.description
+        )
+
+        if not repo_result["success"]:
+            raise HTTPException(status_code=500, detail=repo_result["error"])
+
+        site.github_repo = repo_result["repo_name"]
         
-        print(f"🏷️  Nombre del repositorio: {repo_name}")
-        
-        # Crear repositorio si no existe
-        if not site.github_repo:
-            repo_result = publisher.create_repository(
-                repo_name=repo_name,
-                description=site.description
-            )
-            
-            if not repo_result["success"]:
-                raise HTTPException(status_code=500, detail=repo_result["error"])
-            
-            site.github_repo = repo_name
-        
+        gallery_items = _coerce_list(site.gallery_images or [])
+        products_items = _coerce_list(site.products_json or [])
+
         # Generar archivos del sitio
         site_data = {
             "id": site.id,
@@ -459,9 +566,37 @@ async def publish_site(
             "logo_url": site.logo_url,
             "primary_color": site.primary_color,
             "secondary_color": site.secondary_color,
-            "products_json": site.products_json,
-            "gallery_images": site.gallery_images
+            "products": products_items,
+            "products_json": json.dumps(products_items),
+            "gallery_images": gallery_items
         }
+
+        asset_updates = {}
+        gallery_update = None
+        products_update = None
+
+        site_data["hero_image"], changed = _localize_asset_for_publish(site_data["hero_image"])
+        if changed:
+            asset_updates["hero_image"] = site_data["hero_image"]
+
+        site_data["about_image"], changed = _localize_asset_for_publish(site_data["about_image"])
+        if changed:
+            asset_updates["about_image"] = site_data["about_image"]
+
+        site_data["logo_url"], changed = _localize_asset_for_publish(site_data["logo_url"])
+        if changed:
+            asset_updates["logo_url"] = site_data["logo_url"]
+
+        localized_gallery, gallery_changed = _localize_gallery_for_publish(gallery_items)
+        site_data["gallery_images"] = localized_gallery
+        if gallery_changed:
+            gallery_update = localized_gallery
+
+        localized_products, products_changed = _localize_products_for_publish(products_items)
+        site_data["products"] = localized_products
+        site_data["products_json"] = json.dumps(localized_products)
+        if products_changed:
+            products_update = localized_products
         
         print(f"📝 Generando sitio para modelo: {site.model_type}")
         site_files = template_engine.generate_site(site.model_type, site_data)
@@ -478,7 +613,16 @@ async def publish_site(
         if not publish_result["success"]:
             raise HTTPException(status_code=500, detail=publish_result["error"])
         
-        # Actualizar BD
+        # Actualizar BD con assets localizados
+        for field, value in asset_updates.items():
+            setattr(site, field, value)
+
+        if gallery_update is not None:
+            site.gallery_images = json.dumps(gallery_update)
+
+        if products_update is not None:
+            site.products_json = json.dumps(products_update)
+
         site.github_url = publish_result["pages_url"]
         site.is_published = True
         db.commit()
@@ -612,11 +756,18 @@ async def upload_image(
     La imagen se guardará en uploads/ y se subirá al repo de GitHub al publicar.
     """
     # Validar tipo de archivo
-    allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]
+    allowed_types = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/svg+xml"
+    ]
     if file.content_type not in allowed_types:
         raise HTTPException(
             status_code=400,
-            detail=f"Tipo de archivo no permitido. Usa: JPG, PNG, GIF o WebP"
+            detail="Tipo de archivo no permitido. Usa: JPG, PNG, GIF, WebP o SVG"
         )
     
     # Validar tamaño (máximo 5MB)

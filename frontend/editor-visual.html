@@ -123,8 +123,15 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="input-label">Logo (URL o Google Drive)</label>
-                                    <input type="url" class="input-control" data-field="logo_url" placeholder="https://drive.google.com/file/d/...">
+                                    <label class="input-label">Logo</label>
+                                    <div class="flex gap-2">
+                                        <input type="url" class="input-control flex-1" data-field="logo_url" placeholder="https://drive.google.com/file/d/...">
+                                        <button type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50" onclick="editorVisual.handleFieldUpload('logo_url')">
+                                            <i class="fas fa-upload"></i>
+                                            Subir
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-1">Acepta PNG, JPG, WEBP o SVG. Se guarda en la carpeta interna del sitio sin usar base64.</p>
                                 </div>
                             </div>
                         </section>
@@ -144,8 +151,15 @@
                                     <textarea class="input-control" rows="2" data-field="hero_subtitle" placeholder="Describe el valor principal"></textarea>
                                 </div>
                                 <div>
-                                    <label class="input-label">Imagen hero (URL)</label>
-                                    <input type="url" class="input-control" data-field="hero_image" placeholder="https://drive.google.com/file/d/...">
+                                    <label class="input-label">Imagen hero</label>
+                                    <div class="flex gap-2">
+                                        <input type="url" class="input-control flex-1" data-field="hero_image" placeholder="https://drive.google.com/file/d/...">
+                                        <button type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50" onclick="editorVisual.handleFieldUpload('hero_image')">
+                                            <i class="fas fa-upload"></i>
+                                            Subir
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-1">Ideal 1600x900px. Se almacena en los assets del proyecto.</p>
                                 </div>
                             </div>
                         </section>
@@ -162,7 +176,14 @@
                                 </div>
                                 <div>
                                     <label class="input-label">Imagen de la sección</label>
-                                    <input type="url" class="input-control" data-field="about_image" placeholder="https://">
+                                    <div class="flex gap-2">
+                                        <input type="url" class="input-control flex-1" data-field="about_image" placeholder="https://">
+                                        <button type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50" onclick="editorVisual.handleFieldUpload('about_image')">
+                                            <i class="fas fa-upload"></i>
+                                            Subir
+                                        </button>
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-1">Acepta imágenes locales, se alojan en /uploads y se sirven como archivos.</p>
                                 </div>
                             </div>
                         </section>
@@ -228,9 +249,14 @@
                                     <h3>Galería visual</h3>
                                     <p>Fotos destacadas del taller.</p>
                                 </div>
-                                <button type="button" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600" onclick="editorVisual.addGalleryImage()">
-                                    <i class="fas fa-plus"></i> Añadir
-                                </button>
+                                <div class="flex flex-col gap-2 sm:flex-row">
+                                    <button type="button" class="inline-flex items-center gap-2 text-sm font-semibold text-emerald-600" onclick="editorVisual.addGalleryImageFromFile()">
+                                        <i class="fas fa-upload"></i> Subir archivo
+                                    </button>
+                                    <button type="button" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600" onclick="editorVisual.addGalleryImage()">
+                                        <i class="fas fa-link"></i> Usar URL
+                                    </button>
+                                </div>
                             </div>
                             <div class="space-y-3" id="galleryList"></div>
                             <p class="text-sm text-gray-400" id="galleryEmpty">Agrega la primera imagen para comenzar.</p>

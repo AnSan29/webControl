@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse, urlunparse
 
+LOCAL_ASSET_HOSTS = {"localhost", "127.0.0.1"}
+
 
 def _merge_query_params(url: str, new_params: dict[str, str | int]) -> str:
     """Agregar o actualizar parámetros de consulta en una URL conservando los existentes."""
@@ -124,3 +126,35 @@ def supporter_initials(label: str | None) -> str:
     first = tokens[0][0]
     last = tokens[-1][0] if len(tokens) > 1 else (tokens[0][1] if len(tokens[0]) > 1 else tokens[0][0])
     return f"{first}{last}".upper()
+
+
+def normalize_local_asset(url: str | None) -> str:
+    """Quita prefijos de localhost/127 y barras iniciales para assets servidos desde /images."""
+    if not url or not isinstance(url, str):
+        return ""
+
+    cleaned = url.strip()
+    if not cleaned:
+        return ""
+
+    # Ya es una ruta relativa esperada
+    if cleaned.startswith("images/"):
+        return cleaned
+
+    # Remover la barra inicial si apunta a /images
+    if cleaned.startswith("/images/"):
+        return cleaned.lstrip("/")
+
+    try:
+        parsed = urlparse(cleaned)
+    except ValueError:
+        return cleaned
+
+    if not parsed.scheme:
+        return cleaned
+
+    hostname = (parsed.hostname or "").lower()
+    if hostname in LOCAL_ASSET_HOSTS and parsed.path.startswith("/images/"):
+        return parsed.path.lstrip("/")
+
+    return cleaned

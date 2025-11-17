@@ -10,6 +10,72 @@ const editorVisual = (() => {
         inputsBound: false
     };
 
+    const LOCAL_ASSET_HOSTS = new Set(['localhost', '127.0.0.1']);
+
+    function canonicalizeAssetUrl(value) {
+        if (!value || typeof value !== 'string') {
+            return '';
+        }
+        let trimmed = value.trim();
+        if (!trimmed) {
+            return '';
+        }
+        if (/^data:/i.test(trimmed)) {
+            return trimmed;
+        }
+        if (trimmed.startsWith('./')) {
+            trimmed = trimmed.replace(/^\.\/+/, '');
+        }
+        if (trimmed.startsWith('images/')) {
+            return trimmed;
+        }
+        if (trimmed.startsWith('/images/')) {
+            return trimmed.replace(/^\/+/, '');
+        }
+        if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith('//')) {
+            try {
+                const parsed = new URL(trimmed, window.location.origin);
+                if (LOCAL_ASSET_HOSTS.has(parsed.hostname) && parsed.pathname.startsWith('/images/')) {
+                    return parsed.pathname.replace(/^\/+/, '');
+                }
+            } catch (error) {
+                return trimmed;
+            }
+            return trimmed;
+        }
+        return trimmed;
+    }
+
+    function canonicalizeGalleryList(items) {
+        if (!Array.isArray(items)) {
+            return [];
+        }
+        return items.map(item => canonicalizeAssetUrl(typeof item === 'string' ? item : ''));
+    }
+
+    function canonicalizeProductsList(items) {
+        if (!Array.isArray(items)) {
+            return [];
+        }
+        return items
+            .filter(product => product && typeof product === 'object')
+            .map(product => ({
+                ...product,
+                image: canonicalizeAssetUrl(product.image || '')
+            }));
+    }
+
+    function canonicalizeSiteMedia() {
+        state.siteState.logo_url = canonicalizeAssetUrl(state.siteState.logo_url || '');
+        state.siteState.hero_image = canonicalizeAssetUrl(state.siteState.hero_image || '');
+        state.siteState.about_image = canonicalizeAssetUrl(state.siteState.about_image || '');
+        state.siteState.products = canonicalizeProductsList(state.siteState.products || []);
+        state.siteState.gallery_images = canonicalizeGalleryList(state.siteState.gallery_images || []);
+    }
+
+    const IMAGE_MAX_BYTES = 6 * 1024 * 1024;
+    const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml'];
+
     async function init() {
         const authed = await checkAuth();
         if (!authed) return;
@@ -61,6 +127,8 @@ const editorVisual = (() => {
             supporter_logos: safeParseArray(site.supporter_logos_json),
             custom_domain: site.custom_domain
         };
+
+        canonicalizeSiteMedia();
 
         updateMeta(site);
         hydrateInputs();
@@ -121,6 +189,9 @@ const editorVisual = (() => {
     }
 
     function updateField(field, value) {
+        if (["logo_url", "hero_image", "about_image"].includes(field)) {
+            value = canonicalizeAssetUrl(value);
+        }
         state.siteState[field] = value;
         if (field === 'name') {
             const siteNameEl = document.getElementById('previewSiteName');
@@ -157,7 +228,16 @@ const editorVisual = (() => {
                 <textarea class="input-control" rows="2" placeholder="Descripción" oninput="editorVisual.updateProduct(${index}, 'description', this.value)">${escapeText(product.description)}</textarea>
                 <div class="dual-inputs">
                     <input type="text" class="input-control" value="${escapeAttr(product.price)}" placeholder="Precio" oninput="editorVisual.updateProduct(${index}, 'price', this.value)">
-                    <input type="url" class="input-control" value="${escapeAttr(product.image)}" placeholder="Imagen (URL)" oninput="editorVisual.updateProduct(${index}, 'image', this.value)">
+                    <div class="space-y-2">
+                        <div class="flex gap-2">
+                            <input type="url" class="input-control flex-1" value="${escapeAttr(product.image)}" placeholder="Imagen (URL)" oninput="editorVisual.updateProduct(${index}, 'image', this.value)">
+                            <button type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50" onclick="editorVisual.uploadProductImage(${index})">
+                                <i class="fas fa-upload"></i>
+                                Subir
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-gray-400">Acepta PNG, JPG, WEBP y GIF.</p>
+                    </div>
                 </div>
             </article>
         `).join('');
@@ -199,7 +279,11 @@ const editorVisual = (() => {
 
     function updateProduct(index, field, value) {
         if (!state.siteState.products[index]) return;
-        state.siteState.products[index][field] = value;
+        if (field === 'image') {
+            state.siteState.products[index][field] = canonicalizeAssetUrl(value);
+        } else {
+            state.siteState.products[index][field] = value;
+        }
         refreshPreview();
     }
 
@@ -210,15 +294,30 @@ const editorVisual = (() => {
     }
 
     function addGalleryImage() {
+        const url = prompt('Pega la URL pública de la imagen', 'https://');
+        if (!url || url.trim() === '' || url === 'https://') return;
         state.siteState.gallery_images = state.siteState.gallery_images || [];
-        state.siteState.gallery_images.push('https://');
+        state.siteState.gallery_images.push(url.trim());
         renderGallery();
         refreshPreview();
+        showNotification('Imagen agregada desde URL', 'success');
+    }
+
+    function addGalleryImageFromFile() {
+        openImagePicker(async (file) => {
+            const uploadedUrl = await uploadAssetFile(file);
+            if (!uploadedUrl) return;
+            state.siteState.gallery_images = state.siteState.gallery_images || [];
+            state.siteState.gallery_images.push(uploadedUrl);
+            renderGallery();
+            refreshPreview(true);
+            showNotification('Imagen agregada a la galería', 'success');
+        });
     }
 
     function updateGalleryImage(index, value) {
         if (typeof state.siteState.gallery_images[index] === 'undefined') return;
-        state.siteState.gallery_images[index] = value;
+        state.siteState.gallery_images[index] = canonicalizeAssetUrl(value);
         refreshPreview();
     }
 
@@ -250,8 +349,9 @@ const editorVisual = (() => {
     }
 
     function injectBaseTag(html) {
+        const originBase = `${window.location.origin}/`;
         if (!html.includes('<base')) {
-            return html.replace('<head>', '<head><base href="/">');
+            return html.replace('<head>', `<head><base href="${originBase}">`);
         }
         return html;
     }
@@ -288,11 +388,93 @@ const editorVisual = (() => {
         }, delay);
     }
 
-    async function saveSite() {
+    function openImagePicker(onFileSelect) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+        input.addEventListener('change', () => {
+            const file = input.files?.[0];
+            document.body.removeChild(input);
+            if (file && typeof onFileSelect === 'function') {
+                onFileSelect(file);
+            }
+        }, { once: true });
+        input.click();
+    }
+
+    function validateImageFile(file) {
+        if (!file.type.startsWith('image/')) {
+            showNotification('El archivo seleccionado no es una imagen', 'error');
+            return false;
+        }
+        if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+            showNotification('Formato no soportado. Usa PNG, JPG, WEBP, GIF o SVG.', 'error');
+            return false;
+        }
+        if (file.size > IMAGE_MAX_BYTES) {
+            showNotification('La imagen supera los 6MB permitidos', 'error');
+            return false;
+        }
+        return true;
+    }
+
+    async function uploadAssetFile(file) {
+        if (!validateImageFile(file)) return null;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('site_id', state.siteId);
+        try {
+            showNotification('Subiendo imagen...', 'info');
+            const response = await fetchAPI('/api/upload-image', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            if (response.ok && data.success && data.url) {
+                const canonical = canonicalizeAssetUrl(data.url);
+                return canonical || data.url;
+            }
+            showNotification(data.detail || 'No se pudo subir la imagen', 'error');
+        } catch (error) {
+            console.error('uploadAssetFile', error);
+            showNotification('Error al subir la imagen', 'error');
+        }
+        return null;
+    }
+
+    function handleFieldUpload(field) {
+        openImagePicker(async (file) => {
+            const uploadedUrl = await uploadAssetFile(file);
+            if (!uploadedUrl) return;
+            const canonical = canonicalizeAssetUrl(uploadedUrl);
+            state.siteState[field] = canonical;
+            const input = document.querySelector(`[data-field="${field}"]`);
+            if (input) input.value = canonical;
+            showNotification('Imagen guardada correctamente', 'success');
+            refreshPreview(true);
+        });
+    }
+
+    function uploadProductImage(index) {
+        if (!state.siteState.products || !state.siteState.products[index]) return;
+        openImagePicker(async (file) => {
+            const uploadedUrl = await uploadAssetFile(file);
+            if (!uploadedUrl) return;
+            const canonical = canonicalizeAssetUrl(uploadedUrl);
+            state.siteState.products[index].image = canonical;
+            renderProducts();
+            refreshPreview(true);
+            showNotification('Imagen del producto actualizada', 'success');
+        });
+    }
+
+    async function persistSiteState(notify = false) {
         const payload = {
             ...state.siteState,
-            products: state.siteState.products,
-            gallery_images: state.siteState.gallery_images
+            products: state.siteState.products || [],
+            gallery_images: state.siteState.gallery_images || []
         };
 
         try {
@@ -300,20 +482,39 @@ const editorVisual = (() => {
                 method: 'PUT',
                 body: JSON.stringify(payload)
             });
-            if (response.ok) {
-                showNotification('Cambios guardados', 'success');
-                await loadSite();
-            } else {
+            if (response?.ok) {
+                if (notify) {
+                    showNotification('Cambios guardados', 'success');
+                }
+                return true;
+            }
+            if (notify) {
                 showNotification('Error al guardar', 'error');
             }
         } catch (error) {
             console.error(error);
-            showNotification('Error al guardar', 'error');
+            if (notify) {
+                showNotification('Error al guardar', 'error');
+            }
+        }
+        return false;
+    }
+
+    async function saveSite() {
+        const saved = await persistSiteState(true);
+        if (saved) {
+            await loadSite();
         }
     }
 
     async function publishSite() {
         if (!confirm('¿Deseas publicar este sitio en GitHub Pages?')) return;
+        showNotification('Guardando cambios...', 'info');
+        const saved = await persistSiteState(false);
+        if (!saved) {
+            showNotification('No se pudo guardar el sitio antes de publicar', 'error');
+            return;
+        }
         showNotification('Publicando sitio...', 'info');
         try {
             const response = await fetchAPI(`/api/sites/${state.siteId}/publish`, { method: 'POST' });
@@ -343,8 +544,11 @@ const editorVisual = (() => {
         updateProduct,
         removeProduct,
         addGalleryImage,
+        addGalleryImageFromFile,
         updateGalleryImage,
-        removeGalleryImage
+        removeGalleryImage,
+        handleFieldUpload,
+        uploadProductImage
     };
 })();
 
