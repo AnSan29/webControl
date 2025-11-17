@@ -35,7 +35,7 @@ class RoleRead(RoleBase):
 class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
-    role_id: int
+    role_id: Optional[int] = None  # Hacer opcional
     site_id: Optional[int] = None
     is_active: bool = True
 
