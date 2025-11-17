@@ -175,7 +175,39 @@ Google recomienda hospedar recursos estáticos (logos, banners) en servicios esp
 5. **Publicar** → El sistema genera y sube automáticamente a GitHub Pages
 6. **Estadísticas** → Monitorea visitas y métricas
 
-## 🔧 Configuración de GitHub Pages
+## � Gestión de Usuarios y Roles
+
+El backend ahora integra un sistema completo de autentificación con JWT (access + refresh tokens) y control de permisos basado en roles.
+
+### Roles disponibles
+
+| Rol | Permisos principales |
+| --- | --- |
+| `admin` | Ver/editar todos los sitios, publicar, gestionar usuarios y roles |
+| `owner` | Editar y publicar únicamente su sitio asignado (creado automáticamente al generar un sitio) |
+| `editor` | Editar sitios que le asigne un admin, sin publicar ni borrar |
+| `user` | Acceso básico al panel sin permisos de edición |
+
+### Endpoints clave
+
+- `POST /auth/register` – Registro autogestionado para nuevos usuarios (rol `user`).
+- `POST /auth/login` – Login estándar con emisión de access/refresh tokens.
+- `POST /auth/refresh` – Renovación segura del token de acceso.
+- `GET /auth/me` – Perfil del usuario autenticado con la lista de permisos efectivos.
+- `GET|POST|PATCH|DELETE /roles/*` – CRUD completo de roles (solo admins).
+- `GET|POST|PATCH|DELETE /users/*` – CRUD completo de usuarios, cambio de contraseña y asignación de sitios.
+
+### Dueño automático del sitio
+
+Cada vez que se crea un sitio desde `POST /api/sites` el backend:
+
+1. Genera un usuario tipo `owner` con username basado en el nombre del sitio.
+2. Le asigna el `site_id` recién creado y una contraseña temporal segura.
+3. Incluye las credenciales en la respuesta (`owner_credentials`) para que el administrador pueda compartirlas.
+
+Los endpoints clásicos como `/api/sites`, `/api/sites/{id}`, `/api/sites/{id}/publish` ahora verifican automáticamente si el usuario autenticado es admin, dueño u editor asignado antes de permitir lecturas o cambios.
+
+## �🔧 Configuración de GitHub Pages
 
 ### 1. Crear Token de GitHub
 
