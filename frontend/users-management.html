@@ -650,8 +650,12 @@
             fetch(`${API_BASE}/users`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then(data => {
+                console.log('Usuarios cargados:', data);
                 const tbody = document.getElementById('users-table-body');
                 if (!data || data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay usuarios registrados</td></tr>';
@@ -662,7 +666,7 @@
                     <tr>
                         <td>${user.email}</td>
                         <td>${user.username || '-'}</td>
-                        <td><span class="badge badge-${user.role}">${user.role}</span></td>
+                        <td><span class="badge badge-${user.role_name}">${user.role_name}</span></td>
                         <td>
                             <span style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 4px; font-size: 12px;">
                                 Activo
@@ -671,13 +675,16 @@
                         <td>
                             <div class="actions">
                                 <button class="btn-secondary" onclick="openEditUserModal(${user.id})">Editar</button>
-                                ${user.role !== 'admin' ? `<button class="btn-danger" onclick="deleteUser(${user.id})">Eliminar</button>` : ''}
+                                ${user.role_name !== 'admin' ? `<button class="btn-danger" onclick="deleteUser(${user.id})">Eliminar</button>` : ''}
                             </div>
                         </td>
                     </tr>
                 `).join('');
             })
-            .catch(err => showAlert('Error cargando usuarios', 'error'));
+            .catch(err => {
+                console.error('Error:', err);
+                showAlert('Error cargando usuarios: ' + err.message, 'error');
+            });
         }
 
         function openCreateUserModal() {
@@ -703,6 +710,8 @@
                 return;
             }
 
+            console.log('Creando usuario:', { email, username, role });
+
             fetch(`${API_BASE}/users`, {
                 method: 'POST',
                 headers: {
@@ -711,17 +720,22 @@
                 },
                 body: JSON.stringify({ email, username, password, role })
             })
-            .then(r => r.json())
-            .then(data => {
-                if (data.error) {
-                    showAlert(data.error, 'error');
-                } else {
-                    showAlert('Usuario creado exitosamente', 'success');
-                    closeCreateUserModal();
-                    loadUsers();
+            .then(r => {
+                if (!r.ok) {
+                    return r.json().then(err => { throw err; });
                 }
+                return r.json();
             })
-            .catch(err => showAlert('Error creando usuario', 'error'));
+            .then(data => {
+                console.log('Usuario creado:', data);
+                showAlert('Usuario creado exitosamente', 'success');
+                closeCreateUserModal();
+                loadUsers();
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                showAlert(err.detail || 'Error creando usuario', 'error');
+            });
         }
 
         function openEditUserModal(userId) {
@@ -791,8 +805,12 @@
             fetch(`${API_BASE}/roles`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then(data => {
+                console.log('Roles cargados:', data);
                 const tbody = document.getElementById('roles-table-body');
                 if (!data || data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No hay roles registrados</td></tr>';
@@ -815,7 +833,10 @@
                     </tr>
                 `).join('');
             })
-            .catch(err => showAlert('Error cargando roles', 'error'));
+            .catch(err => {
+                console.error('Error:', err);
+                showAlert('Error cargando roles: ' + err.message, 'error');
+            });
         }
 
         function createRole() {
@@ -873,8 +894,12 @@
             fetch(`${API_BASE}/users/assignments`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then(data => {
+                console.log('Asignaciones cargadas:', data);
                 const tbody = document.getElementById('assignments-table-body');
                 if (!data || data.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay asignaciones</td></tr>';
@@ -893,7 +918,10 @@
                     </tr>
                 `).join('');
             })
-            .catch(err => showAlert('Error cargando asignaciones', 'error'));
+            .catch(err => {
+                console.error('Error:', err);
+                showAlert('Error cargando asignaciones: ' + err.message, 'error');
+            });
         }
 
         function loadDropdowns() {
