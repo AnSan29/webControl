@@ -68,7 +68,8 @@
 
     <main>
         <!-- Hero Section -->
-        <section id="inicio" class="hero">
+        <section id="inicio" class="hero{% if hero_image %} has-image{% endif %}"
+            {% if hero_image %}style="--hero-image: url('{{ normalize_drive_image(hero_image) }}');"{% endif %}>
             <div class="hero-overlay"></div>
             <div class="container hero-container">
                 <div class="hero-content">

@@ -237,8 +237,16 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, var(--primary-light) 100%);
+    background-image: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 50%, var(--primary-light) 100%);
+    background-color: var(--primary);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     overflow: hidden;
+}
+
+.hero.has-image {
+    background-image: linear-gradient(135deg, rgba(90, 61, 31, 0.85) 0%, rgba(124, 84, 48, 0.85) 50%, rgba(154, 110, 71, 0.85) 100%), var(--hero-image);
 }
 
 .hero::before {
