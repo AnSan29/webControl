@@ -35,7 +35,7 @@ El panel estará disponible en: **http://localhost:8000**
 ## 🔐 Login
 
 **Credenciales por defecto:**
-- Email: `admin@example.com`
+- Email: `admin@webcontrol.com`
 - Password: `admin123`
 
 ⚠️ **Importante:** Cambia estas credenciales después del primer login.
@@ -192,7 +192,7 @@ from database import SessionLocal, Admin
 from auth import get_password_hash
 
 db = SessionLocal()
-admin = db.query(Admin).filter(Admin.email == "admin@example.com").first()
+admin = db.query(Admin).filter(Admin.email == "admin@webcontrol.com").first()
 admin.hashed_password = get_password_hash("nueva_contraseña")
 db.commit()
 print("Contraseña actualizada")

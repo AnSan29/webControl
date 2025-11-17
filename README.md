@@ -109,9 +109,9 @@ Crea un archivo `.env` en la raíz del proyecto:
 SECRET_KEY=tu-clave-secreta-aqui
 GITHUB_TOKEN=ghp_tuTokenDeGitHub
 GITHUB_USERNAME=tu-usuario-github
-ADMIN_EMAIL=admin@example.com
+ADMIN_EMAIL=admin@webcontrol.com
 ADMIN_PASSWORD=admin123
-DATABASE_URL=sqlite:///./db.sqlite3
+DATABASE_URL=sqlite:///./backend/db.sqlite3
 ```
 
 ### 5. Inicializar la base de datos
@@ -134,7 +134,7 @@ El panel estará disponible en: `http://localhost:8000`
 
 ### Credenciales por defecto
 
-- **Email**: admin@example.com
+- **Email**: admin@webcontrol.com
 - **Password**: admin123
 
 ⚠️ **Importante**: Cambia estas credenciales en producción.

@@ -104,7 +104,7 @@ start.bat
 GITHUB_TOKEN=ghp_tu_token_aqui
 GITHUB_USERNAME=tu_usuario
 SECRET_KEY=clave-secreta-segura
-ADMIN_EMAIL=admin@example.com
+ADMIN_EMAIL=admin@webcontrol.com
 ADMIN_PASSWORD=admin123
 ```
 
@@ -119,7 +119,7 @@ uvicorn main:app --reload
 
 Abre: **http://localhost:8000**
 
-Login: `admin@example.com` / `admin123`
+Login: `admin@webcontrol.com` / `admin123`
 
 ## 📊 Flujo de Trabajo
 

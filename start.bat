@@ -47,7 +47,7 @@ echo.
 echo El panel estara disponible en: http://localhost:8000
 echo.
 echo Credenciales por defecto:
-echo    Email: admin@example.com
+echo    Email: admin@webcontrol.com
 echo    Password: admin123
 echo.
 pause
