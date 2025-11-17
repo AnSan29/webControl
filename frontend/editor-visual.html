@@ -55,6 +55,30 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
+
+        .preview-shell {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .preview-frame-wrapper {
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+        }
+
+        .preview-frame {
+            width: 1280px;
+            min-width: 1280px;
+            min-height: 780px;
+            border: none;
+            border-radius: 1.5rem;
+            background: #ffffff;
+            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.55);
+        }
     </style>
 </head>
 <body class="bg-slate-50">
@@ -264,7 +288,7 @@
                     </div>
 
                     <div class="space-y-6">
-                        <section class="bg-white border border-gray-100 rounded-3xl shadow-xl overflow-hidden">
+                        <section class="bg-white border border-gray-100 rounded-3xl shadow-xl">
                             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                                 <div>
                                     <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">Vista previa</p>
@@ -274,8 +298,10 @@
                                     <i class="fas fa-rotate mr-1"></i> Forzar render
                                 </button>
                             </div>
-                            <div class="bg-slate-900/80">
-                                <iframe id="sitePreviewFrame" title="Vista previa del sitio" class="w-full h-[720px] bg-white" loading="lazy" referrerpolicy="no-referrer"></iframe>
+                            <div class="preview-shell">
+                                <div class="preview-frame-wrapper">
+                                    <iframe id="sitePreviewFrame" title="Vista previa del sitio" class="preview-frame" loading="lazy" referrerpolicy="no-referrer"></iframe>
+                                </div>
                             </div>
                         </section>
                         <section class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5" id="siteMeta">

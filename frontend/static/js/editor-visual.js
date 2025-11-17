@@ -350,10 +350,38 @@ const editorVisual = (() => {
 
     function injectBaseTag(html) {
         const originBase = `${window.location.origin}/`;
-        if (!html.includes('<base')) {
-            return html.replace('<head>', `<head><base href="${originBase}">`);
+        let transformed = html;
+        if (!transformed.includes('<base')) {
+            transformed = transformed.replace('<head>', `<head><base href="${originBase}">`);
         }
-        return html;
+
+        if (!transformed.includes('preview-anchor-handler')) {
+            const helperScript = `
+<script id="preview-anchor-handler">
+(function(){
+    function handleAnchorClick(event){
+        const link = event.target.closest('a[href^="#"]');
+        if(!link)return;
+        const hash = link.getAttribute('href') || '';
+        if(hash.length <= 1)return;
+        const targetId = hash.slice(1);
+        const target = document.getElementById(targetId);
+        if(!target)return;
+        event.preventDefault();
+        target.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+    document.addEventListener('click', handleAnchorClick, {capture:true});
+})();
+</script>`;
+
+            if (transformed.includes('</body>')) {
+                transformed = transformed.replace('</body>', `${helperScript}</body>`);
+            } else {
+                transformed = `${transformed}${helperScript}`;
+            }
+        }
+
+        return transformed;
     }
 
     function refreshPreview(force = false) {
@@ -381,11 +409,47 @@ const editorVisual = (() => {
             const frame = document.getElementById('sitePreviewFrame');
             if (frame) {
                 frame.src = url;
-                frame.onload = () => URL.revokeObjectURL(url);
+                frame.onload = () => {
+                    URL.revokeObjectURL(url);
+                    attachPreviewBridge(frame);
+                };
             }
             const badge = document.getElementById('autoPreviewBadge');
             if (badge) badge.classList.remove('hidden');
         }, delay);
+    }
+
+    function attachPreviewBridge(frame) {
+        try {
+            const doc = frame?.contentDocument;
+            if (!doc || doc.__wcPreviewBridge) return;
+            doc.__wcPreviewBridge = true;
+            const handler = (event) => {
+                const anchor = findAnchor(event.target, doc);
+                if (!anchor) return;
+                const href = anchor.getAttribute('href') || '';
+                if (!href.startsWith('#') || href.length <= 1) return;
+                const targetId = href.slice(1);
+                const target = doc.getElementById(targetId);
+                if (!target) return;
+                event.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            };
+            doc.addEventListener('click', handler, true);
+        } catch (error) {
+            console.warn('preview bridge error', error);
+        }
+    }
+
+    function findAnchor(node, rootDoc) {
+        let current = node;
+        while (current && current !== rootDoc) {
+            if (current.tagName && current.tagName.toLowerCase() === 'a') {
+                return current;
+            }
+            current = current.parentNode;
+        }
+        return null;
     }
 
     function openImagePicker(onFileSelect) {

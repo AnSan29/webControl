@@ -9,6 +9,7 @@ from datetime import timedelta
 from pathlib import Path
 import json
 import os
+import re
 import shutil
 import uuid
 from dotenv import load_dotenv
@@ -148,6 +149,29 @@ def _localize_products_for_publish(value):
         if was_downloaded:
             changed = True
     return products, changed
+
+
+def _inline_preview_assets(html: str, generated_files: dict) -> str:
+    """Incrusta assets críticos (CSS/JS) en la vista previa para evitar 404 en el editor."""
+    css = generated_files.get("styles.css")
+    if css:
+        html = re.sub(r'<link[^>]+href=["\'](?:\./)?styles\.css["\'][^>]*>\s*', "", html, flags=re.IGNORECASE)
+        style_tag = f"<style>\n{css}\n</style>"
+        if "</head>" in html:
+            html = html.replace("</head>", f"{style_tag}</head>", 1)
+        else:
+            html = style_tag + html
+
+    script = generated_files.get("tracking.js")
+    if script:
+        html = re.sub(r'<script[^>]+src=["\'](?:\./)?tracking\.js["\'][^>]*></script>\s*', "", html, flags=re.IGNORECASE)
+        script_tag = f"<script>\n{script}\n</script>"
+        if "</body>" in html:
+            html = html.replace("</body>", f"{script_tag}</body>", 1)
+        else:
+            html = html + script_tag
+
+    return html
 
 # ============= FEATURE FLAGS =============
 # Habilitar GPT-5 para todos los clientes (controlado por ENV, por defecto true)
@@ -473,6 +497,7 @@ async def preview_site(request: Request, current_admin = Depends(get_current_adm
         raise HTTPException(status_code=500, detail=str(exc))
 
     html = files.get("index.html", "")
+    html = _inline_preview_assets(html, files)
     return HTMLResponse(content=html)
 
 
@@ -520,7 +545,6 @@ async def publish_site(
         
         # Nombre del repositorio (normalizar caracteres especiales)
         import unicodedata
-        import re
         
         # Determinar nombre del repositorio destino
         if site.github_repo:

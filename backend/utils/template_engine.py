@@ -145,8 +145,12 @@ class TemplateEngine:
             # Si no existe plantilla específica, usar genérica
             files["index.html"] = self.generate_generic_template(context, model_config)
         
-        # Generar CSS personalizado
-        files["styles.css"] = self.generate_css(model_config["palette"])
+        # Generar CSS personalizado (permite overrides por modelo)
+        try:
+            custom_css = self.load_template(model_type, "styles.css")
+            files["styles.css"] = self.render_template(custom_css, context)
+        except FileNotFoundError:
+            files["styles.css"] = self.generate_css(model_config["palette"])
         
         # Generar tracking script
         files["tracking.js"] = self.generate_tracking_script(site_data.get("id"))

@@ -12,34 +12,34 @@
     <!-- Header -->
     <header class="header">
         <div class="container">
-            <div class="logo-area">
+            <div class="header-logo">
                 {% if logo_url %}
-                <img src="{{ normalize_drive_image(logo_url) }}" alt="{{ site_name }}" class="logo">
+                <img src="{{ normalize_drive_image(logo_url) }}" alt="{{ site_name }}" class="logo-img">
                 {% else %}
-                <span class="logo-icon">{{ model_icon }}</span>
+                <span class="logo-badge">{{ model_icon }}</span>
                 {% endif %}
-                <h1>{{ site_name }}</h1>
+                <h1 class="site-name">{{ site_name }}</h1>
             </div>
-            <nav class="navigation">
-                <a href="#inicio">Inicio</a>
-                <a href="#nosotros">Nosotros</a>
-                <a href="#servicios">Servicios</a>
-                <a href="#proyectos">Proyectos</a>
-                <a href="#contacto">Contacto</a>
+            <nav class="header-nav">
+                <a href="#inicio" class="nav-link">Inicio</a>
+                <a href="#nosotros" class="nav-link">Nosotros</a>
+                <a href="#catalogo" class="nav-link">Catálogo</a>
+                <a href="#galeria" class="nav-link">Galería</a>
+                <a href="#contacto" class="nav-link">Contacto</a>
             </nav>
         </div>
     </header>
 
     <!-- Hero Section -->
-    <section id="inicio" class="hero">
-        <div class="hero-inner">
-            <div class="hero-text">
+    <section id="inicio" class="hero-section">
+        <div class="hero-wrapper">
+            <div class="hero-content">
                 <h2>{{ hero_title }}</h2>
-                <p>{{ site_description }}</p>
-                <a href="#servicios" class="btn-primary">Ver Servicios</a>
+                <p>{{ hero_subtitle }}</p>
+                <a href="#catalogo" class="hero-btn">Ver Catálogo</a>
             </div>
             {% if hero_image %}
-            <div class="hero-img">
+            <div class="hero-image-box">
                 <img src="{{ hero_image }}" alt="{{ hero_title }}">
             </div>
             {% endif %}
@@ -47,20 +47,20 @@
     </section>
 
     <!-- About Section -->
-    <section id="nosotros" class="about">
+    <section id="nosotros" class="about-section">
         <div class="container">
-            <div class="about-inner">
+            <div class="about-wrapper">
                 {% if about_image %}
-                <div class="about-img">
+                <div class="about-image">
                     <img src="{{ about_image }}" alt="Sobre nosotros">
                 </div>
                 {% endif %}
-                <div class="about-info">
+                <div class="about-content">
                     <h2>Sobre Nosotros</h2>
                     <p>{{ about_text }}</p>
                     {% if contact_address %}
-                    <p class="address">
-                        <i class="fas fa-map-marker-alt"></i> {{ contact_address }}
+                    <p class="farm-location">
+                        <i class="fas fa-location-dot"></i> {{ contact_address }}
                     </p>
                     {% endif %}
                 </div>
@@ -68,75 +68,75 @@
         </div>
     </section>
 
-    <!-- Services Section -->
-    <section id="servicios" class="services">
+    <!-- Catalog Section (Products) -->
+    <section id="catalogo" class="catalog-section">
         <div class="container">
-            <h2 class="section-title">Nuestros Servicios</h2>
-            <p class="subtitle">Soluciones técnicas confiables</p>
+            <h2 class="section-title">Nuestro Catálogo</h2>
+            <p class="section-desc">Animales y productos de calidad</p>
             
             {% if products and products|length > 0 %}
-            <div class="services-list">
+            <div class="catalog-grid">
                 {% for product in products %}
-                <div class="service-item">
+                <div class="product-card">
                     {% if product.image %}
-                    <div class="service-img">
+                    <div class="product-image">
                         <img src="{{ product.image }}" alt="{{ product.name }}">
                     </div>
                     {% endif %}
-                    <div class="service-details">
+                    <div class="product-content">
                         <h3>{{ product.name }}</h3>
                         <p>{{ product.description }}</p>
                         {% if product.price %}
-                        <span class="price">Desde ${{ product.price }}</span>
+                        <span class="product-price">Valor: ${{ product.price }}</span>
                         {% endif %}
                     </div>
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <div class="no-services">
-                <p>Servicios disponibles próximamente</p>
+            <div class="empty-catalog">
+                <p>Catálogo disponible próximamente</p>
             </div>
             {% endif %}
         </div>
     </section>
 
-    <!-- Projects/Portfolio Section -->
-    <section id="proyectos" class="projects">
+    <!-- Gallery Section -->
+    <section id="galeria" class="gallery-section">
         <div class="container">
-            <h2 class="section-title">Nuestros Proyectos</h2>
-            <p class="subtitle">Trabajos realizados con excelencia</p>
+            <h2 class="section-title">Galería</h2>
+            <p class="section-desc">Nuestros animales y faena</p>
             
             {% if gallery_images and gallery_images|length > 0 %}
-            <div class="projects-grid">
+            <div class="gallery-grid">
                 {% for image_url in gallery_images %}
-                <div class="project-card">
-                    <img src="{{ image_url }}" alt="Proyecto" loading="lazy">
-                    <div class="project-overlay">
-                        <a href="{{ image_url }}" target="_blank" class="zoom-icon">
-                            <i class="fas fa-plus"></i>
+                <div class="gallery-item">
+                    <img src="{{ image_url }}" alt="Galería" loading="lazy">
+                    <div class="gallery-overlay">
+                        <a href="{{ image_url }}" target="_blank" class="gallery-link">
+                            <i class="fas fa-search-plus"></i>
                         </a>
                     </div>
                 </div>
                 {% endfor %}
             </div>
             {% else %}
-            <div class="projects-placeholders">
-                <div class="project-card placeholder">🏠</div>
-                <div class="project-card placeholder">🔨</div>
-                <div class="project-card placeholder">🛠️</div>
-                <div class="project-card placeholder">✨</div>
+            <div class="gallery-placeholders">
+                <div class="gallery-item placeholder">🐐</div>
+                <div class="gallery-item placeholder">🐑</div>
+                <div class="gallery-item placeholder">🌾</div>
+                <div class="gallery-item placeholder">🏞️</div>
             </div>
             {% endif %}
         </div>
     </section>
 
     <!-- Contact Section -->
-    <section id="contacto" class="contact">
+    <section id="contacto" class="contact-section">
         <div class="container">
-            <h2 class="section-title">Contacto</h2>
-            <div class="contact-box">
-                <div class="contact-item">
+            <h2 class="section-title">Contacto y Pedidos</h2>
+            <div class="contact-wrapper">
+                <div class="contact-box">
                     <h3>Información de Contacto</h3>
                     {% if contact_phone %}
                     <p>
@@ -158,22 +158,25 @@
                     {% endif %}
                 </div>
 
-                <div class="social-item">
-                    <h3>Síguenos</h3>
-                    <div class="social-links">
+                <div class="social-box">
+                    <h3>Síguenos en Redes</h3>
+                    <div class="social-grid">
                         {% if facebook_url %}
-                        <a href="{{ facebook_url }}" target="_blank" rel="noopener" class="social-link">
+                        <a href="{{ facebook_url }}" target="_blank" rel="noopener" class="social-btn">
                             <i class="fab fa-facebook-f"></i>
+                            <span>Facebook</span>
                         </a>
                         {% endif %}
                         {% if instagram_url %}
-                        <a href="{{ instagram_url }}" target="_blank" rel="noopener" class="social-link">
+                        <a href="{{ instagram_url }}" target="_blank" rel="noopener" class="social-btn">
                             <i class="fab fa-instagram"></i>
+                            <span>Instagram</span>
                         </a>
                         {% endif %}
                         {% if tiktok_url %}
-                        <a href="{{ tiktok_url }}" target="_blank" rel="noopener" class="social-link">
+                        <a href="{{ tiktok_url }}" target="_blank" rel="noopener" class="social-btn">
                             <i class="fab fa-tiktok"></i>
+                            <span>TikTok</span>
                         </a>
                         {% endif %}
                     </div>
@@ -186,13 +189,13 @@
     <footer class="footer">
         <div class="container">
             <p>&copy; {{ current_year }} {{ site_name }}. Todos los derechos reservados.</p>
-            <p>Servicios técnicos de confianza</p>
+            <p>Crianza responsable y producción de calidad</p>
         </div>
     </footer>
 
-    <!-- WhatsApp Button -->
+    <!-- WhatsApp Floating Button -->
     {% if whatsapp_number %}
-    <a href="https://wa.me/{{ whatsapp_number }}?text=Hola,%20necesito%20un%20presupuesto%20para%20un%20trabajo" 
+    <a href="https://wa.me/{{ whatsapp_number }}?text=Hola,%20me%20interesa%20información%20sobre%20los%20animales" 
        class="whatsapp-float" 
        target="_blank" 
        rel="noopener"

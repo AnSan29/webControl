@@ -3,209 +3,431 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ site_name }}</title>
-    <meta name="description" content="{{ site_description }}">
+    <title>{{ site_name or "Ganadería Caprina" }}</title>
+    <meta name="description" content="{{ site_description or 'Crianza y comercialización de chivos de alta calidad' }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Header -->
+    <!-- Header/Navbar -->
     <header class="header">
-        <div class="container">
-            <div class="header-logo">
-                {% if logo_url %}
-                <img src="{{ normalize_drive_image(logo_url) }}" alt="{{ site_name }}" class="logo-img">
-                {% else %}
-                <span class="logo-badge">{{ model_icon }}</span>
-                {% endif %}
-                <h1 class="site-name">{{ site_name }}</h1>
+        <nav class="navbar">
+            <div class="container">
+                <div class="navbar-content">
+                    <a href="#inicio" class="logo-wrapper">
+                        {% if logo_url %}
+                        <img src="{{ normalize_drive_image(logo_url) }}" alt="{{ site_name }}" class="logo">
+                        {% else %}
+                        <span class="logo-icon">{{ model_icon or '🐐' }}</span>
+                        {% endif %}
+                        <div class="logo-text">
+                            <h1 class="logo-title">{{ site_name }}</h1>
+                            {% if hero_subtitle %}
+                            <p class="logo-subtitle">{{ hero_subtitle }}</p>
+                            {% endif %}
+                        </div>
+                    </a>
+
+                    <div class="nav-wrapper">
+                        <ul class="nav-links">
+                            <li><a href="#inicio" class="nav-link" data-section="inicio">Inicio</a></li>
+                            <li><a href="#nosotros" class="nav-link" data-section="nosotros">Nosotros</a></li>
+                            <li><a href="#productos" class="nav-link" data-section="productos">Productos</a></li>
+                            <li><a href="#galeria" class="nav-link" data-section="galeria">Galería</a></li>
+                            <li><a href="#contacto" class="nav-link" data-section="contacto">Contacto</a></li>
+                        </ul>
+                        
+                        {% if whatsapp_number %}
+                        <a href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}?text=Hola,%20me%20interesa%20información%20sobre%20sus%20productos" 
+                           class="btn-primary" 
+                           target="_blank" 
+                           rel="noopener">
+                            <i class="fab fa-whatsapp"></i>
+                            <span>Contactar</span>
+                        </a>
+                        {% else %}
+                        <a href="#contacto" class="btn-primary">
+                            <i class="fas fa-phone"></i>
+                            <span>Contáctanos</span>
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <button class="mobile-toggle" type="button" aria-label="Menú" aria-expanded="false">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
             </div>
-            <nav class="header-nav">
-                <a href="#inicio" class="nav-link">Inicio</a>
-                <a href="#nosotros" class="nav-link">Nosotros</a>
-                <a href="#catalogo" class="nav-link">Catálogo</a>
-                <a href="#galeria" class="nav-link">Galería</a>
-                <a href="#contacto" class="nav-link">Contacto</a>
-            </nav>
-        </div>
+        </nav>
     </header>
 
-    <!-- Hero Section -->
-    <section id="inicio" class="hero-section">
-        <div class="hero-wrapper">
-            <div class="hero-content">
-                <h2>{{ hero_title }}</h2>
-                <p>{{ hero_subtitle }}</p>
-                <a href="#catalogo" class="hero-btn">Ver Catálogo</a>
+    <main>
+        <!-- Hero Section -->
+        <section id="inicio" class="hero">
+            <div class="hero-overlay"></div>
+            <div class="container hero-container">
+                <div class="hero-content">
+                    <span class="hero-badge"><i class="fas fa-leaf"></i> Crianza responsable</span>
+                    <h2 class="hero-title">{{ hero_title or site_name }}</h2>
+                    <p class="hero-subtitle">{{ site_description or 'Crianza y comercialización de chivos de alta calidad' }}</p>
+                    <div class="hero-actions">
+                        <a href="#productos" class="btn btn-light">Ver Productos</a>
+                        {% if whatsapp_number %}
+                        <a href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}" 
+                           class="btn btn-whatsapp" 
+                           target="_blank" 
+                           rel="noopener">
+                            <i class="fab fa-whatsapp"></i>
+                            WhatsApp
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            {% if hero_image %}
-            <div class="hero-image-box">
-                <img src="{{ hero_image }}" alt="{{ hero_title }}">
-            </div>
-            {% endif %}
-        </div>
-    </section>
+        </section>
 
-    <!-- About Section -->
-    <section id="nosotros" class="about-section">
-        <div class="container">
-            <div class="about-wrapper">
-                {% if about_image %}
-                <div class="about-image">
-                    <img src="{{ about_image }}" alt="Sobre nosotros">
+        <!-- About Section -->
+        <section id="nosotros" class="about">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-badge"><i class="fas fa-users"></i> Nuestra historia</span>
+                    <h2>Sobre Nosotros</h2>
+                    <p>Comprometidos con la calidad y el bienestar animal</p>
+                </div>
+                <div class="about-grid">
+                    {% if about_image %}
+                    <div class="about-media">
+                        <img src="{{ normalize_drive_image(about_image) }}" alt="Sobre nosotros" loading="lazy">
+                        <div class="about-decoration"></div>
+                    </div>
+                    {% endif %}
+                    <div class="about-content">
+                        <p class="about-text">{{ about_text or 'Somos una empresa dedicada a la crianza y comercialización de chivos, con años de experiencia en el sector ganadero. Nos caracterizamos por ofrecer animales de excelente calidad, bien cuidados y con todas las garantías sanitarias.' }}</p>
+                        
+                        <div class="about-features">
+                            <div class="feature-card">
+                                <div class="feature-icon">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div class="feature-content">
+                                    <h3>Calidad Garantizada</h3>
+                                    <p>Animales sanos y bien alimentados</p>
+                                </div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon">
+                                    <i class="fas fa-handshake"></i>
+                                </div>
+                                <div class="feature-content">
+                                    <h3>Confianza</h3>
+                                    <p>Experiencia y compromiso con nuestros clientes</p>
+                                </div>
+                            </div>
+                            <div class="feature-card">
+                                <div class="feature-icon">
+                                    <i class="fas fa-leaf"></i>
+                                </div>
+                                <div class="feature-content">
+                                    <h3>Sostenibilidad</h3>
+                                    <p>Prácticas responsables y respetuosas</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section id="productos" class="products">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-badge"><i class="fas fa-box"></i> Nuestros productos</span>
+                    <h2>Productos Disponibles</h2>
+                    <p>Ofrecemos la mejor calidad en cada producto</p>
+                </div>
+                
+                {% if products and products|length > 0 %}
+                <div class="products-grid">
+                    {% for product in products %}
+                    <div class="product-card">
+                        {% if product.image %}
+                        <div class="product-image">
+                            <img src="{{ normalize_drive_image(product.image) }}" alt="{{ product.name }}" loading="lazy">
+                            <div class="product-badge">Disponible</div>
+                        </div>
+                        {% else %}
+                        <div class="product-image product-placeholder">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        {% endif %}
+                        <div class="product-body">
+                            <h3>{{ product.name }}</h3>
+                            <p>{{ product.description }}</p>
+                            {% if product.price %}
+                            <div class="product-footer">
+                                <span class="price">Desde ${{ product.price }}</span>
+                                {% if whatsapp_number %}
+                                <a href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}?text=Hola,%20me%20interesa%20{{ product.name }}" 
+                                   class="btn-small" 
+                                   target="_blank" 
+                                   rel="noopener">
+                                    Consultar
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <h3>Productos disponibles próximamente</h3>
+                    <p>Estamos preparando nuestro catálogo para ti</p>
+                    {% if whatsapp_number %}
+                    <a href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}" 
+                       class="btn btn-primary" 
+                       target="_blank" 
+                       rel="noopener">
+                        Consultar disponibilidad
+                    </a>
+                    {% endif %}
                 </div>
                 {% endif %}
-                <div class="about-content">
-                    <h2>Sobre Nosotros</h2>
-                    <p>{{ about_text }}</p>
-                    {% if contact_address %}
-                    <p class="farm-location">
-                        <i class="fas fa-location-dot"></i> {{ contact_address }}
-                    </p>
-                    {% endif %}
-                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Catalog Section (Products) -->
-    <section id="catalogo" class="catalog-section">
-        <div class="container">
-            <h2 class="section-title">Nuestro Catálogo</h2>
-            <p class="section-desc">Animales y productos de calidad</p>
-            
-            {% if products and products|length > 0 %}
-            <div class="catalog-grid">
-                {% for product in products %}
-                <div class="product-card">
-                    {% if product.image %}
-                    <div class="product-image">
-                        <img src="{{ product.image }}" alt="{{ product.name }}">
-                    </div>
-                    {% endif %}
-                    <div class="product-content">
-                        <h3>{{ product.name }}</h3>
-                        <p>{{ product.description }}</p>
-                        {% if product.price %}
-                        <span class="product-price">Valor: ${{ product.price }}</span>
-                        {% endif %}
-                    </div>
+        <!-- Gallery Section -->
+        <section id="galeria" class="gallery">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-badge"><i class="fas fa-images"></i> Galería</span>
+                    <h2>Nuestras Instalaciones</h2>
+                    <p>Conoce de cerca nuestra operación</p>
                 </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="empty-catalog">
-                <p>Catálogo disponible próximamente</p>
-            </div>
-            {% endif %}
-        </div>
-    </section>
-
-    <!-- Gallery Section -->
-    <section id="galeria" class="gallery-section">
-        <div class="container">
-            <h2 class="section-title">Galería</h2>
-            <p class="section-desc">Nuestros animales y faena</p>
-            
-            {% if gallery_images and gallery_images|length > 0 %}
-            <div class="gallery-grid">
-                {% for image_url in gallery_images %}
-                <div class="gallery-item">
-                    <img src="{{ image_url }}" alt="Galería" loading="lazy">
-                    <div class="gallery-overlay">
-                        <a href="{{ image_url }}" target="_blank" class="gallery-link">
+                
+                {% if gallery_images and gallery_images|length > 0 %}
+                <div class="gallery-grid">
+                    {% for image_url in gallery_images %}
+                    <div class="gallery-item">
+                        <img src="{{ normalize_drive_image(image_url) }}" alt="Galería" loading="lazy">
+                        <div class="gallery-overlay">
                             <i class="fas fa-search-plus"></i>
-                        </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="gallery-placeholders">
+                    <div class="gallery-placeholder">
+                        <i class="fas fa-home"></i>
+                        <span>Instalaciones</span>
+                    </div>
+                    <div class="gallery-placeholder">
+                        <i class="fas fa-horse-head"></i>
+                        <span>Animales</span>
+                    </div>
+                    <div class="gallery-placeholder">
+                        <i class="fas fa-users"></i>
+                        <span>Equipo</span>
                     </div>
                 </div>
-                {% endfor %}
+                {% endif %}
             </div>
-            {% else %}
-            <div class="gallery-placeholders">
-                <div class="gallery-item placeholder">🐐</div>
-                <div class="gallery-item placeholder">🐑</div>
-                <div class="gallery-item placeholder">🌾</div>
-                <div class="gallery-item placeholder">🏞️</div>
-            </div>
-            {% endif %}
-        </div>
-    </section>
+        </section>
 
-    <!-- Contact Section -->
-    <section id="contacto" class="contact-section">
-        <div class="container">
-            <h2 class="section-title">Contacto y Pedidos</h2>
-            <div class="contact-wrapper">
-                <div class="contact-box">
-                    <h3>Información de Contacto</h3>
-                    {% if contact_phone %}
-                    <p>
-                        <i class="fas fa-phone"></i>
-                        <a href="tel:{{ contact_phone }}">{{ contact_phone }}</a>
-                    </p>
-                    {% endif %}
-                    {% if contact_email %}
-                    <p>
-                        <i class="fas fa-envelope"></i>
-                        <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
-                    </p>
-                    {% endif %}
-                    {% if contact_address %}
-                    <p>
-                        <i class="fas fa-map-marker-alt"></i>
-                        {{ contact_address }}
-                    </p>
-                    {% endif %}
+        <!-- Contact Section -->
+        <section id="contacto" class="contact">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-badge"><i class="fas fa-envelope"></i> Contáctanos</span>
+                    <h2>Información de Contacto</h2>
+                    <p>Estamos para atenderte</p>
                 </div>
 
-                <div class="social-box">
-                    <h3>Síguenos en Redes</h3>
-                    <div class="social-grid">
-                        {% if facebook_url %}
-                        <a href="{{ facebook_url }}" target="_blank" rel="noopener" class="social-btn">
-                            <i class="fab fa-facebook-f"></i>
-                            <span>Facebook</span>
-                        </a>
-                        {% endif %}
-                        {% if instagram_url %}
-                        <a href="{{ instagram_url }}" target="_blank" rel="noopener" class="social-btn">
-                            <i class="fab fa-instagram"></i>
-                            <span>Instagram</span>
-                        </a>
-                        {% endif %}
-                        {% if tiktok_url %}
-                        <a href="{{ tiktok_url }}" target="_blank" rel="noopener" class="social-btn">
-                            <i class="fab fa-tiktok"></i>
-                            <span>TikTok</span>
-                        </a>
-                        {% endif %}
+                <div class="contact-grid">
+                    <div class="contact-card">
+                        <div class="contact-info">
+                            {% if contact_phone %}
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h3>Teléfono</h3>
+                                    <a href="tel:{{ contact_phone }}">{{ contact_phone }}</a>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if whatsapp_number %}
+                            <div class="contact-item">
+                                <div class="contact-icon whatsapp">
+                                    <i class="fab fa-whatsapp"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h3>WhatsApp</h3>
+                                    <a href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}" target="_blank" rel="noopener">{{ whatsapp_number }}</a>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if contact_email %}
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h3>Email</h3>
+                                    <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if contact_address %}
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h3>Ubicación</h3>
+                                    <p>{{ contact_address }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="social-links">
+                            {% if facebook_url %}
+                            <a href="{{ facebook_url }}" target="_blank" rel="noopener" class="social-btn facebook" aria-label="Facebook">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            {% endif %}
+                            {% if instagram_url %}
+                            <a href="{{ instagram_url }}" target="_blank" rel="noopener" class="social-btn instagram" aria-label="Instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            {% endif %}
+                            {% if tiktok_url %}
+                            <a href="{{ tiktok_url }}" target="_blank" rel="noopener" class="social-btn tiktok" aria-label="TikTok">
+                                <i class="fab fa-tiktok"></i>
+                            </a>
+                            {% endif %}
+                        </div>
                     </div>
+
+                    {% if whatsapp_number %}
+                    <div class="cta-card">
+                        <div class="cta-icon">
+                            <i class="fab fa-whatsapp"></i>
+                        </div>
+                        <h3>¿Tienes alguna pregunta?</h3>
+                        <p>Contáctanos por WhatsApp y te responderemos de inmediato</p>
+                        <a href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}?text=Hola,%20necesito%20información" 
+                           class="btn btn-whatsapp-lg" 
+                           target="_blank" 
+                           rel="noopener">
+                            <i class="fab fa-whatsapp"></i>
+                            Enviar mensaje
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <p>&copy; {{ current_year }} {{ site_name }}. Todos los derechos reservados.</p>
-            <p>Crianza responsable y producción de calidad</p>
+            <div class="footer-content">
+                <div class="footer-info">
+                    <h3>{{ site_name }}</h3>
+                    <p>{{ site_description or 'Crianza y comercialización de chivos de alta calidad' }}</p>
+                </div>
+                <div class="footer-copy">
+                    <p>&copy; {{ current_year }} {{ site_name }}. Todos los derechos reservados.</p>
+                    <p class="footer-tagline">Hecho con <i class="fas fa-heart"></i> en {{ contact_address or 'La Guajira' }}</p>
+                </div>
+            </div>
         </div>
     </footer>
 
     <!-- WhatsApp Floating Button -->
     {% if whatsapp_number %}
-    <a href="https://wa.me/{{ whatsapp_number }}?text=Hola,%20me%20interesa%20información%20sobre%20los%20animales" 
+    <a href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}" 
        class="whatsapp-float" 
        target="_blank" 
        rel="noopener"
-       title="Contactar por WhatsApp">
+       aria-label="Contactar por WhatsApp">
         <svg width="32" height="32" fill="white" viewBox="0 0 24 24">
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
         </svg>
     </a>
     {% endif %}
 
-    <script src="tracking.js"></script>
+    <script>
+        const mobileToggle = document.querySelector('.mobile-toggle');
+        const navWrapper = document.querySelector('.nav-wrapper');
+        const navLinks = Array.from(document.querySelectorAll('.nav-link'));
+
+        if (mobileToggle && navWrapper) {
+            mobileToggle.addEventListener('click', () => {
+                const isOpen = navWrapper.classList.toggle('is-open');
+                mobileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+
+            navWrapper.querySelectorAll('a').forEach((link) => {
+                link.addEventListener('click', () => {
+                    if (navWrapper.classList.contains('is-open')) {
+                        navWrapper.classList.remove('is-open');
+                        mobileToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+        }
+
+        function setActiveNav(sectionId) {
+            navLinks.forEach(link => {
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        if ('IntersectionObserver' in window) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        setActiveNav(entry.target.id);
+                    }
+                });
+            }, {
+                rootMargin: '-45% 0px -45% 0px',
+                threshold: 0
+            });
+
+            navLinks
+                .map(link => document.getElementById(link.dataset.section))
+                .filter(Boolean)
+                .forEach(section => observer.observe(section));
+        } else {
+            setActiveNav(navLinks[0]?.dataset.section);
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => setActiveNav(link.dataset.section));
+        });
+    </script>
+    <script src="tracking.js" defer></script>
 </body>
 </html>
