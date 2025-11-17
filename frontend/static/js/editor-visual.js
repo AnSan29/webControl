@@ -7,7 +7,8 @@ const editorVisual = (() => {
         },
         previewTimer: null,
         models: [],
-        inputsBound: false
+        inputsBound: false,
+        activePaletteId: null
     };
 
     const LOCAL_ASSET_HOSTS = new Set(['localhost', '127.0.0.1']);
@@ -73,6 +74,139 @@ const editorVisual = (() => {
         state.siteState.gallery_images = canonicalizeGalleryList(state.siteState.gallery_images || []);
     }
 
+    function normalizePaletteConfig(palette) {
+        if (!palette) return null;
+        return {
+            id: palette.id,
+            label: palette.label || 'Paleta',
+            primary: palette.primary || palette.primary_color,
+            secondary: palette.secondary || palette.secondary_color,
+            accent: palette.accent || palette.tertiary || palette.accent_color,
+            background: palette.background || palette.neutral || palette.background_color
+        };
+    }
+
+    function renderPaletteSwatch(color, label) {
+        if (!color) return '';
+        const labels = {
+            primary: 'Primario',
+            secondary: 'Secundario',
+            accent: 'Acento',
+            background: 'Fondo'
+        };
+        const text = labels[label] || '';
+        return `<span class="palette-swatch" style="background:${color}"><span>${text}</span></span>`;
+    }
+
+    function detectActivePalette(modelId) {
+        if (typeof getPalettesForModel !== 'function' || !modelId) return null;
+        const palettes = getPalettesForModel(modelId) || [];
+        const primary = (state.siteState.primary_color || '').toLowerCase();
+        const secondary = (state.siteState.secondary_color || '').toLowerCase();
+        const match = palettes.find(palette => {
+            const normalized = normalizePaletteConfig(palette);
+            return normalized &&
+                (normalized.primary || '').toLowerCase() === primary &&
+                (normalized.secondary || '').toLowerCase() === secondary;
+        });
+        return match ? match.id : null;
+    }
+
+    function renderPaletteSuggestions(modelId = state.siteState.model_type) {
+        const container = document.getElementById('paletteSuggestions');
+        const helper = document.getElementById('paletteEmptyState');
+        if (!container) return;
+
+        if (typeof getPalettesForModel !== 'function' || !modelId) {
+            container.innerHTML = '';
+            if (helper) helper.textContent = 'Selecciona un modelo para ver sus paletas.';
+            return;
+        }
+
+        const palettes = getPalettesForModel(modelId) || [];
+        if (!palettes.length) {
+            container.innerHTML = '';
+            if (helper) helper.textContent = 'Este modelo no tiene paletas curadas, usa los selectores de color manualmente.';
+            return;
+        }
+
+        if (helper) helper.textContent = '';
+
+        container.innerHTML = palettes.map(palette => {
+            const normalized = normalizePaletteConfig(palette);
+            if (!normalized) return '';
+            const isActive = state.activePaletteId === palette.id;
+            return `
+                <button type="button" class="palette-card ${isActive ? 'palette-card-active' : ''}" data-palette-id="${palette.id}">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-semibold ${isActive ? 'text-blue-600' : 'text-gray-800'}">${normalized.label}</span>
+                        ${isActive ? '<span class="text-[10px] font-semibold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">Aplicada</span>' : ''}
+                    </div>
+                    <div class="palette-swatches mt-3">
+                        ${renderPaletteSwatch(normalized.primary, 'primary')}
+                        ${renderPaletteSwatch(normalized.secondary, 'secondary')}
+                        ${renderPaletteSwatch(normalized.accent, 'accent')}
+                        ${renderPaletteSwatch(normalized.background, 'background')}
+                    </div>
+                    <p class="text-[11px] text-gray-500 mt-3 text-left">Haz clic para aplicar esta combinación en el editor.</p>
+                </button>
+            `;
+        }).join('');
+
+        container.querySelectorAll('[data-palette-id]').forEach(card => {
+            card.addEventListener('click', () => {
+                const paletteId = card.getAttribute('data-palette-id');
+                const palette = palettes.find(item => item.id === paletteId);
+                if (palette) {
+                    applyPaletteSelection(palette);
+                }
+            });
+        });
+    }
+
+    function applyPaletteSelection(palette) {
+        const normalized = normalizePaletteConfig(palette);
+        if (!normalized) return;
+        state.activePaletteId = palette.id || null;
+        if (normalized.primary) {
+            state.siteState.primary_color = normalized.primary;
+        }
+        if (normalized.secondary) {
+            state.siteState.secondary_color = normalized.secondary;
+        }
+        syncColorInputs();
+        renderPaletteSuggestions();
+        refreshPreview();
+        showNotification(`Paleta "${normalized.label}" aplicada`, 'success');
+    }
+
+    function syncColorInputs() {
+        const primaryInput = document.querySelector('[data-field="primary_color"]');
+        const secondaryInput = document.querySelector('[data-field="secondary_color"]');
+        if (primaryInput && state.siteState.primary_color) {
+            primaryInput.value = state.siteState.primary_color;
+        }
+        if (secondaryInput && state.siteState.secondary_color) {
+            secondaryInput.value = state.siteState.secondary_color;
+        }
+    }
+
+    function setupPaletteControls() {
+        const resetButton = document.getElementById('resetPaletteSelection');
+        if (resetButton) {
+            resetButton.addEventListener('click', () => {
+                state.activePaletteId = null;
+                renderPaletteSuggestions();
+                showNotification('Modo de colores personalizados activado', 'info');
+            });
+        }
+    }
+
+    function updatePaletteState() {
+        state.activePaletteId = detectActivePalette(state.siteState.model_type);
+        renderPaletteSuggestions();
+    }
+
     const IMAGE_MAX_BYTES = 6 * 1024 * 1024;
     const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml'];
 
@@ -83,6 +217,7 @@ const editorVisual = (() => {
         await loadModels();
         await loadSite();
         bindFieldInputs();
+        setupPaletteControls();
         refreshPreview(true);
     }
 
@@ -134,6 +269,7 @@ const editorVisual = (() => {
         hydrateInputs();
         renderProducts();
         renderGallery();
+        updatePaletteState();
     }
 
     function updateMeta(site) {
@@ -200,6 +336,12 @@ const editorVisual = (() => {
         if (field === 'model_type') {
             const modelEl = document.getElementById('siteModel');
             if (modelEl) modelEl.textContent = getModelName(value);
+            state.activePaletteId = detectActivePalette(value);
+            renderPaletteSuggestions(value);
+        }
+        if (field === 'primary_color' || field === 'secondary_color') {
+            state.activePaletteId = detectActivePalette(state.siteState.model_type);
+            renderPaletteSuggestions();
         }
         refreshPreview();
     }
