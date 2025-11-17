@@ -3,206 +3,1429 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ site_name }}</title>
-    <meta name="description" content="{{ site_description }}">
+    <title>Guajira Maintenance | Adecuaciones y Mantenimiento Profesional</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            --steel-blue: #4682B4;
+            --steel-blue-dark: #2C5F8D;
+            --tool-yellow: #FFD700;
+            --tool-yellow-dark: #FFC300;
+            --gray-light: #F5F5F5;
+            --gray-medium: #9E9E9E;
+            --gray-dark: #424242;
+            --white: #FFFFFF;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--gray-dark);
+            background: var(--white);
+        }
+
+        /* Header y Navegación */
+        header {
+            background: var(--white);
+            box-shadow: var(--shadow);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        header.scrolled {
+            box-shadow: var(--shadow-lg);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--steel-blue);
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: var(--tool-yellow);
+            margin-right: 0.5rem;
+            font-size: 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--gray-dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--tool-yellow);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after,
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--steel-blue);
+        }
+
+        .mobile-menu {
+            display: none;
+            font-size: 1.5rem;
+            color: var(--steel-blue);
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 80px;
+            background: linear-gradient(135deg, var(--steel-blue) 0%, var(--steel-blue-dark) 100%);
+            color: var(--white);
+            padding: 5rem 5%;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff20" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,138.7C960,139,1056,117,1152,106.7C1248,96,1344,96,1392,96L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
+            background-size: cover;
+        }
+
+        .hero-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-text h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .hero-text p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--tool-yellow);
+            color: var(--gray-dark);
+        }
+
+        .btn-primary:hover {
+            background: var(--tool-yellow-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--white);
+            border: 2px solid var(--white);
+        }
+
+        .btn-secondary:hover {
+            background: var(--white);
+            color: var(--steel-blue);
+        }
+
+        .hero-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 1s ease 0.6s both;
+        }
+
+        .hero-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Sección Servicios */
+        .services {
+            padding: 5rem 5%;
+            background: var(--gray-light);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title h2 {
+            font-size: 2.5rem;
+            color: var(--steel-blue);
+            margin-bottom: 1rem;
+        }
+
+        .section-title p {
+            font-size: 1.1rem;
+            color: var(--gray-medium);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .service-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .service-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--steel-blue), var(--steel-blue-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .service-card:hover .service-icon {
+            background: linear-gradient(135deg, var(--tool-yellow), var(--tool-yellow-dark));
+            color: var(--gray-dark);
+        }
+
+        .service-card h3 {
+            color: var(--steel-blue);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .service-card p {
+            color: var(--gray-medium);
+            line-height: 1.6;
+        }
+
+        /* Sección Acerca de */
+        .about {
+            padding: 5rem 5%;
+            background: var(--white);
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .about-text h2 {
+            color: var(--steel-blue);
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .about-text p {
+            color: var(--gray-dark);
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .features-list {
+            list-style: none;
+            margin-top: 2rem;
+        }
+
+        .features-list li {
+            padding: 0.8rem 0;
+            display: flex;
+            align-items: center;
+            color: var(--gray-dark);
+        }
+
+        .features-list i {
+            color: var(--tool-yellow);
+            margin-right: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .about-image {
+            position: relative;
+        }
+
+        .about-image img {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .experience-badge {
+            position: absolute;
+            bottom: -20px;
+            right: -20px;
+            background: var(--tool-yellow);
+            color: var(--gray-dark);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .experience-badge h3 {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .experience-badge p {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* Sección Productos/Trabajos */
+        .products {
+            padding: 5rem 5%;
+            background: var(--gray-light);
+        }
+
+        .products-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 0.8rem 1.5rem;
+            background: var(--white);
+            border: 2px solid var(--steel-blue);
+            color: var(--steel-blue);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .tab-btn.active,
+        .tab-btn:hover {
+            background: var(--steel-blue);
+            color: var(--white);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .work-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .work-card {
+            background: var(--white);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .work-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .work-image {
+            height: 250px;
+            background: linear-gradient(135deg, var(--steel-blue), var(--steel-blue-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 3rem;
+        }
+
+        .work-details {
+            padding: 1.5rem;
+        }
+
+        .work-details h3 {
+            color: var(--steel-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .work-details p {
+            color: var(--gray-medium);
+            margin-bottom: 1rem;
+        }
+
+        .work-features {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: var(--gray-light);
+            color: var(--gray-dark);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        /* Estadísticas */
+        .stats {
+            padding: 4rem 5%;
+            background: linear-gradient(135deg, var(--steel-blue), var(--steel-blue-dark));
+            color: var(--white);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .stat-item {
+            padding: 1rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--tool-yellow);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.95;
+        }
+
+        /* Contacto */
+        .contact {
+            padding: 5rem 5%;
+            background: var(--white);
+        }
+
+        .contact-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .contact-info h3 {
+            color: var(--steel-blue);
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-item i {
+            color: var(--tool-yellow);
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            width: 40px;
+        }
+
+        .contact-form {
+            background: var(--gray-light);
+            padding: 2rem;
+            border-radius: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--gray-dark);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid transparent;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--steel-blue);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--gray-dark);
+            color: var(--white);
+            padding: 3rem 5%;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h3 {
+            color: var(--tool-yellow);
+            margin-bottom: 1rem;
+        }
+
+        .footer-section p,
+        .footer-section ul {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section ul li a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section ul li a:hover {
+            color: var(--tool-yellow);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            background: var(--steel-blue);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            background: var(--tool-yellow);
+            color: var(--gray-dark);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Animaciones */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: var(--white);
+                flex-direction: column;
+                padding: 1rem;
+                box-shadow: var(--shadow);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-text h1 {
+                font-size: 2rem;
+            }
+
+            .about-content,
+            .contact-content {
+                grid-template-columns: 1fr;
+            }
+
+            .experience-badge {
+                position: static;
+                margin-top: 2rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* WhatsApp Flotante */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #25D366;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: var(--shadow-lg);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 999;
+            text-decoration: none;
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(37, 211, 102, 0.4);
+        }
+
+        /* Scroll to top */
+        .scroll-top {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            background: var(--steel-blue);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 998;
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top:hover {
+            background: var(--steel-blue-dark);
+            transform: translateY(-3px);
+        }
+    </style>
 </head>
 <body>
     <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="logo-area">
-                {% if logo_url %}
-                <img src="{{ normalize_drive_image(logo_url) }}" alt="{{ site_name }}" class="logo">
-                {% else %}
-                <span class="logo-icon">{{ model_icon }}</span>
-                {% endif %}
-                <h1>{{ site_name }}</h1>
+    <header id="header">
+        <nav>
+            <a href="#inicio" class="logo">
+                <i class="fas fa-tools"></i>
+                Guajira Maintenance
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#inicio" class="nav-link active">Inicio</a></li>
+                <li><a href="#servicios" class="nav-link">Servicios</a></li>
+                <li><a href="#acerca" class="nav-link">Acerca de</a></li>
+                <li><a href="#productos" class="nav-link">Productos</a></li>
+                <li><a href="#contacto" class="nav-link">Contacto</a></li>
+            </ul>
+            <div class="mobile-menu" id="mobileMenu">
+                <i class="fas fa-bars"></i>
             </div>
-            <nav class="navigation">
-                <a href="#inicio">Inicio</a>
-                <a href="#nosotros">Nosotros</a>
-                <a href="#servicios">Servicios</a>
-                <a href="#proyectos">Proyectos</a>
-                <a href="#contacto">Contacto</a>
-            </nav>
-        </div>
+        </nav>
     </header>
 
     <!-- Hero Section -->
-    <section id="inicio" class="hero">
-        <div class="hero-inner">
+    <section class="hero" id="inicio">
+        <div class="hero-content">
             <div class="hero-text">
-                <h2>{{ hero_title }}</h2>
-                <p>{{ hero_subtitle }}</p>
-                <a href="#servicios" class="btn-primary">Ver Servicios</a>
-            </div>
-            {% if hero_image %}
-            <div class="hero-img">
-                <img src="{{ hero_image }}" alt="{{ hero_title }}">
-            </div>
-            {% endif %}
-        </div>
-    </section>
-
-    <!-- About Section -->
-    <section id="nosotros" class="about">
-        <div class="container">
-            <div class="about-inner">
-                {% if about_image %}
-                <div class="about-img">
-                    <img src="{{ about_image }}" alt="Sobre nosotros">
+                <h1>Expertos en Adecuaciones y Mantenimiento en La Guajira</h1>
+                <p>Soluciones profesionales adaptadas a las condiciones climáticas extremas de la región. Confianza, puntualidad y calidad garantizada.</p>
+                <div class="cta-buttons">
+                    <a href="#contacto" class="btn btn-primary">Solicitar Cotización</a>
+                    <a href="#servicios" class="btn btn-secondary">Ver Servicios</a>
                 </div>
-                {% endif %}
-                <div class="about-info">
-                    <h2>Sobre Nosotros</h2>
-                    <p>{{ about_text }}</p>
-                    {% if contact_address %}
-                    <p class="address">
-                        <i class="fas fa-map-marker-alt"></i> {{ contact_address }}
-                    </p>
-                    {% endif %}
-                </div>
+            </div>
+            <div class="hero-image">
+                <img src="https://picsum.photos/seed/guajira-maintenance/600/400" alt="Mantenimiento Profesional">
             </div>
         </div>
     </section>
 
-    <!-- Services Section -->
-    <section id="servicios" class="services">
+    <!-- Servicios Section -->
+    <section class="services" id="servicios">
         <div class="container">
-            <h2 class="section-title">Nuestros Servicios</h2>
-            <p class="subtitle">Soluciones técnicas confiables</p>
+            <div class="section-title">
+                <h2>Nuestros Servicios</h2>
+                <p>Soluciones integrales para todas sus necesidades de mantenimiento</p>
+            </div>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-hammer"></i>
+                    </div>
+                    <h3>Construcción y Adecuaciones</h3>
+                    <p>Proyectos completos de construcción y adecuación de espacios, optimizados para resistir las condiciones costeras y climáticas de La Guajira.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-wrench"></i>
+                    </div>
+                    <h3>Mantenimiento Preventivo</h3>
+                    <p>Programas de mantenimiento preventivo para prolongar la vida útil de sus instalaciones y evitar costosas reparaciones.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <h3>Instalaciones Eléctricas</h3>
+                    <p>Instalación y mantenimiento de sistemas eléctricos seguros y eficientes, adaptados a altas temperaturas y ambientes salinos.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-fan"></i>
+                    </div>
+                    <h3>Sistemas de Climatización</h3>
+                    <p>Instalación y servicio de aires acondicionados y ventilación industrial, garantizando confort en climas extremos.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-paint-roller"></i>
+                    </div>
+                    <h3>Pintura y Acabados</h3>
+                    <p>Trabajos de pintura especializada con productos resistentes al sol y la salinidad, protegiendo sus superficies.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Mantenimiento Correctivo</h3>
+                    <p>Respuesta rápida ante emergencias y reparaciones, minimizando el tiempo de inactividad de sus operaciones.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Acerca de Section -->
+    <section class="about" id="acerca">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>Experiencia en Terreno Guajiro</h2>
+                    <p>Con más de 15 años de experiencia trabajando en La Guajira, hemos desarrollado un profundo conocimiento de las particularidades de la región. Nuestro equipo está capacitado para operar eficientemente en condiciones de alta temperatura, humedad y ambientes costeros.</p>
+                    <p>Entendemos los desafíos únicos que presenta el mantenimiento en esta zona y hemos adaptado nuestras técnicas y materiales para garantizar durabilidad y eficiencia máxima.</p>
+                    <ul class="features-list">
+                        <li><i class="fas fa-check-circle"></i> Personal capacitado para trabajo en climas extremos</li>
+                        <li><i class="fas fa-check-circle"></i> Materiales resistentes a la corrosión salina</li>
+                        <li><i class="fas fa-check-circle"></i> Cumplimiento estricto de normas de seguridad</li>
+                        <li><i class="fas fa-check-circle"></i> Respuesta inmediata ante emergencias</li>
+                        <li><i class="fas fa-check-circle"></i> Garantía en todos nuestros trabajos</li>
+                    </ul>
+                </div>
+                <div class="about-image">
+                    <img src="https://picsum.photos/seed/guajira-team/500/600" alt="Equipo trabajando">
+                    <div class="experience-badge">
+                        <h3>15+</h3>
+                        <p>Años de Experiencia</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Productos Section -->
+    <section class="products" id="productos">
+        <div class="container">
+            <div class="section-title">
+                <h2>Tipos de Trabajos Realizados</h2>
+                <p>Conozca nuestra amplia gama de servicios especializados</p>
+            </div>
+            <div class="products-tabs">
+                <button class="tab-btn active" data-tab="residencial">Residencial</button>
+                <button class="tab-btn" data-tab="comercial">Comercial</button>
+                <button class="tab-btn" data-tab="industrial">Industrial</button>
+                <button class="tab-btn" data-tab="especial">Especializado</button>
+            </div>
             
-            {% if products and products|length > 0 %}
-            <div class="services-list">
-                {% for product in products %}
-                <div class="service-item">
-                    {% if product.image %}
-                    <div class="service-img">
-                        <img src="{{ product.image }}" alt="{{ product.name }}">
+            <div class="tab-content active" id="residencial">
+                <div class="work-grid">
+                    <div class="work-card">
+                        <div class="work-image">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <div class="work-details">
+                            <h3>Mantenimiento Integral de Viviendas</h3>
+                            <p>Servicio completo para el cuidado y mantenimiento de su hogar, desde reparaciones menores hasta remodelaciones completas.</p>
+                            <div class="work-features">
+                                <span class="tag">Plomería</span>
+                                <span class="tag">Electricidad</span>
+                                <span class="tag">Pintura</span>
+                            </div>
+                        </div>
                     </div>
-                    {% endif %}
-                    <div class="service-details">
-                        <h3>{{ product.name }}</h3>
-                        <p>{{ product.description }}</p>
-                        {% if product.price %}
-                        <span class="price">Desde ${{ product.price }}</span>
-                        {% endif %}
+                    <div class="work-card">
+                        <div class="work-image">
+                            <i class="fas fa-roof"></i>
+                        </div>
+                        <div class="work-details">
+                            <h3>Impermeabilización y Techos</h3>
+                            <p>Protección contra filtraciones y daños por lluvia, con materiales de alta resistencia al sol y la salinidad.</p>
+                            <div class="work-features">
+                                <span class="tag">Impermeabilizante</span>
+                                <span class="tag">Mantenimiento</span>
+                                <span class="tag">Garantía</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="work-card">
+                        <div class="work-image">
+                            <i class="fas fa-solar-panel"></i>
+                        </div>
+                        <div class="work-details">
+                            <h3>Instalación de Energía Solar</h3>
+                            <p>Soluciones de energía solar adaptadas para maximizar el aprovechamiento del sol guajiro.</p>
+                            <div class="work-features">
+                                <span class="tag">Paneles Solares</span>
+                                <span class="tag">Inversores</span>
+                                <span class="tag">Mantenimiento</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                {% endfor %}
             </div>
-            {% else %}
-            <div class="no-services">
-                <p>Servicios disponibles próximamente</p>
+
+            <div class="tab-content" id="comercial">
+                <div class="work-grid">
+                    <div class="work-card">
+                        <div class="work-image">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div class="work-details">
+                            <h3>Adecuación de Locales Comerciales</h3>
+                            <p>Diseño y construcción de espacios comerciales optimizados para el flujo de clientes y la eficiencia operativa.</p>
+                            <div class="work-features">
+                                <span class="tag">Diseño</span>
+                                <span class="tag">Construcción</span>
+                                <span class="tag">Permisos</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="work-card">
+                        <div class="work-image">
+                            <i class="fas fa-sign"></i>
+                        </div>
+                        <div class="work-details">
+                            <h3>Señalización y Fachadas</h3>
+                            <p>Creación e instalación de señalización comercial y fachadas atractivas que resisten las condiciones climáticas.</p>
+                            <div class="work-features">
+                                <span class="tag">Neón</span>
+                                <span class="tag">LED</span>
+                                <span class="tag">Mantenimiento</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="work-card">
+                        <div class="work-image">
+                            <i class="fas fa-camera-security"></i>
+                        </div>
+                        <div class="work-details">
+                            <h3>Sistemas de Seguridad</h3>
+                            <p>Instalación de cámaras de seguridad y sistemas de acceso para proteger su negocio.</p>
+                            <div class="work-features">
+                                <span class="tag">CCTV</span>
+                                <span class="tag">Control Acceso</span>
+                                <span class="tag">Alarmas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            {% endif %}
+
+            <div class="tab-content" id="industrial">
+                <div class="work-grid">
+                    <div class="work-card">
+                        <div class="work-image">
+                            <i class="fas fa-industry"></i>
+                        </div>
+                        <div class="work-details">
+                            <h3>Mantenimiento Industrial</h3>
+                            <p>Servicios especializados para plantas industriales, maquinaria pesada y equipos de producción.</p>
+                            <div class="work-features">
+                                <span class="tag">Maquinaria</span>
+                                <span class="tag">Preventivo</span>
+                                <span class="tag">Correctivo</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="work-card">
+                        <div class="work-image">
+                            <i class="fas fa-warehouse"></i>
+                        </div>
+                        <div class="work-details">
+                            <h3>Construcción de Bodegas</h3>
+                            <p>Diseño y construcción de bodegas industriales con ventilación adecuada y resistencia climática.</p>
+                            <div class="work-features">
+                                <span class="tag">Estructuras</span>
+                                <span class="tag">Ventilación</span>
+                                <span class="tag">Seguridad</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="work-card">
+                        <div class="work-image">
+                            <i class="fas fa-oil-can"></i>
+                        </div>
+                        <div class="work-details">
+                            <h3>Sistemas Hidráulicos</h3>
+                            <p>Instalación y mantenimiento de sistemas de agua y tratamiento adaptados a la región.</p>
+                            <div class="work-features">
+                                <span class="tag">Tuberías</span>
+                                <span class="tag">Bombas</span>
+                                <span class="tag">Tratamiento</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="especial">
+                <div class="work-grid">
+                    <div class="work-card">
+                        <div class="work-image">
+                            <i class="fas fa-water"></i>
+                        </div>
+                        <div class="work-details">
+                            <h3>Trabajos en Zonas Costeras</h3>
+                            <p>Especialistas en construcciones y mantenimiento en zonas de playa con protección contra la corrosión.</p>
+                            <div class="work-features">
+                                <span class="tag">Anticorrosión</span>
+                                <span class="tag">Materiales Marinos</span>
+                                <span class="tag">Certificación</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="work-card">
+                        <div class="work-image">
+                            <i class="fas fa-temperature-high"></i>
+                        </div>
+                        <div class="work-details">
+                            <h3>Aislamiento Térmico</h3>
+                            <p>Soluciones de aislamiento para reducir el calor interior y mejorar la eficiencia energética.</p>
+                            <div class="work-features">
+                                <span class="tag">Techos</span>
+                                <span class="tag">Paredes</span>
+                                <span class="tag">Ventilación</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="work-card">
+                        <div class="work-image">
+                            <i class="fas fa-wind"></i>
+                        </div>
+                        <div class="work-details">
+                            <h3>Protección contra Vientos</h3>
+                            <p>Estructuras y refuerzos especiales para proteger edificaciones contra vientos fuertes.</p>
+                            <div class="work-features">
+                                <span class="tag">Refuerzos</span>
+                                <span class="tag">Ventanas</span>
+                                <span class="tag">Techos</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- Projects/Portfolio Section -->
-    <section id="proyectos" class="projects">
-        <div class="container">
-            <h2 class="section-title">Nuestros Proyectos</h2>
-            <p class="subtitle">Trabajos realizados con excelencia</p>
-            
-            {% if gallery_images and gallery_images|length > 0 %}
-            <div class="projects-grid">
-                {% for image_url in gallery_images %}
-                <div class="project-card">
-                    <img src="{{ image_url }}" alt="Proyecto" loading="lazy">
-                    <div class="project-overlay">
-                        <a href="{{ image_url }}" target="_blank" class="zoom-icon">
-                            <i class="fas fa-plus"></i>
-                        </a>
-                    </div>
-                </div>
-                {% endfor %}
+    <!-- Estadísticas -->
+    <section class="stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number" data-target="500">0</div>
+                <div class="stat-label">Proyectos Completados</div>
             </div>
-            {% else %}
-            <div class="projects-placeholders">
-                <div class="project-card placeholder">🏠</div>
-                <div class="project-card placeholder">🔨</div>
-                <div class="project-card placeholder">🛠️</div>
-                <div class="project-card placeholder">✨</div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="200">0</div>
+                <div class="stat-label">Clientes Satisfechos</div>
             </div>
-            {% endif %}
+            <div class="stat-item">
+                <div class="stat-number" data-target="15">0</div>
+                <div class="stat-label">Años de Experiencia</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="24">0</div>
+                <div class="stat-label">Servicio 24/7</div>
+            </div>
         </div>
     </section>
 
-    <!-- Contact Section -->
-    <section id="contacto" class="contact">
+    <!-- Contacto -->
+    <section class="contact" id="contacto">
         <div class="container">
-            <h2 class="section-title">Contacto</h2>
-            <div class="contact-box">
-                <div class="contact-item">
+            <div class="section-title">
+                <h2>Contacto</h2>
+                <p>Estamos listos para atender sus necesidades</p>
+            </div>
+            <div class="contact-content">
+                <div class="contact-info">
                     <h3>Información de Contacto</h3>
-                    {% if contact_phone %}
-                    <p>
-                        <i class="fas fa-phone"></i>
-                        <a href="tel:{{ contact_phone }}">{{ contact_phone }}</a>
-                    </p>
-                    {% endif %}
-                    {% if contact_email %}
-                    <p>
-                        <i class="fas fa-envelope"></i>
-                        <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
-                    </p>
-                    {% endif %}
-                    {% if contact_address %}
-                    <p>
+                    <div class="contact-item">
                         <i class="fas fa-map-marker-alt"></i>
-                        {{ contact_address }}
-                    </p>
-                    {% endif %}
-                </div>
-
-                <div class="social-item">
-                    <h3>Síguenos</h3>
-                    <div class="social-links">
-                        {% if facebook_url %}
-                        <a href="{{ facebook_url }}" target="_blank" rel="noopener" class="social-link">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        {% endif %}
-                        {% if instagram_url %}
-                        <a href="{{ instagram_url }}" target="_blank" rel="noopener" class="social-link">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                        {% endif %}
-                        {% if tiktok_url %}
-                        <a href="{{ tiktok_url }}" target="_blank" rel="noopener" class="social-link">
-                            <i class="fab fa-tiktok"></i>
-                        </a>
-                        {% endif %}
+                        <div>
+                            <strong>Ubicación:</strong><br>
+                            Riohacha, La Guajira, Colombia
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <strong>Teléfono:</strong><br>
+                            +57 3XX XXX XXXX
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <strong>Email:</strong><br>
+                            info@guajiramaintenance.com
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <strong>Horario:</strong><br>
+                            Lunes a Sábado: 7:00 AM - 6:00 PM<br>
+                            Emergencias: 24/7
+                        </div>
                     </div>
                 </div>
+                <form class="contact-form" id="contactForm">
+                    <div class="form-group">
+                        <label for="name">Nombre Completo</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Teléfono</label>
+                        <input type="tel" id="phone" name="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="service">Tipo de Servicio</label>
+                        <select id="service" name="service" style="width: 100%; padding: 0.8rem; border: 2px solid transparent; border-radius: 5px;">
+                            <option value="">Seleccione un servicio</option>
+                            <option value="mantenimiento">Mantenimiento</option>
+                            <option value="construccion">Construcción</option>
+                            <option value="electricidad">Electricidad</option>
+                            <option value="climatizacion">Climatización</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Mensaje</label>
+                        <textarea id="message" name="message" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Enviar Mensaje</button>
+                </form>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; {{ current_year }} {{ site_name }}. Todos los derechos reservados.</p>
-            <p>Servicios técnicos de confianza</p>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Guajira Maintenance</h3>
+                <p>Su aliado confiable para adecuaciones y mantenimiento en La Guajira. Experiencia, calidad y compromiso en cada proyecto.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Servicios</h3>
+                <ul>
+                    <li><a href="#servicios">Construcción y Adecuaciones</a></li>
+                    <li><a href="#servicios">Mantenimiento Preventivo</a></li>
+                    <li><a href="#servicios">Instalaciones Eléctricas</a></li>
+                    <li><a href="#servicios">Sistemas de Climatización</a></li>
+                    <li><a href="#servicios">Pintura y Acabados</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Enlaces Rápidos</h3>
+                <ul>
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#acerca">Acerca de</a></li>
+                    <li><a href="#productos">Productos</a></li>
+                    <li><a href="#contacto">Contacto</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contacto</h3>
+                <ul>
+                    <li><i class="fas fa-phone"></i> +57 3XX XXX XXXX</li>
+                    <li><i class="fas fa-envelope"></i> info@guajiramaintenance.com</li>
+                    <li><i class="fas fa-map-marker-alt"></i> Riohacha, La Guajira</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Guajira Maintenance. Todos los derechos reservados. | Diseñado con ❤️ para La Guajira</p>
         </div>
     </footer>
 
-    <!-- WhatsApp Button -->
-    {% if whatsapp_number %}
-    <a href="https://wa.me/{{ whatsapp_number }}?text=Hola,%20necesito%20un%20presupuesto%20para%20un%20trabajo" 
-       class="whatsapp-float" 
-       target="_blank" 
-       rel="noopener"
-       title="Contactar por WhatsApp">
-        <svg width="32" height="32" fill="white" viewBox="0 0 24 24">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-        </svg>
+    <!-- WhatsApp Flotante -->
+    <a href="https://wa.me/573XXXXXXXXX" target="_blank" class="whatsapp-float">
+        <i class="fab fa-whatsapp"></i>
     </a>
-    {% endif %}
 
-    <script src="tracking.js"></script>
+    <!-- Scroll to Top -->
+    <div class="scroll-top" id="scrollTop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <script>
+        // Navegación móvil
+        const mobileMenu = document.getElementById('mobileMenu');
+        const navLinks = document.getElementById('navLinks');
+
+        mobileMenu.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = mobileMenu.querySelector('i');
+            icon.classList.toggle('fa-bars');
+            icon.classList.toggle('fa-times');
+        });
+
+        // Cerrar menú al hacer clic en un enlace
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                const icon = mobileMenu.querySelector('i');
+                icon.classList.add('fa-bars');
+                icon.classList.remove('fa-times');
+            });
+        });
+
+        // Scroll header
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+
+            // Scroll to top button
+            const scrollTop = document.getElementById('scrollTop');
+            if (window.scrollY > 300) {
+                scrollTop.classList.add('visible');
+            } else {
+                scrollTop.classList.remove('visible');
+            }
+        });
+
+        // Scroll to top
+        document.getElementById('scrollTop').addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Active navigation link
+        const sections = document.querySelectorAll('section');
+        const navItems = document.querySelectorAll('.nav-link');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (scrollY >= (sectionTop - 200)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href').slice(1) === current) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        // Tabs functionality
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                
+                // Remove active class from all buttons and contents
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked button and corresponding content
+                btn.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Counter animation
+        const counters = document.querySelectorAll('.stat-number');
+        const speed = 200;
+
+        const countUp = () => {
+            counters.forEach(counter => {
+                const updateCount = () => {
+                    const target = +counter.getAttribute('data-target');
+                    const count = +counter.innerText;
+                    const inc = target / speed;
+
+                    if (count < target) {
+                        counter.innerText = Math.ceil(count + inc);
+                        setTimeout(updateCount, 1);
+                    } else {
+                        counter.innerText = target;
+                    }
+                };
+                updateCount();
+            });
+        };
+
+        // Trigger counter animation when stats section is in view
+        const statsSection = document.querySelector('.stats');
+        const statsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    countUp();
+                    statsObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        statsObserver.observe(statsSection);
+
+        // Form submission
+        document.getElementById('contactForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            // Here you would normally send the data to a server
+            // For this example, we'll show a success message
+            alert('¡Gracias por contactarnos! Nos pondremos en contacto con usted pronto.');
+            e.target.reset();
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add animation on scroll
+        const animateOnScroll = () => {
+            const elements = document.querySelectorAll('.service-card, .work-card, .about-text, .contact-info, .contact-form');
+            
+            elements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const elementBottom = element.getBoundingClientRect().bottom;
+                
+                if (elementTop < window.innerHeight && elementBottom > 0) {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }
+            });
+        };
+
+        // Initial styles for animation
+        document.querySelectorAll('.service-card, .work-card, .about-text, .contact-info, .contact-form').forEach(element => {
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(30px)';
+            element.style.transition = 'all 0.6s ease';
+        });
+
+        window.addEventListener('scroll', animateOnScroll);
+        window.addEventListener('load', animateOnScroll);
+    </script>
 </body>
 </html>

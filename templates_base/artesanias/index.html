@@ -3,832 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ site_name or "Artesanías Locales" }}</title>
-    <meta name="description" content="{{ site_description or 'Artesanías hechas a mano con identidad Wayuu' }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link id="fontawesome-cdn" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1Befh3Q4omPavGJ5WmX04jsnXpixK8fN0FFJw53sG7CkJ7C0JpShyp6EkGj3/9u7Q==" crossorigin="anonymous" referrerpolicy="no-referrer">
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            try {
-                if (document.fonts && document.fonts.check('1em "Font Awesome 6 Free"')) {
-                    return;
-                }
-            } catch (err) {
-                // If document.fonts.check throws, continue to fallback.
-            }
-
-            var fallback = document.createElement('link');
-            fallback.rel = 'stylesheet';
-            fallback.href = 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css';
-            fallback.crossOrigin = 'anonymous';
-            fallback.referrerPolicy = 'no-referrer';
-            document.head.appendChild(fallback);
-        });
-    </script>
-    <style>
-            :root {
-                --primary: {{ primary_color or palette.primary or '#8B5E3C' }};
-                --secondary: {{ secondary_color or palette.secondary or '#CBB67C' }};
-                --accent: {{ palette.accent or '#E6B17E' }};
-                --neutral: {{ palette.neutral or '#FDF8F2' }};
-                --surface: #fffaf5;
-                --text: #1f140f;
-                --muted: #5c4c3f;
-                --muted-light: #7c6a5b;
-            }
-
-            * {
-                box-sizing: border-box;
-            }
-
-            body {
-                margin: 0;
-                font-family: 'Montserrat', sans-serif;
-                color: var(--text);
-                background-image: linear-gradient(180deg, var(--neutral), #f6eadf);
-                line-height: 1.65;
-            }
-
-            h1, h2, h3, h4 {
-                font-family: 'Playfair Display', serif;
-                color: var(--primary);
-                margin: 0;
-            }
-
-            img {
-                max-width: 100%;
-                display: block;
-            }
-
-            a {
-                color: inherit;
-            }
-
-            .container {
-                width: min(1180px, 90%);
-                margin: 0 auto;
-            }
-
-            header {
-                position: sticky;
-                top: 0;
-                z-index: 1000;
-                background: rgba(250, 244, 237, 0.95);
-                backdrop-filter: blur(12px);
-                box-shadow: 0 8px 30px rgba(0,0,0,0.07);
-            }
-
-            .nav {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 1.5rem;
-                padding: 1rem 0;
-            }
-
-            .brand {
-                display: flex;
-                align-items: center;
-                gap: 1rem;
-                text-decoration: none;
-            }
-
-            .brand h1 {
-                font-size: clamp(1.5rem, 2vw, 1.9rem);
-                color: var(--primary);
-            }
-
-            .logo-img {
-                width: clamp(48px, 6vw, 64px);
-                height: clamp(48px, 6vw, 64px);
-                object-fit: contain;
-            }
-
-            .logo-placeholder {
-                width: clamp(48px, 6vw, 64px);
-                height: clamp(48px, 6vw, 64px);
-                border-radius: 50%;
-                display: grid;
-                place-items: center;
-                background: var(--secondary);
-                color: var(--primary);
-                font-size: clamp(1.5rem, 2vw, 1.8rem);
-            }
-
-            nav ul {
-                display: flex;
-                align-items: center;
-                gap: clamp(0.75rem, 2vw, 2rem);
-                list-style: none;
-                padding: 0;
-                margin: 0;
-            }
-
-            nav a {
-                text-decoration: none;
-                color: var(--muted);
-                font-weight: 500;
-                position: relative;
-                padding-bottom: 0.2rem;
-            }
-
-            nav a::after {
-                content: "";
-                position: absolute;
-                left: 0;
-                bottom: 0;
-                width: 0;
-                height: 2px;
-                background: var(--primary);
-                transition: width 0.3s;
-            }
-
-            nav a:hover::after,
-            nav a:focus-visible::after {
-                width: 100%;
-            }
-
-            .hero {
-                position: relative;
-                padding: clamp(6rem, 12vw, 10rem) 0 clamp(4rem, 8vw, 6rem);
-                color: #fff;
-                text-align: center;
-                overflow: hidden;
-            }
-
-            .hero::before {
-                content: "";
-                position: absolute;
-                inset: 0;
-                background-image:
-                    linear-gradient(120deg, rgba(15,12,10,0.82), rgba(139, 94, 60, 0.62)),
-                    url('{{ normalize_drive_image(hero_image) if hero_image else "https://images.unsplash.com/photo-1521540216272-a50305cd4421?auto=format&fit=crop&w=1600&q=80" }}');
-                background-size: cover;
-                background-position: center;
-                filter: contrast(1.05);
-                z-index: -2;
-            }
-
-            .hero::after {
-                content: "";
-                position: absolute;
-                inset: 0;
-                background: radial-gradient(circle at top, rgba(255,255,255,0.15), transparent 55%);
-                z-index: -1;
-            }
-
-            .hero-content {
-                width: min(820px, 92%);
-                margin: 0 auto;
-                display: grid;
-                gap: clamp(1rem, 3vw, 1.8rem);
-            }
-
-            .hero h2 {
-                font-size: clamp(2.2rem, 5vw, 3.5rem);
-                color: #fff;
-            }
-
-            .hero p {
-                font-size: clamp(1rem, 2.3vw, 1.3rem);
-                color: rgba(255,255,255,0.85);
-            }
-
-            .hero-actions {
-                display: flex;
-                justify-content: center;
-                flex-wrap: wrap;
-                gap: 1rem;
-            }
-
-            .btn {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.6rem;
-                padding: 0.85rem 1.9rem;
-                border-radius: 999px;
-                border: 2px solid transparent;
-                font-weight: 600;
-                text-decoration: none;
-                transition: transform 0.25s, box-shadow 0.25s, background-color 0.25s, color 0.25s;
-            }
-
-            .btn-primary {
-                background: var(--secondary);
-                color: var(--primary);
-                box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-            }
-
-            .btn-outline {
-                border-color: rgba(255,255,255,0.7);
-                color: #fff;
-                background: transparent;
-            }
-
-            .btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 18px 38px rgba(0,0,0,0.15);
-            }
-
-            section {
-                padding: clamp(3.5rem, 7vw, 5rem) 0;
-            }
-
-            section:nth-of-type(even) {
-                background: rgba(255, 255, 255, 0.65);
-            }
-
-            .section-header {
-                text-align: center;
-                margin-bottom: clamp(2.5rem, 6vw, 4rem);
-            }
-
-            .section-header span {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                gap: 0.4rem;
-                padding: 0.3rem 0.9rem;
-                border-radius: 999px;
-                background: rgba(203, 182, 124, 0.18);
-                color: var(--primary);
-                font-size: 0.85rem;
-                font-weight: 600;
-                letter-spacing: 0.05em;
-            }
-
-            .section-header h2 {
-                font-size: clamp(2rem, 4vw, 2.8rem);
-                margin: 1rem 0 0.6rem;
-            }
-
-            .section-header p {
-                width: min(640px, 90%);
-                margin: 0 auto;
-                color: var(--muted-light);
-            }
-
-            .about-grid {
-                display: grid;
-                gap: clamp(2rem, 6vw, 4rem);
-                align-items: center;
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            }
-
-            .about-media {
-                position: relative;
-            }
-
-            .about-media::after {
-                content: "";
-                position: absolute;
-                inset: clamp(1.4rem, 5vw, 2.5rem);
-                border: 1px solid rgba(139, 94, 60, 0.2);
-                border-radius: 24px;
-                z-index: -1;
-            }
-
-            .about-media img {
-                border-radius: 24px;
-                aspect-ratio: 4 / 5;
-                object-fit: cover;
-                box-shadow: 0 18px 45px rgba(0,0,0,0.18);
-            }
-
-            .about-content {
-                display: grid;
-                gap: 1.2rem;
-            }
-
-            .about-highlight {
-                background: rgba(255,255,255,0.85);
-                border-left: 4px solid var(--secondary);
-                padding: 1.1rem 1.5rem;
-                border-radius: 0 18px 18px 0;
-                color: var(--muted);
-                font-style: italic;
-            }
-
-            .products-grid {
-                display: grid;
-                gap: clamp(1.5rem, 4vw, 2.2rem);
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            }
-
-            .product-card {
-                background: #fff;
-                border-radius: 24px;
-                overflow: hidden;
-                box-shadow: 0 15px 40px rgba(0,0,0,0.08);
-                display: grid;
-                grid-template-rows: auto 1fr;
-            }
-
-            .product-image {
-                position: relative;
-                aspect-ratio: 4 / 3;
-                overflow: hidden;
-            }
-
-            .product-image img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                transition: transform 0.35s ease;
-            }
-
-            .product-card:hover .product-image img {
-                transform: scale(1.05);
-            }
-
-            .product-body {
-                padding: 1.6rem;
-                display: grid;
-                gap: 0.9rem;
-            }
-
-            .product-body p {
-                color: var(--muted);
-            }
-
-            .product-meta {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 0.5rem;
-                font-weight: 600;
-                color: var(--primary);
-            }
-
-            .gallery-grid {
-                display: grid;
-                gap: 0.85rem;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            }
-
-            .gallery-card {
-                position: relative;
-                border-radius: 18px;
-                overflow: hidden;
-                aspect-ratio: 3 / 2;
-                max-height: 220px;
-                box-shadow: 0 12px 26px rgba(0,0,0,0.08);
-            }
-
-            .gallery-card img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-
-            .gallery-card span {
-                position: absolute;
-                inset: 0;
-                display: grid;
-                place-items: center;
-                font-size: 2.4rem;
-                color: rgba(255,255,255,0.75);
-                background: linear-gradient(135deg, rgba(19,17,14,0.75), rgba(139,94,60,0.55));
-            }
-
-            .contact-grid {
-                display: grid;
-                gap: clamp(2rem, 5vw, 3rem);
-                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            }
-
-            .contact-card {
-                background: #fff;
-                border-radius: 24px;
-                padding: clamp(1.5rem, 4vw, 2rem);
-                box-shadow: 0 18px 45px rgba(0,0,0,0.08);
-                display: grid;
-                gap: 1.1rem;
-            }
-
-            .contact-row {
-                display: flex;
-                align-items: center;
-                gap: 0.9rem;
-                color: var(--muted);
-                word-break: break-word;
-            }
-
-            .contact-icon {
-                width: 40px;
-                height: 40px;
-                border-radius: 12px;
-                background: rgba(139, 94, 60, 0.15);
-                display: grid;
-                place-items: center;
-                color: var(--primary);
-                font-size: 1rem;
-            }
-
-            .socials {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.75rem;
-            }
-
-            .socials a {
-                width: 42px;
-                height: 42px;
-                border-radius: 50%;
-                display: grid;
-                place-items: center;
-                background: rgba(139, 94, 60, 0.12);
-                color: var(--primary);
-                transition: transform 0.25s, background 0.25s;
-            }
-
-            .socials a:hover {
-                transform: translateY(-3px);
-                background: var(--secondary);
-            }
-
-            footer {
-                background: linear-gradient(120deg, rgba(19,17,14,0.95), rgba(79,52,33,0.95));
-                color: rgba(255,255,255,0.9);
-                padding: clamp(2.5rem, 6vw, 3.5rem) 0;
-            }
-
-            footer .container {
-                display: grid;
-                gap: 2.2rem;
-                text-align: center;
-            }
-
-            .supporters {
-                display: grid;
-                gap: 1rem;
-            }
-
-            .supporters h3 {
-                margin: 0;
-                font-size: 1.1rem;
-                letter-spacing: 0.08em;
-                color: rgba(255,255,255,0.92);
-            }
-
-            .supporters-logos {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 1rem;
-            }
-
-            .supporter-badge {
-                width: clamp(110px, 20vw, 160px);
-                height: 72px;
-                border-radius: 12px;
-                background: rgba(255,255,255,0.08);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                padding: 0.5rem 0.75rem;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-                position: relative;
-            }
-
-            .supporter-badge img {
-                max-width: 100%;
-                max-height: 52px;
-                object-fit: contain;
-                filter: drop-shadow(0 4px 15px rgba(0,0,0,0.25));
-                transition: transform 0.25s ease;
-            }
-
-            .supporter-badge:hover img {
-                transform: scale(1.03);
-            }
-
-            .supporter-fallback {
-                display: none;
-                width: 100%;
-                height: 100%;
-                align-items: center;
-                justify-content: center;
-                font-weight: 600;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                color: rgba(255,255,255,0.9);
-            }
-
-            .whatsapp-btn {
-                position: fixed;
-                right: 1.5rem;
-                bottom: 1.5rem;
-                width: 56px;
-                height: 56px;
-                border-radius: 50%;
-                background: #25D366;
-                color: #fff;
-                box-shadow: 0 18px 45px rgba(37,211,102,0.35);
-                display: grid;
-                place-items: center;
-                text-decoration: none;
-                z-index: 999;
-                transition: transform 0.3s ease;
-            }
-
-            .whatsapp-btn:hover {
-                transform: translateY(-4px) scale(1.04);
-            }
-
-            @media (max-width: 768px) {
-                nav ul {
-                    display: none;
-                }
-
-                .hero {
-                    text-align: left;
-                }
-
-                .hero-content {
-                    justify-items: flex-start;
-                }
-
-                .hero-actions {
-                    justify-content: flex-start;
-                }
-
-                .about-media::after {
-                    display: none;
-                }
-
-                .about-media img {
-                    border-radius: 18px;
-                }
-            }
-
-            @media (max-width: 520px) {
-                .whatsapp-btn {
-                    right: 1rem;
-                    bottom: 1rem;
-                    width: 50px;
-                    height: 50px;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <header>
-            <div class="container">
-                <div class="nav">
-                    <a href="#inicio" class="brand">
-                        {% if logo_url %}
-                            <img src="{{ normalize_drive_image(logo_url) }}" alt="Logo {{ site_name or 'Artesanías' }}" class="logo-img" loading="lazy">
-                        {% else %}
-                            <span class="logo-placeholder">{{ model_icon or '🎨' }}</span>
-                        {% endif %}
-                        <h1>{{ site_name or 'Artesanías locales' }}</h1>
-                    </a>
-                    <nav>
-                        <ul>
-                            <li><a href="#inicio">Inicio</a></li>
-                            <li><a href="#nosotros">Sobre nosotros</a></li>
-                            <li><a href="#productos">Colección</a></li>
-                            <li><a href="#galeria">Galería</a></li>
-                            <li><a href="#contacto">Contacto</a></li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-        </header>
-
-        <main>
-            <section id="inicio" class="hero">
-                <div class="hero-content">
-                    <h2>{{ hero_title or site_name or 'Artesanías que cuentan historias' }}</h2>
-                    <p>{{ hero_subtitle or site_description or 'Cada pieza Wayuu preserva la identidad cultural y apoya a las comunidades artesanas.' }}</p>
-                    <div class="hero-actions">
-                        <a href="#productos" class="btn btn-primary">Explorar colección</a>
-                        <a href="#contacto" class="btn btn-outline">Quiero contactar</a>
-                    </div>
-                </div>
-            </section>
-
-            <section id="nosotros">
-                <div class="container">
-                    <div class="section-header">
-                        <span><i class="fa-solid fa-feather"></i> Tradición viva</span>
-                        <h2>La historia detrás de cada tejido</h2>
-                        <p>{{ about_text or 'Preservamos el arte ancestral Wayuu garantizando comercio justo y piezas únicas elaboradas a mano.' }}</p>
-                    </div>
-                    <div class="about-grid">
-                        <div class="about-media">
-                            <img src="{{ normalize_drive_image(about_image) if about_image else 'https://images.unsplash.com/photo-1560067174-e553b3647601?auto=format&fit=crop&w=900&q=80' }}" alt="Taller artesanal" loading="lazy">
-                        </div>
-                        <div class="about-content">
-                            <p>{{ about_text or 'En cada creación Wayuu convergen siglos de tradición, resiliencia y espiritualidad. Trabajamos de la mano con artesanas líderes para transformar historias en piezas memorables.' }}</p>
-                            <div class="about-highlight">
-                                “Cada color representa un paisaje, cada trama es un legado. Tejemos cultura para el mundo.”
-                            </div>
-                            <div class="contact-row">
-                                <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
-                                <span>{{ contact_address or 'La Guajira - Colombia' }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="productos" style="background: rgba(255,255,255,0.75);">
-                <div class="container">
-                    <div class="section-header">
-                        <span><i class="fa-solid fa-store"></i> Colección destacada</span>
-                        <h2>Piezas artesanales disponibles</h2>
-                        <p>Selecciona los productos que quieres mostrar desde el panel de administración. Puedes incluir imágenes alojadas en Google Drive o cualquier servicio público.</p>
-                    </div>
-                    <div class="products-grid">
-                        {% if products and products|length > 0 %}
-                            {% for product in products %}
-                            <article class="product-card">
-                                {% if product.image %}
-                                    <div class="product-image">
-                                        <img src="{{ normalize_drive_image(product.image) }}" alt="{{ product.name or 'Producto artesanal' }}" loading="lazy">
-                                    </div>
-                                {% endif %}
-                                <div class="product-body">
-                                    <h3>{{ product.name or 'Producto artesanal' }}</h3>
-                                    {% if product.description %}<p>{{ product.description }}</p>{% endif %}
-                                    {% if product.price %}
-                                        <div class="product-meta">
-                                            <span>{{ product.price }}</span>
-                                            <span>Hecho a mano</span>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </article>
-                            {% endfor %}
-                        {% else %}
-                            <p style="text-align:center; color: var(--muted);">Añade productos desde el panel para mostrarlos aquí.</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </section>
-
-            <section id="galeria">
-                <div class="container">
-                    <div class="section-header">
-                        <span><i class="fa-solid fa-images"></i> Galería visual</span>
-                        <h2>Momentos y texturas Wayuu</h2>
-                        <p>Carga fotografías de tus procesos, ferias o colecciones para conectar a tus clientes con la experiencia artesanal.</p>
-                    </div>
-                    <div class="gallery-grid">
-                        {% if gallery_images and gallery_images|length > 0 %}
-                            {% for image_url in gallery_images %}
-                                <div class="gallery-card">
-                                    <img src="{{ normalize_drive_image(image_url) }}" alt="Galería {{ site_name or 'artesanías' }}" loading="lazy">
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="gallery-card"><span>🎨</span></div>
-                            <div class="gallery-card"><span>🧶</span></div>
-                            <div class="gallery-card"><span>🌅</span></div>
-                            <div class="gallery-card"><span>🪡</span></div>
-                        {% endif %}
-                    </div>
-                </div>
-            </section>
-
-            <section id="contacto" style="background: rgba(139,94,60,0.06);">
-                <div class="container">
-                    <div class="section-header">
-                        <span><i class="fa-solid fa-handshake-angle"></i> Conversemos</span>
-                        <h2>Contacto directo con el taller</h2>
-                        <p>Comparte tu información de contacto y redes sociales para facilitar pedidos personalizados y alianzas comerciales.</p>
-                    </div>
-                    <div class="contact-grid">
-                        <div class="contact-card">
-                            {% if contact_phone %}
-                            <div class="contact-row">
-                                <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
-                                <div>
-                                    <strong>Teléfono</strong><br>
-                                    <a href="tel:{{ contact_phone }}">{{ contact_phone }}</a>
-                                </div>
-                            </div>
-                            {% endif %}
-                            {% if contact_email %}
-                            <div class="contact-row">
-                                <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
-                                <div>
-                                    <strong>Email</strong><br>
-                                    <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
-                                </div>
-                            </div>
-                            {% endif %}
-                            {% if contact_address %}
-                            <div class="contact-row">
-                                <div class="contact-icon"><i class="fa-solid fa-map-location-dot"></i></div>
-                                <div>
-                                    <strong>Ubicación</strong><br>
-                                    <span>{{ contact_address }}</span>
-                                </div>
-                            </div>
-                            {% endif %}
-                            {% if whatsapp_number or facebook_url or instagram_url or tiktok_url %}
-                            <div>
-                                <strong>Redes y canales</strong>
-                                <div class="socials">
-                                    {% if whatsapp_number %}
-                                        <a href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}" aria-label="WhatsApp" rel="noopener" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
-                                    {% endif %}
-                                    {% if facebook_url %}
-                                        <a href="{{ facebook_url }}" aria-label="Facebook" rel="noopener" target="_blank"><i class="fa-brands fa-facebook-f"></i></a>
-                                    {% endif %}
-                                    {% if instagram_url %}
-                                        <a href="{{ instagram_url }}" aria-label="Instagram" rel="noopener" target="_blank"><i class="fa-brands fa-instagram"></i></a>
-                                    {% endif %}
-                                    {% if tiktok_url %}
-                                        <a href="{{ tiktok_url }}" aria-label="TikTok" rel="noopener" target="_blank"><i class="fa-brands fa-tiktok"></i></a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-                        <div class="contact-card" style="background: rgba(255,255,255,0.65);">
-                            <h3 style="margin: 0; color: var(--primary);">Pedidos especiales</h3>
-                            <p style="color: var(--muted); margin: 0;">¿Quieres piezas personalizadas o compras al por mayor? Escríbenos y te asesoramos.</p>
-                            <div style="margin-top: 1rem; display: grid; gap: 0.8rem;">
-                                <div class="contact-row">
-                                    <div class="contact-icon"><i class="fa-solid fa-circle-check"></i></div>
-                                    <span>Pagos seguros y envíos nacionales</span>
-                                </div>
-                                <div class="contact-row">
-                                    <div class="contact-icon"><i class="fa-solid fa-people-group"></i></div>
-                                    <span>Trabajo directo con comunidades artesanas</span>
-                                </div>
-                                <div class="contact-row">
-                                    <div class="contact-icon"><i class="fa-solid fa-earth-americas"></i></div>
-                                    <span>Exportación disponible bajo pedido</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <footer>
-            <div class="container">
-                {% set allies = supporter_logos or [] %}
-                {% if allies %}
-                <div class="supporters">
-                    <h3>Aliados que apoyan esta causa</h3>
-                    <div class="supporters-logos">
-                        {% for supporter in allies %}
-                            <div class="supporter-badge">
-                                {% if supporter.optimized_url or supporter.url %}
-                                    <img src="{{ supporter.optimized_url or supporter.url }}"
-                                         alt="Logo {{ supporter.name }}"
-                                         width="180"
-                                         height="72"
-                                         loading="lazy"
-                                         decoding="async"
-                                         data-supporter-logo
-                                         data-supporter-name="{{ supporter.name }}">
-                                {% endif %}
-                                <span class="supporter-fallback" {% if supporter.optimized_url or supporter.url %}hidden{% endif %}>{{ supporter.initials }}</span>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
+    <title>{{ site_name }}</title>
+    <meta name="description" content="{{ site_description }}">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                {% if logo_url %}
+                <img src="{{ logo_url }}" alt="{{ site_name }}">
+                {% else %}
+                <span class="icon">{{ model_icon }}</span>
                 {% endif %}
-                <div>{{ site_name or 'Artesanías locales' }} &mdash; {{ site_description or 'Tejidos auténticos hechos a mano.' }}</div>
-                <small>&copy; {{ current_year }} {{ site_name or 'Artesanías locales' }}. Todos los derechos reservados.</small>
+                <h1>{{ site_name }}</h1>
             </div>
-        </footer>
+            <nav>
+                <a href="#inicio">Inicio</a>
+                <a href="#nosotros">Nosotros</a>
+                <a href="#productos">Productos</a>
+                <a href="#contacto">Contacto</a>
+            </nav>
+        </div>
+    </header>
 
-        {% if whatsapp_number %}
-        <a class="whatsapp-btn" href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
-            <i class="fa-brands fa-whatsapp"></i>
-        </a>
-        {% endif %}
+    <!-- Hero Section -->
+    <section id="inicio" class="hero">
+        <div class="container">
+            <h2>{{ hero_title }}</h2>
+            <p>{{ hero_subtitle }}</p>
+            <a href="#contacto" class="btn">Contáctanos</a>
+        </div>
+    </section>
 
-        <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('[data-supporter-logo]').forEach(function (img) {
-                img.addEventListener('error', function () {
-                    const wrapper = img.closest('.supporter-badge');
-                    if (!wrapper) {
-                        return;
-                    }
-                    const fallback = wrapper.querySelector('.supporter-fallback');
-                    img.remove();
-                    if (fallback) {
-                        fallback.hidden = false;
-                        fallback.style.display = 'flex';
-                    }
-                }, { once: true });
-            });
-        });
-        </script>
-        <script src="tracking.js" defer></script>
-    </body>
-    </html>
+    <!-- About Section -->
+    <section id="nosotros" class="about">
+        <div class="container">
+            <h2>Sobre Nosotros</h2>
+            <p>{{ about_text }}</p>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section id="productos" class="products">
+        <div class="container">
+            <h2>Nuestros Productos Artesanales</h2>
+            <div class="products-grid">
+                {% for product in products %}
+                <div class="product-card">
+                    {% if product.image %}
+                    <img src="{{ product.image }}" alt="{{ product.name }}">
+                    {% endif %}
+                    <h3>{{ product.name }}</h3>
+                    <p>{{ product.description }}</p>
+                    {% if product.price %}
+                    <span class="price">${{ product.price }}</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="galeria" class="gallery">
+        <div class="container">
+            <h2>Galería</h2>
+            <div class="gallery-grid">
+                {% if gallery_images and gallery_images|length > 0 %}
+                    {% for image_url in gallery_images %}
+                    <div class="gallery-item">
+                        <img src="{{ image_url }}" alt="Galería" loading="lazy">
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Imágenes por defecto si no hay galería -->
+                    <div class="gallery-item">🎨</div>
+                    <div class="gallery-item">🖼️</div>
+                    <div class="gallery-item">✨</div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contacto" class="contact">
+        <div class="container">
+            <h2>Contáctanos</h2>
+            <div class="contact-info">
+                {% if contact_email %}
+                <p>📧 {{ contact_email }}</p>
+                {% endif %}
+                {% if contact_phone %}
+                <p>📱 {{ contact_phone }}</p>
+                {% endif %}
+                {% if contact_address %}
+                <p>📍 {{ contact_address }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <!-- Redes Sociales -->
+            {% if facebook_url or instagram_url or tiktok_url %}
+            <div class="social-links">
+                {% if facebook_url %}
+                <a href="{{ facebook_url }}" target="_blank" rel="noopener" title="Facebook">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                </a>
+                {% endif %}
+                {% if instagram_url %}
+                <a href="{{ instagram_url }}" target="_blank" rel="noopener" title="Instagram">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                </a>
+                {% endif %}
+                {% if tiktok_url %}
+                <a href="{{ tiktok_url }}" target="_blank" rel="noopener" title="TikTok">
+                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <p>&copy; {{ current_year }} {{ site_name }}. Todos los derechos reservados.</p>
+            <p>Hecho con ❤️ por artesanos locales</p>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Floating Button -->
+    {% if whatsapp_number %}
+    <a href="https://wa.me/{{ whatsapp_number }}?text=Hola,%20estoy%20interesado%20en%20sus%20productos" 
+       class="whatsapp-float" 
+       target="_blank" 
+       rel="noopener"
+       title="Contactar por WhatsApp">
+        <svg width="32" height="32" fill="white" viewBox="0 0 24 24">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+        </svg>
+    </a>
+    {% endif %}
+
+    <script src="tracking.js"></script>
+</body>
+</html>

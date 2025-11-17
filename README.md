@@ -139,23 +139,6 @@ El panel estará disponible en: `http://localhost:8000`
 
 ⚠️ **Importante**: Cambia estas credenciales en producción.
 
-## 🖼️ Imágenes alojadas en Google Drive
-
-Puedes seguir usando enlaces de Google Drive para logos, galerías y aliados, pero asegúrate de cumplir estas reglas:
-
-1. **Comparte el archivo como “Cualquier persona con el enlace” (lector)** desde Google Drive para evitar respuestas 403.
-2. Copia el vínculo público (`https://drive.google.com/file/d/<ID>/view?...` o `...open?id=<ID>`). No es necesario editarlo manualmente.
-3. Pega el enlace en el panel. El backend llama al helper `normalize_drive_image` para convertirlo automáticamente a `https://drive.google.com/uc?export=view&id=<ID>` y así usarlo en `<img>`.
-
-> Si Google sigue bloqueando la carga (algunos tenants aplican políticas estrictas de cookies), habilitamos el helper `drive_preview_iframe` que genera un `<iframe src="https://drive.google.com/file/d/<ID>/preview">` como último recurso.
-
-```jinja2
-{# Ejemplo opcional dentro de una plantilla #}
-{{ drive_preview_iframe(logo_url, max_width="180px", height="180px") }}
-```
-
-Google recomienda hospedar recursos estáticos (logos, banners) en servicios especializados como Cloudinary, Azure Blob Storage, GitHub Releases o un bucket S3 cuando se necesite máxima disponibilidad.
-
 ## 🎨 Modelos de Negocio y Paletas
 
 | Modelo | Colores | Concepto |
@@ -175,39 +158,7 @@ Google recomienda hospedar recursos estáticos (logos, banners) en servicios esp
 5. **Publicar** → El sistema genera y sube automáticamente a GitHub Pages
 6. **Estadísticas** → Monitorea visitas y métricas
 
-## � Gestión de Usuarios y Roles
-
-El backend ahora integra un sistema completo de autentificación con JWT (access + refresh tokens) y control de permisos basado en roles.
-
-### Roles disponibles
-
-| Rol | Permisos principales |
-| --- | --- |
-| `admin` | Ver/editar todos los sitios, publicar, gestionar usuarios y roles |
-| `owner` | Editar y publicar únicamente su sitio asignado (creado automáticamente al generar un sitio) |
-| `editor` | Editar sitios que le asigne un admin, sin publicar ni borrar |
-| `user` | Acceso básico al panel sin permisos de edición |
-
-### Endpoints clave
-
-- `POST /auth/register` – Registro autogestionado para nuevos usuarios (rol `user`).
-- `POST /auth/login` – Login estándar con emisión de access/refresh tokens.
-- `POST /auth/refresh` – Renovación segura del token de acceso.
-- `GET /auth/me` – Perfil del usuario autenticado con la lista de permisos efectivos.
-- `GET|POST|PATCH|DELETE /roles/*` – CRUD completo de roles (solo admins).
-- `GET|POST|PATCH|DELETE /users/*` – CRUD completo de usuarios, cambio de contraseña y asignación de sitios.
-
-### Dueño automático del sitio
-
-Cada vez que se crea un sitio desde `POST /api/sites` el backend:
-
-1. Genera un usuario tipo `owner` con username basado en el nombre del sitio.
-2. Le asigna el `site_id` recién creado y una contraseña temporal segura.
-3. Incluye las credenciales en la respuesta (`owner_credentials`) para que el administrador pueda compartirlas.
-
-Los endpoints clásicos como `/api/sites`, `/api/sites/{id}`, `/api/sites/{id}/publish` ahora verifican automáticamente si el usuario autenticado es admin, dueño u editor asignado antes de permitir lecturas o cambios.
-
-## �🔧 Configuración de GitHub Pages
+## 🔧 Configuración de GitHub Pages
 
 ### 1. Crear Token de GitHub
 

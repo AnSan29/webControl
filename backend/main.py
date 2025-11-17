@@ -3,16 +3,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import timedelta
 from pathlib import Path
 import json
 import os
 import shutil
 import uuid
-import re
-import unicodedata
 from dotenv import load_dotenv
 
 # Cargar variables de entorno
@@ -23,23 +20,15 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 # Importar módulos locales
-from database import get_db, Site, Visit, Role, User, Admin, SiteAssignment, init_db
+from database import get_db, Site, Visit, init_db
 from auth import (
     authenticate_admin,
     create_access_token,
     get_current_admin,
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-    generate_temporary_password,
-    hash_password,
-    build_user_claims,
-    get_current_user,
+    ACCESS_TOKEN_EXPIRE_MINUTES
 )
-from .routers import auth_router, roles_router, users_router
 from utils.github_api import GitHubPublisher
 from utils.template_engine import TemplateEngine
-from .template_helpers import normalize_drive_image
-from schemas import SiteWithOwnerResponse, OwnerCredentials
-from permissions import can_view_site, can_edit_site, can_publish_site, is_admin
 
 # Inicializar app
 app = FastAPI(
@@ -47,10 +36,6 @@ app = FastAPI(
     description="Panel de control para gestionar sitios web de negocios",
     version="1.0.0"
 )
-
-app.include_router(auth_router, prefix="/api")
-app.include_router(roles_router, prefix="/api")
-app.include_router(users_router, prefix="/api")
 
 # CORS
 app.add_middleware(
@@ -67,9 +52,6 @@ uploads_path = Path(__file__).parent.parent / "uploads"
 app.mount("/static", StaticFiles(directory=frontend_path / "static"), name="static")
 app.mount("/uploads", StaticFiles(directory=uploads_path), name="uploads")
 
-templates = Jinja2Templates(directory=str(frontend_path))
-templates.env.globals["normalize_drive_image"] = normalize_drive_image
-
 # Inicializar servicios
 template_engine = TemplateEngine()
 
@@ -81,143 +63,49 @@ with open(Path(__file__).parent / "models.json", 'r', encoding='utf-8') as f:
 with open(Path(__file__).parent / "seed_data.json", 'r', encoding='utf-8') as f:
     SEED_DATA = json.load(f)
 
-# ============= FEATURE FLAGS =============
-# Habilitar GPT-5 para todos los clientes (controlado por ENV, por defecto true)
-GPT5_ENABLED = os.getenv("GPT5_ENABLED", "true").lower() in ("1", "true", "yes", "on")
-
-
-def _slugify(value: str) -> str:
-    value = unicodedata.normalize('NFKD', value or "site").encode('ascii', 'ignore').decode('ascii')
-    value = re.sub(r'[^a-zA-Z0-9]+', '-', value).strip('-').lower()
-    return value or "site"
-
-
-def _ensure_unique_username(db: Session, base_username: str) -> str:
-    candidate = base_username
-    counter = 1
-    while db.query(User).filter(User.username == candidate).first():
-        candidate = f"{base_username}-{counter}"
-        counter += 1
-    return candidate
-
-
-def _ensure_unique_email(db: Session, base_username: str, preferred_email: str | None) -> str:
-    if preferred_email:
-        sanitized = preferred_email.lower()
-        counter = 1
-        candidate = sanitized
-        while db.query(User).filter(User.email == candidate).first():
-            local, _, domain = sanitized.partition('@')
-            candidate = f"{local}+{counter}@{domain or 'webcontrol.local'}"
-            counter += 1
-        return candidate
-
-    domain = os.getenv("OWNER_USER_DOMAIN", "owners.webcontrol.local")
-    counter = 1
-    candidate = f"{base_username}@{domain}"
-    while db.query(User).filter(User.email == candidate).first():
-        candidate = f"{base_username}{counter}@{domain}"
-        counter += 1
-    return candidate
-
-
-def _create_owner_user_for_site(db: Session, site: Site, requested_email: str | None) -> OwnerCredentials:
-    owner_role = db.query(Role).filter(Role.name == "owner").first()
-    if not owner_role:
-        raise HTTPException(status_code=500, detail="Rol OWNER no configurado")
-
-    base_username = f"{_slugify(site.name)}-{site.id}"
-    username = _ensure_unique_username(db, base_username)
-    email = _ensure_unique_email(db, username, requested_email)
-    temp_password = generate_temporary_password(14)
-
-    user = User(
-        username=username,
-        email=email,
-        hashed_password=hash_password(temp_password),
-        role_id=owner_role.id,
-        site_id=site.id,
-        is_active=True,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
-    return OwnerCredentials(
-        username=username,
-        email=email,
-        temporary_password=temp_password,
-        role="owner",
-    )
-
-
-def _get_or_create_admin_user(db: Session, admin: Admin) -> User:
-    user = db.query(User).filter(User.email == admin.email).first()
-    if user:
-        return user
-
-    admin_role = db.query(Role).filter(Role.name == "admin").first()
-    if not admin_role:
-        raise HTTPException(status_code=500, detail="Rol ADMIN no configurado")
-
-    username_base = _slugify(os.getenv("ADMIN_USERNAME", admin.email.split("@")[0]))
-    username = _ensure_unique_username(db, username_base)
-
-    user = User(
-        username=username,
-        email=admin.email,
-        hashed_password=admin.hashed_password,
-        role_id=admin_role.id,
-        is_active=True,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
-
 
 # ============= RUTAS FRONTEND =============
 
 @app.get("/", response_class=HTMLResponse)
-async def root(request: Request):
+async def root():
     """Página de login"""
-    return templates.TemplateResponse("login-windster.html", {"request": request})
+    with open(frontend_path / "login-windster.html", 'r', encoding='utf-8') as f:
+        return f.read()
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request):
+async def dashboard():
     """Panel principal - Windster version"""
-    return templates.TemplateResponse("dashboard-windster.html", {"request": request})
-
-
-@app.get("/users-management", response_class=HTMLResponse)
-async def users_management(request: Request):
-    """Página de gestión de usuarios y roles"""
-    return templates.TemplateResponse("users-management.html", {"request": request})
+    with open(frontend_path / "dashboard-windster.html", 'r', encoding='utf-8') as f:
+        return f.read()
 
 
 @app.get("/dashboard-old", response_class=HTMLResponse)
-async def dashboard_old(request: Request):
+async def dashboard_old():
     """Panel principal - Versión original"""
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+    with open(frontend_path / "dashboard.html", 'r', encoding='utf-8') as f:
+        return f.read()
 
 
 @app.get("/models", response_class=HTMLResponse)
-async def models_page(request: Request):
+async def models_page():
     """Página de modelos"""
-    return templates.TemplateResponse("models-windster.html", {"request": request})
+    with open(frontend_path / "models-windster.html", 'r', encoding='utf-8') as f:
+        return f.read()
 
 
 @app.get("/create-site", response_class=HTMLResponse)
-async def create_site_page(request: Request):
+async def create_site_page():
     """Página de crear sitio"""
-    return templates.TemplateResponse("create-site-windster.html", {"request": request})
+    with open(frontend_path / "create-site-windster.html", 'r', encoding='utf-8') as f:
+        return f.read()
 
 
 @app.get("/editor/{site_id}", response_class=HTMLResponse)
-async def editor_page(site_id: int, request: Request):
+async def editor_page(site_id: int):
     """Página de editor"""
-    return templates.TemplateResponse("editor-visual.html", {"request": request, "site_id": site_id})
+    with open(frontend_path / "editor.html", 'r', encoding='utf-8') as f:
+        return f.read()
 
 
 # ============= API AUTH =============
@@ -233,20 +121,16 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
             detail="Email o contraseña incorrectos",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    admin_user = _get_or_create_admin_user(db, admin)
-    admin_user.last_login = datetime.utcnow()
-    db.add(admin_user)
-    db.commit()
-    db.refresh(admin_user)
-
+    
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    claims = build_user_claims(admin_user)
-    access_token = create_access_token(claims, expires_delta=access_token_expires)
+    access_token = create_access_token(
+        data={"sub": admin.email}, expires_delta=access_token_expires
+    )
     
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "email": admin_user.email
+        "email": admin.email
     }
 
 
@@ -259,16 +143,6 @@ async def get_me(current_admin = Depends(get_current_admin)):
     }
 
 
-# ============= API FLAGS =============
-
-@app.get("/api/flags")
-async def get_flags():
-    """Obtener banderas de características para clientes."""
-    return {
-        "gpt5_enabled": GPT5_ENABLED
-    }
-
-
 # ============= API MODELS =============
 
 @app.get("/api/models")
@@ -277,48 +151,15 @@ async def get_models():
     return BUSINESS_MODELS
 
 
-@app.get("/api/qa/http-status/{status_code}")
-async def qa_http_status(
-    status_code: int,
-    current_admin = Depends(get_current_admin)
-):
-    """Exponer respuestas controladas para auditorías HTTP."""
-    if status_code == 200:
-        return {"status": 200, "detail": "Respuesta de prueba 200"}
-    if status_code == 404:
-        raise HTTPException(status_code=404, detail="Respuesta de prueba 404 controlada")
-    if status_code == 500:
-        raise HTTPException(status_code=500, detail="Respuesta de prueba 500 controlada")
-
-    raise HTTPException(
-        status_code=400,
-        detail="Código no soportado. Usa 200, 404 o 500"
-    )
-
 # ============= API SITES =============
 
 @app.get("/api/sites")
 async def get_sites(
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_admin = Depends(get_current_admin)
 ):
-    """Listar sitios disponibles según permisos"""
-    sites_query = db.query(Site)
-    if current_user.role and current_user.role.name == "admin":
-        sites = sites_query.all()
-    else:
-        site_ids = set()
-        if current_user.site_id:
-            site_ids.add(current_user.site_id)
-        assignment_ids = [
-            assignment.site_id
-            for assignment in db.query(SiteAssignment).filter(SiteAssignment.user_id == current_user.id)
-        ]
-        site_ids.update(assignment_ids)
-        if not site_ids:
-            sites = []
-        else:
-            sites = sites_query.filter(Site.id.in_(site_ids)).all()
+    """Listar todos los sitios"""
+    sites = db.query(Site).all()
     
     return [
         {
@@ -340,15 +181,13 @@ async def get_sites(
 async def get_site(
     site_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_admin = Depends(get_current_admin)
 ):
     """Obtener sitio específico"""
     site = db.query(Site).filter(Site.id == site_id).first()
     
     if not site:
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
-    if not can_view_site(current_user, site):
-        raise HTTPException(status_code=403, detail="No tienes permisos para ver este sitio")
     
     # Parsear JSON fields
     try:
@@ -392,15 +231,13 @@ async def get_site(
     }
 
 
-@app.post("/api/sites", response_model=SiteWithOwnerResponse)
+@app.post("/api/sites")
 async def create_site(
     request: Request,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_admin = Depends(get_current_admin)
 ):
     """Crear nuevo sitio"""
-    if not current_user.role or current_user.role.name != "admin":
-        raise HTTPException(status_code=403, detail="Solo un admin puede crear sitios")
     data = await request.json()
     
     model_type = data.get("model_type")
@@ -436,16 +273,12 @@ async def create_site(
     db.add(site)
     db.commit()
     db.refresh(site)
-
-    owner_email = data.get("owner_email") or site.contact_email
-    owner_credentials = _create_owner_user_for_site(db, site, owner_email)
     
-    return SiteWithOwnerResponse(
-        id=site.id,
-        name=site.name,
-        message="Sitio creado exitosamente con datos de ejemplo",
-        owner_credentials=owner_credentials,
-    )
+    return {
+        "id": site.id,
+        "name": site.name,
+        "message": "Sitio creado exitosamente con datos de ejemplo"
+    }
 
 
 @app.put("/api/sites/{site_id}")
@@ -453,15 +286,13 @@ async def update_site(
     site_id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_admin = Depends(get_current_admin)
 ):
     """Actualizar sitio"""
     site = db.query(Site).filter(Site.id == site_id).first()
     
     if not site:
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
-    if not can_edit_site(current_user, site):
-        raise HTTPException(status_code=403, detail="No tienes permisos para editar este sitio")
     
     data = await request.json()
     
@@ -470,8 +301,6 @@ async def update_site(
         if hasattr(site, key) and key != "id":
             if key == "products":
                 setattr(site, "products_json", json.dumps(value))
-            elif key == "gallery_images" and isinstance(value, list):
-                setattr(site, "gallery_images", json.dumps(value))
             else:
                 setattr(site, key, value)
     
@@ -484,41 +313,13 @@ async def update_site(
     }
 
 
-@app.post("/api/sites/preview", response_class=HTMLResponse)
-async def preview_site(request: Request, current_user = Depends(get_current_user)):
-    """Generar una vista previa HTML en caliente para el editor visual."""
-    payload = await request.json()
-    model_type = payload.get("model_type")
-
-    if not model_type:
-        raise HTTPException(status_code=400, detail="model_type es requerido")
-
-    site_data = payload.copy()
-    # Asegurar defaults mínimos para evitar llaves faltantes en plantillas
-    site_data.setdefault("name", "Vista previa")
-    site_data.setdefault("hero_title", site_data.get("name", ""))
-    site_data.setdefault("hero_subtitle", "")
-
-    try:
-        files = template_engine.generate_site(model_type, site_data)
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-
-    html = files.get("index.html", "")
-    return HTMLResponse(content=html)
-
-
 @app.delete("/api/sites/{site_id}")
 async def delete_site(
     site_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_admin = Depends(get_current_admin)
 ):
     """Eliminar sitio"""
-    if not is_admin(current_user):
-        raise HTTPException(status_code=403, detail="Solo un admin puede eliminar sitios")
     site = db.query(Site).filter(Site.id == site_id).first()
     
     if not site:
@@ -542,15 +343,13 @@ async def delete_site(
 async def publish_site(
     site_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_admin = Depends(get_current_admin)
 ):
     """Publicar sitio en GitHub Pages"""
     site = db.query(Site).filter(Site.id == site_id).first()
     
     if not site:
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
-    if not can_publish_site(current_user, site):
-        raise HTTPException(status_code=403, detail="No tienes permisos para publicar este sitio")
     
     try:
         # Inicializar publisher
@@ -642,15 +441,13 @@ async def publish_site(
 async def get_stats(
     site_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_admin = Depends(get_current_admin)
 ):
     """Obtener estadísticas de un sitio"""
     site = db.query(Site).filter(Site.id == site_id).first()
     
     if not site:
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
-    if not can_view_site(current_user, site):
-        raise HTTPException(status_code=403, detail="No tienes permisos para ver estas estadísticas")
     
     # Contar visitas totales
     total_visits = db.query(Visit).filter(Visit.site_id == site_id).count()
@@ -709,17 +506,15 @@ async def register_visit(
 @app.get("/api/dashboard/stats")
 async def get_dashboard_stats(
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_admin = Depends(get_current_admin)
 ):
     """Estadísticas generales del dashboard"""
-    if not is_admin(current_user):
-        raise HTTPException(status_code=403, detail="Solo administradores pueden ver el dashboard")
     total_sites = db.query(Site).count()
     published_sites = db.query(Site).filter(Site.is_published == True).count()
     total_visits = db.query(Visit).count()
     
     # Sitios más visitados
-    from sqlalchemy import func  # type: ignore
+    from sqlalchemy import func
     top_sites = db.query(
         Site.id,
         Site.name,
@@ -751,8 +546,7 @@ async def get_dashboard_stats(
 async def upload_image(
     file: UploadFile = File(...),
     site_id: int = None,
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_admin = Depends(get_current_admin)
 ):
     """
     Subir imagen al servidor y retornar la URL relativa.
@@ -778,18 +572,6 @@ async def upload_image(
             detail="La imagen es muy grande. Tamaño máximo: 5MB"
         )
     
-    target_site = None
-    if site_id:
-        target_site = db.query(Site).filter(Site.id == site_id).first()
-        if not target_site:
-            raise HTTPException(status_code=404, detail="Sitio asociado no encontrado")
-
-    if not is_admin(current_user):
-        if not site_id:
-            raise HTTPException(status_code=400, detail="Debes indicar site_id para subir imágenes")
-        if not can_edit_site(current_user, target_site):
-            raise HTTPException(status_code=403, detail="No tienes permisos para subir imágenes a este sitio")
-
     try:
         # Generar nombre único
         file_extension = file.filename.split(".")[-1]
@@ -832,7 +614,7 @@ async def startup_event():
 
 
 if __name__ == "__main__":
-    import uvicorn  # type: ignore
+    import uvicorn
     uvicorn.run(
         "main:app",
         host=os.getenv("HOST", "0.0.0.0"),
