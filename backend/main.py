@@ -303,6 +303,7 @@ async def get_sites(
             "name": site.name,
             "model_type": site.model_type,
             "description": site.description,
+            "logo_url": _canonicalize_asset_value(site.logo_url),
             "custom_domain": site.custom_domain,
             "github_url": site.github_url,
             "is_published": site.is_published,
