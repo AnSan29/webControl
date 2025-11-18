@@ -222,6 +222,11 @@ async def models_page(request: Request):
     """Página de modelos"""
     return templates.TemplateResponse("models-windster.html", {"request": request})
 
+@app.get("/users-management", response_class=HTMLResponse)
+async def users_management_page(request: Request):
+    """Vista placeholder para la gestión de usuarios y roles."""
+    context = {"request": request}
+    return templates.TemplateResponse("users-management.html", context)
 
 @app.get("/create-site", response_class=HTMLResponse)
 async def create_site_page(request: Request):
