@@ -39,16 +39,21 @@ def serialize_user(user: User, *, include_sensitive: bool = False) -> dict:
         "email": user.email,
         "role": role_name,
         "role_label": user.role.description if user.role else None,
+        "role_display": ROLE_DISPLAY_NAMES.get(role_name, (role_name.title() if role_name else None)),
         "site_id": user.site_id,
         "is_active": user.is_active,
+        "activated_at": user.activated_at.isoformat() if user.activated_at else None,
+        "expires_at": user.expires_at.isoformat() if user.expires_at else None,
         "last_login": user.last_login.isoformat() if user.last_login else None,
         "created_at": user.created_at.isoformat() if user.created_at else None,
         "updated_at": user.updated_at.isoformat() if user.updated_at else None,
     }
     if user.site:
         data["site"] = {"id": user.site.id, "name": user.site.name}
+        data["site_name"] = user.site.name
     else:
         data["site"] = None
+        data["site_name"] = None
 
     if include_sensitive:
         data["plain_password"] = user.plain_password

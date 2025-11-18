@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import sys
+from datetime import datetime
 
 # Fuerza una base de datos SQLite aislada para los tests ANTES de importar la app
 TEST_DB_PATH = Path(__file__).resolve().parent / "test_db.sqlite3"
@@ -65,6 +66,7 @@ def create_superadmin(email="root@webcontrol.test", password="Admin!123"):
         plain_password=password,
         role_id=role.id,
         is_active=True,
+        activated_at=datetime.utcnow(),
     )
     session.add(user)
     session.commit()
@@ -188,3 +190,41 @@ def test_roles_endpoint_requires_superadmin(client):
 
     forbidden = client.get("/api/roles", headers=auth_header(owner_token))
     assert forbidden.status_code == 403
+
+
+def test_superadmin_can_replace_site_owner_during_user_creation(client):
+    creds = create_superadmin()
+    token, _ = login(client, creds["email"], creds["password"])
+
+    site_payload = client.post(
+        "/api/sites",
+        headers=auth_header(token),
+        json={"name": "Sitio Owner", "model_type": "cocina"},
+    ).json()
+
+    new_owner_payload = {
+        "username": "owner.reemplazo",
+        "email": "owner.reemplazo@example.com",
+        "role": "owner",
+        "password": "NuevaClave123",
+        "is_active": True,
+        "site_id": site_payload["id"],
+    }
+
+    response = client.post(
+        "/api/users",
+        headers=auth_header(token),
+        json=new_owner_payload,
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["site_id"] == site_payload["id"]
+    assert payload["username"] == new_owner_payload["username"]
+    assert payload["email"] == new_owner_payload["email"]
+
+    session = SessionLocal()
+    owners = session.query(User).filter(User.site_id == site_payload["id"]).all()
+    session.close()
+    assert len(owners) == 1
+    assert owners[0].email == new_owner_payload["email"]

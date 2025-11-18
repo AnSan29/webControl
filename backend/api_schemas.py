@@ -68,6 +68,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=128)
     role: Optional[str] = None
+    expires_at: Optional[datetime] = None
 
 
 class UserUpdate(BaseModel):
@@ -77,6 +78,8 @@ class UserUpdate(BaseModel):
     role_id: Optional[int] = None
     role: Optional[str] = None
     is_active: Optional[bool] = None
+    expires_at: Optional[datetime] = None
+    password: Optional[str] = Field(default=None, min_length=8, max_length=128)
 
     @field_validator("email")
     @classmethod
@@ -93,6 +96,8 @@ class UserRead(UserBase):
     role_name: Optional[str] = None
     site_name: Optional[str] = None
     last_login: Optional[datetime] = None
+    activated_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 
