@@ -113,6 +113,25 @@ def _canonicalize_products(value):
     return products
 
 
+def _get_preview_image(site):
+    hero_image = _canonicalize_asset_value(getattr(site, "hero_image", ""))
+    if hero_image:
+        return hero_image
+
+    raw_gallery = getattr(site, "gallery_images", "") or "[]"
+    try:
+        parsed_gallery = json.loads(raw_gallery) if isinstance(raw_gallery, str) else raw_gallery
+    except json.JSONDecodeError:
+        parsed_gallery = []
+
+    for item in _coerce_list(parsed_gallery):
+        normalized = _canonicalize_asset_value(item)
+        if normalized:
+            return normalized
+
+    return _canonicalize_asset_value(getattr(site, "logo_url", ""))
+
+
 def _localize_asset_for_publish(value):
     canonical = _canonicalize_asset_value(value)
     if not canonical:
@@ -304,8 +323,16 @@ async def get_sites(
             "model_type": site.model_type,
             "description": site.description,
             "logo_url": _canonicalize_asset_value(site.logo_url),
+            "hero_image": _canonicalize_asset_value(site.hero_image),
+            "preview_image": _get_preview_image(site),
             "custom_domain": site.custom_domain,
             "github_url": site.github_url,
+            "facebook_url": site.facebook_url or "",
+            "instagram_url": site.instagram_url or "",
+            "tiktok_url": site.tiktok_url or "",
+            "whatsapp_number": site.whatsapp_number or "",
+            "primary_color": site.primary_color or "",
+            "secondary_color": site.secondary_color or "",
             "is_published": site.is_published,
             "created_at": site.created_at.isoformat(),
             "updated_at": site.updated_at.isoformat()

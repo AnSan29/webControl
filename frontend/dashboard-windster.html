@@ -4,24 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - WebControl Studio</title>
-    
-    <!-- Tailwind CSS CDN -->
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
+
     <style>
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
         .fade-in {
             animation: fadeIn 0.3s ease-in;
         }
+
         .site-description {
             max-width: 420px;
             display: -webkit-box;
@@ -30,14 +32,48 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
+        .mosaic-description {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .site-logo {
             height: 3rem;
             width: 3rem;
         }
+
         .site-logo img {
             height: 100%;
             width: 100%;
             object-fit: cover;
+        }
+
+        .social-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            background-color: #f3f4f6;
+            color: #374151;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .social-chip:hover {
+            background-color: #e5e7eb;
+        }
+
+        .view-toggle button {
+            transition: all 0.2s ease;
+        }
+
+        .mosaic-card {
+            box-shadow: 0 1px 2px rgb(15 23 42 / 0.05);
         }
     </style>
 </head>
@@ -55,7 +91,7 @@
                 </button>
                 <a href="/dashboard" class="text-xl font-bold flex items-center lg:ml-2.5">
                     <i class="fas fa-globe text-blue-600 mr-2"></i>
-                    <span class="self-center whitespace-nowrap">WebControl Studio</span> 
+                    <span class="self-center whitespace-nowrap">WebControl Studio</span>
                 </a>
             </div>
             <div class="flex items-center">
@@ -127,15 +163,13 @@
 <div class="flex overflow-hidden bg-white pt-16">
     <div id="main-content" class="h-full w-full bg-gray-50 relative overflow-y-auto lg:ml-64">
         <main>
-            <div class="pt-6 px-4">
-                <!-- Page Title -->
-                <div class="mb-4">
+            <div class="pt-6 px-4 space-y-6">
+                <div>
                     <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-                    <p class="mt-2 text-sm text-gray-600">Gestiona todos tus sitios web desde un solo lugar</p>
+                    <p class="mt-2 text-sm text-gray-600">Gestiona todos tus sitios y plantillas desde un solo lugar.</p>
                 </div>
 
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="bg-white rounded-lg shadow p-6 border border-gray-200 fade-in">
                         <div class="flex items-center">
                             <div class="flex-shrink-0">
@@ -149,8 +183,7 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="bg-white rounded-lg shadow p-6 border border-gray-200 fade-in" style="animation-delay: 0.1s">
+                    <div class="bg-white rounded-lg shadow p-6 border border-gray-200 fade-in" style="animation-delay: 0.1s;">
                         <div class="flex items-center">
                             <div class="flex-shrink-0">
                                 <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
@@ -163,8 +196,7 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="bg-white rounded-lg shadow p-6 border border-gray-200 fade-in" style="animation-delay: 0.2s">
+                    <div class="bg-white rounded-lg shadow p-6 border border-gray-200 fade-in" style="animation-delay: 0.2s;">
                         <div class="flex items-center">
                             <div class="flex-shrink-0">
                                 <div class="w-12 h-12 rounded-lg bg-yellow-100 flex items-center justify-center">
@@ -177,8 +209,7 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="bg-white rounded-lg shadow p-6 border border-gray-200 fade-in" style="animation-delay: 0.3s">
+                    <div class="bg-white rounded-lg shadow p-6 border border-gray-200 fade-in" style="animation-delay: 0.3s;">
                         <div class="flex items-center">
                             <div class="flex-shrink-0">
                                 <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
@@ -193,8 +224,7 @@
                     </div>
                 </div>
 
-                <!-- Action Buttons -->
-                <div class="mb-6 flex flex-col sm:flex-row gap-4">
+                <div class="flex flex-col sm:flex-row gap-4">
                     <a href="/create-site" class="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         <i class="fas fa-plus mr-2"></i>
                         Crear Nuevo Sitio
@@ -205,58 +235,98 @@
                     </button>
                 </div>
 
-                <!-- Sites Table -->
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-200">
-                        <h2 class="text-xl font-semibold text-gray-900">Mis Sitios Web</h2>
+                <section class="bg-white rounded-lg shadow p-4 lg:p-5 space-y-4" aria-label="Filtros y vistas">
+                    <div class="flex flex-col xl:flex-row gap-4">
+                        <div class="relative flex-1">
+                            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input id="searchInput" type="text" placeholder="Buscar por nombre, modelo o dominio" class="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50" />
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <select id="modelFilter" class="min-w-[180px] border border-gray-200 rounded-lg px-3 py-2 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="all">Todos los modelos</option>
+                                <option value="artesanias">Artesanías</option>
+                                <option value="cocina">Cocina</option>
+                                <option value="belleza">Belleza</option>
+                                <option value="adecuaciones">Adecuaciones</option>
+                                <option value="chivos">Ganadería</option>
+                            </select>
+                            <button id="exportCsvBtn" type="button" class="inline-flex items-center justify-center px-4 py-2 border border-gray-200 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50">
+                                <i class="fas fa-file-export mr-2"></i>
+                                Exportar CSV
+                            </button>
+                        </div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Sitio
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Modelo
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Estado
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Visitas
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Acciones
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="sitesTableBody" class="bg-white divide-y divide-gray-200">
-                                <!-- Sites will be loaded here -->
-                            </tbody>
-                        </table>
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-100 pt-4">
+                        <p class="text-sm text-gray-500">Elige cómo explorar tus sitios.</p>
+                        <div class="view-toggle inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1" role="group">
+                            <button type="button" data-view-toggle="list" class="px-4 py-2 rounded-md bg-gray-900 text-white text-sm font-medium flex items-center gap-2">
+                                <i class="fas fa-list"></i>
+                                Lista
+                            </button>
+                            <button type="button" data-view-toggle="grid" class="px-4 py-2 rounded-md bg-white text-gray-600 text-sm font-medium flex items-center gap-2">
+                                <i class="fas fa-grip"></i>
+                                Mosaico
+                            </button>
+                        </div>
                     </div>
-                </div>
+                </section>
 
-                <!-- Empty State -->
+                <section id="sitesCard" class="bg-white rounded-lg shadow overflow-hidden">
+                    <div id="listView">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h2 class="text-xl font-semibold text-gray-900">Mis Sitios Web</h2>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sitio</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modelo</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visitas</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sitesTableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Contenido generado dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="gridView" class="hidden border-t border-gray-200">
+                        <div class="px-6 py-4 border-b border-gray-200 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                            <h2 class="text-xl font-semibold text-gray-900">Vista en Mosaico</h2>
+                            <p class="text-sm text-gray-500">Mini cards con vista previa, redes sociales y accesos rápidos.</p>
+                        </div>
+                        <div class="p-6">
+                            <div id="mosaicGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                <!-- Contenido generado dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <div id="emptyState" class="hidden bg-white rounded-lg shadow p-12 text-center">
                     <div class="w-24 h-24 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                         <i class="fas fa-globe text-gray-400 text-4xl"></i>
                     </div>
                     <h3 class="text-xl font-medium text-gray-900 mb-2">No tienes sitios web aún</h3>
-                    <p class="text-gray-500 mb-6">Comienza creando tu primer sitio web con nuestros modelos predefinidos</p>
+                    <p class="text-gray-500 mb-6">Comienza creando tu primer sitio con nuestras plantillas optimizadas.</p>
                     <a href="/create-site" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700">
                         <i class="fas fa-plus mr-2"></i>
-                        Crear Mi Primer Sitio
+                        Crear mi primer sitio
                     </a>
                 </div>
 
-                <!-- Top Sites Chart -->
-                <div class="bg-white rounded-lg shadow p-6 mt-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Sitios Más Visitados</h2>
-                    <canvas id="topSitesChart" style="max-height: 300px;"></canvas>
-                </div>
-
+                <section class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold text-gray-900">Sitios más visitados</h2>
+                        <span class="text-sm text-gray-400">Basado en las estadísticas recientes</span>
+                    </div>
+                    <canvas id="topSitesChart" style="max-height: 320px;"></canvas>
+                </section>
             </div>
         </main>
     </div>
@@ -267,65 +337,101 @@
     let token = localStorage.getItem('token');
     let chart = null;
 
-    // Toggle mobile sidebar
-    const toggleSidebarMobile = document.getElementById('toggleSidebarMobile');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    const state = {
+        sites: [],
+        filteredSites: [],
+        search: '',
+        model: 'all',
+        view: 'list'
+    };
 
-    toggleSidebarMobile.addEventListener('click', () => {
-        sidebar.classList.toggle('hidden');
-        sidebarBackdrop.classList.toggle('hidden');
-    });
+    const visitsCache = {};
 
-    sidebarBackdrop.addEventListener('click', () => {
-        sidebar.classList.add('hidden');
-        sidebarBackdrop.classList.add('hidden');
-    });
+    const dom = {
+        toggleSidebarMobile: document.getElementById('toggleSidebarMobile'),
+        sidebar: document.getElementById('sidebar'),
+        sidebarBackdrop: document.getElementById('sidebarBackdrop'),
+        userMenuButton: document.getElementById('userMenuButton'),
+        userMenu: document.getElementById('userMenu'),
+        sitesCard: document.getElementById('sitesCard'),
+        emptyState: document.getElementById('emptyState'),
+        searchInput: document.getElementById('searchInput'),
+        modelFilter: document.getElementById('modelFilter'),
+        exportButton: document.getElementById('exportCsvBtn'),
+        viewButtons: document.querySelectorAll('[data-view-toggle]'),
+        listView: document.getElementById('listView'),
+        gridView: document.getElementById('gridView'),
+        tableBody: document.getElementById('sitesTableBody'),
+        mosaicGrid: document.getElementById('mosaicGrid')
+    };
 
-    // User menu toggle
-    const userMenuButton = document.getElementById('userMenuButton');
-    const userMenu = document.getElementById('userMenu');
-
-    userMenuButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        userMenu.classList.toggle('hidden');
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!userMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
-            userMenu.classList.add('hidden');
-        }
-    });
-
-    // Check authentication
     if (!token) {
         window.location.href = '/';
     }
 
-    // Utility functions
-    function formatNumber(num) {
-        return num ? num.toLocaleString() : '0';
+    initializeLayout();
+    bindInteractions();
+    loadUserInfo();
+    refreshDashboard();
+
+    function initializeLayout() {
+        dom.toggleSidebarMobile.addEventListener('click', () => {
+            dom.sidebar.classList.toggle('hidden');
+            dom.sidebarBackdrop.classList.toggle('hidden');
+        });
+
+        dom.sidebarBackdrop.addEventListener('click', () => {
+            dom.sidebar.classList.add('hidden');
+            dom.sidebarBackdrop.classList.add('hidden');
+        });
+
+        dom.userMenuButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            dom.userMenu.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!dom.userMenu.contains(event.target) && !dom.userMenuButton.contains(event.target)) {
+                dom.userMenu.classList.add('hidden');
+            }
+        });
     }
 
-    function formatDate(dateString) {
-        if (!dateString) return '-';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
+    function bindInteractions() {
+        dom.searchInput.addEventListener('input', (event) => {
+            state.search = event.target.value.toLowerCase();
+            applyFilters();
+        });
+
+        dom.modelFilter.addEventListener('change', (event) => {
+            state.model = event.target.value;
+            applyFilters();
+        });
+
+        dom.exportButton.addEventListener('click', exportSitesToCsv);
+
+        dom.viewButtons.forEach(button => {
+            button.addEventListener('click', () => setView(button.dataset.viewToggle));
+        });
+
+        setView(state.view);
+    }
+
+    function formatNumber(num) {
+        return num ? num.toLocaleString('es-ES') : '0';
     }
 
     function showNotification(message, type = 'info') {
-        const bgColor = {
-            'success': 'bg-green-500',
-            'error': 'bg-red-500',
-            'info': 'bg-blue-500',
-            'warning': 'bg-yellow-500'
-        }[type] || 'bg-gray-500';
-
+        const colors = {
+            success: 'bg-green-500',
+            error: 'bg-red-500',
+            info: 'bg-blue-500',
+            warning: 'bg-yellow-500'
+        };
         const notification = document.createElement('div');
-        notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300`;
+        notification.className = `fixed top-4 right-4 ${colors[type] || 'bg-gray-600'} text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all`;
         notification.textContent = message;
         document.body.appendChild(notification);
-
         setTimeout(() => {
             notification.style.opacity = '0';
             setTimeout(() => notification.remove(), 300);
@@ -355,6 +461,12 @@
         return `/${trimmed}`;
     }
 
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
     function renderSiteLogo(site) {
         const logoSrc = resolveAssetUrl(site.logo_url);
         if (logoSrc) {
@@ -371,35 +483,33 @@
         `;
     }
 
-    // Load user info
     async function loadUserInfo() {
         try {
             const response = await fetch(`${API_URL}/me`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            if (!response.ok) return;
             const data = await response.json();
-            document.getElementById('userName').textContent = data.username;
             document.getElementById('userEmail').textContent = data.email;
+            const username = data.email ? data.email.split('@')[0] : 'Admin';
+            document.getElementById('userName').textContent = username;
         } catch (error) {
             console.error('Error loading user info:', error);
         }
     }
 
-    // Load dashboard stats
     async function loadStats() {
         try {
             const response = await fetch(`${API_URL}/dashboard/stats`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            if (!response.ok) return;
             const stats = await response.json();
-            
             document.getElementById('totalSites').textContent = stats.total_sites || 0;
             document.getElementById('publishedSites').textContent = stats.published_sites || 0;
-            document.getElementById('draftSites').textContent = (stats.total_sites - stats.published_sites) || 0;
+            document.getElementById('draftSites').textContent = Math.max((stats.total_sites || 0) - (stats.published_sites || 0), 0);
             document.getElementById('totalViews').textContent = stats.total_visits || 0;
-
-            // Render chart
-            if (stats.top_sites && stats.top_sites.length > 0) {
+            if (stats.top_sites && stats.top_sites.length) {
                 renderTopSitesChart(stats.top_sites);
             }
         } catch (error) {
@@ -407,29 +517,64 @@
         }
     }
 
-    // Load sites
     async function loadSites() {
         try {
             const response = await fetch(`${API_URL}/sites`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const sites = await response.json();
+            if (!response.ok) throw new Error('Respuesta inválida de /api/sites');
+            state.sites = await response.json();
 
-            const tbody = document.getElementById('sitesTableBody');
-            const emptyState = document.getElementById('emptyState');
-            const table = tbody.closest('.bg-white');
+            const hasSites = state.sites.length > 0;
+            dom.sitesCard.classList.toggle('hidden', !hasSites);
+            dom.emptyState.classList.toggle('hidden', hasSites);
 
-            if (sites.length === 0) {
-                table.classList.add('hidden');
-                emptyState.classList.remove('hidden');
+            if (!hasSites) {
+                dom.tableBody.innerHTML = '';
+                dom.mosaicGrid.innerHTML = '';
                 return;
             }
 
-            table.classList.remove('hidden');
-            emptyState.classList.add('hidden');
+            applyFilters();
+            state.sites.forEach(site => loadSiteVisits(site.id));
+        } catch (error) {
+            console.error('Error loading sites:', error);
+            dom.tableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500">No se pudieron cargar los sitios.</td></tr>`;
+        }
+    }
 
-            tbody.innerHTML = sites.map(site => `
-                <tr class="hover:bg-gray-50 fade-in">
+    function applyFilters() {
+        const term = state.search.trim();
+        state.filteredSites = state.sites.filter(site => {
+            const matchesModel = state.model === 'all' || site.model_type === state.model;
+            if (!matchesModel) return false;
+            if (!term) return true;
+            const haystack = [
+                site.name,
+                site.description,
+                site.custom_domain,
+                getModelName(site.model_type)
+            ].join(' ').toLowerCase();
+            return haystack.includes(term);
+        });
+
+        renderListView();
+        renderGridView();
+    }
+
+    function renderListView() {
+        if (!state.filteredSites.length) {
+            dom.tableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-10 text-center text-gray-500">No encontramos sitios con ese criterio.</td></tr>`;
+            return;
+        }
+
+            dom.tableBody.innerHTML = state.filteredSites.map(site => {
+            const liveUrl = getLiveUrl(site);
+            const liveButton = liveUrl
+                ? `<a href="${liveUrl}" target="_blank" class="text-indigo-600 hover:text-indigo-900"><i class="fas fa-link"></i> Ir al sitio</a>`
+                : `<span class="text-gray-300 cursor-not-allowed"><i class="fas fa-link"></i> Ir al sitio</span>`;
+            return `
+                <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
                             <div class="flex-shrink-0">
@@ -440,6 +585,7 @@
                                 <div class="text-sm text-gray-500 site-description" title="${escapeHtml(site.description || 'Sin descripción')}">
                                     ${escapeHtml(site.description || 'Sin descripción')}
                                 </div>
+                                <div class="text-xs text-gray-400">${formatDate(site.updated_at)}</div>
                             </div>
                         </div>
                     </td>
@@ -449,84 +595,155 @@
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        ${site.is_published 
+                        ${site.is_published
                             ? '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"><i class="fas fa-check-circle mr-1"></i> Publicado</span>'
-                            : '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800"><i class="fas fa-pencil-alt mr-1"></i> Borrador</span>'
-                        }
+                            : '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800"><i class="fas fa-pencil-alt mr-1"></i> Borrador</span>'}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div class="flex items-center">
                             <i class="fas fa-eye mr-2 text-gray-400"></i>
-                            <span id="visits-${site.id}">-</span>
+                            <span data-visit-id="${site.id}">${formatNumber(visitsCache[site.id]) || '0'}</span>
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                         <a href="/editor/${site.id}" class="text-blue-600 hover:text-blue-900">
                             <i class="fas fa-edit"></i> Editar
                         </a>
-                        ${!site.is_published 
-                            ? `<button onclick="publishSite(${site.id})" class="text-green-600 hover:text-green-900">
-                                <i class="fas fa-upload"></i> Publicar
-                            </button>`
-                            : ''
-                        }
-                        ${site.github_url 
-                            ? `<a href="${site.github_url}" target="_blank" class="text-green-600 hover:text-green-900">
-                                <i class="fas fa-external-link-alt"></i> Ver
-                            </a>`
-                            : ''
-                        }
+                        ${liveButton}
+                        ${!site.is_published ? `<button onclick="publishSite(${site.id})" class="text-green-600 hover:text-green-900"><i class="fas fa-upload"></i> Publicar</button>` : ''}
                         <button onclick="deleteSite(${site.id})" class="text-red-600 hover:text-red-900">
                             <i class="fas fa-trash"></i> Eliminar
                         </button>
                     </td>
                 </tr>
-            `).join('');
-
-            // Load visits for each site
-            sites.forEach(site => loadSiteVisits(site.id));
-        } catch (error) {
-            console.error('Error loading sites:', error);
-        }
+            `;
+        }).join('');
     }
 
-    // Load site visits
+    function renderGridView() {
+        if (!state.filteredSites.length) {
+            dom.mosaicGrid.innerHTML = `<div class="col-span-full text-center text-gray-500 border border-dashed border-gray-200 rounded-xl p-8">No hay resultados para mostrar.</div>`;
+            return;
+        }
+
+        dom.mosaicGrid.innerHTML = state.filteredSites.map(site => {
+            const preview = resolveAssetUrl(site.preview_image || site.hero_image || '');
+            const modelLabel = getModelName(site.model_type);
+            return `
+                <article class="mosaic-card rounded-2xl border border-gray-200 bg-white overflow-hidden flex flex-col">
+                    <div class="h-44 bg-gray-100 relative">
+                        ${preview
+                            ? `<img src="${escapeHtml(preview)}" alt="Vista previa de ${escapeHtml(site.name || '')}" class="w-full h-full object-cover">`
+                            : '<div class="w-full h-full flex items-center justify-center text-gray-400 text-sm">Sin miniatura</div>'}
+                        <div class="absolute top-3 left-3 px-3 py-1 rounded-full bg-white/90 text-xs font-semibold text-gray-700 border border-gray-200">
+                            ${modelLabel}
+                        </div>
+                        <div class="absolute top-3 right-3 px-3 py-1 rounded-full ${site.is_published ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-700'} text-xs font-semibold">
+                            ${site.is_published ? 'Publicado' : 'Borrador'}
+                        </div>
+                    </div>
+                    <div class="p-5 flex flex-col gap-4 flex-1">
+                        <div class="flex items-center gap-3">
+                            ${renderSiteLogo(site)}
+                            <div>
+                                <p class="text-lg font-semibold text-gray-900">${escapeHtml(site.name || 'Sin nombre')}</p>
+                                <p class="text-xs text-gray-400">Actualizado ${formatDate(site.updated_at)}</p>
+                            </div>
+                        </div>
+                        <p class="text-sm mosaic-description">${escapeHtml(site.description || 'Sin descripción registrada.')}</p>
+                        <div class="flex flex-wrap gap-2 text-xs">
+                            ${renderSocialChips(site)}
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-gray-500">
+                            <i class="fas fa-chart-line"></i>
+                            <span data-visit-id="${site.id}">${formatNumber(visitsCache[site.id]) || '0'} visitas</span>
+                        </div>
+                        ${renderGridActions(site)}
+                    </div>
+                </article>
+            `;
+        }).join('');
+    }
+
+    function renderGridActions(site) {
+        const liveUrl = getLiveUrl(site);
+        return `
+            <div class="mt-auto flex flex-wrap gap-2 text-sm font-semibold">
+                <a href="/editor/${site.id}" class="px-3 py-2 rounded-lg bg-gray-900 text-white">Editar</a>
+                ${liveUrl ? `<a href="${liveUrl}" target="_blank" class="px-3 py-2 rounded-lg border border-blue-200 text-blue-600">Ir al sitio</a>` : `<span class="px-3 py-2 rounded-lg border border-blue-100 text-blue-200 cursor-not-allowed">Ir al sitio</span>`}
+                <button onclick="deleteSite(${site.id})" class="px-3 py-2 rounded-lg border border-red-200 text-red-600">Eliminar</button>
+            </div>
+        `;
+    }
+
+    function renderSocialChips(site) {
+        const chips = [];
+        if (site.facebook_url) chips.push(`<a href="${site.facebook_url}" target="_blank" class="social-chip"><i class="fab fa-facebook-f"></i>Facebook</a>`);
+        if (site.instagram_url) chips.push(`<a href="${site.instagram_url}" target="_blank" class="social-chip"><i class="fab fa-instagram"></i>Instagram</a>`);
+        if (site.tiktok_url) chips.push(`<a href="${site.tiktok_url}" target="_blank" class="social-chip"><i class="fab fa-tiktok"></i>TikTok</a>`);
+        if (site.whatsapp_number) chips.push(`<a href="${getWhatsappLink(site.whatsapp_number)}" target="_blank" class="social-chip"><i class="fab fa-whatsapp"></i>WhatsApp</a>`);
+        return chips.length ? chips.join('') : '<span class="text-xs text-gray-400">Sin redes vinculadas</span>';
+    }
+
+    function getWhatsappLink(number) {
+        const digits = (number || '').replace(/[^0-9]/g, '');
+        return digits ? `https://wa.me/${digits}` : '#';
+    }
+
+    function getLiveUrl(site) {
+        if (site.custom_domain) {
+            return site.custom_domain.startsWith('http') ? site.custom_domain : `https://${site.custom_domain}`;
+        }
+        return '';
+    }
+
+    function setView(view) {
+        state.view = view;
+        dom.viewButtons.forEach(button => {
+            const isActive = button.dataset.viewToggle === view;
+            button.classList.toggle('bg-gray-900', isActive);
+            button.classList.toggle('text-white', isActive);
+            button.classList.toggle('bg-white', !isActive);
+            button.classList.toggle('text-gray-600', !isActive);
+        });
+        dom.listView.classList.toggle('hidden', view !== 'list');
+        dom.gridView.classList.toggle('hidden', view !== 'grid');
+    }
+
     async function loadSiteVisits(siteId) {
         try {
             const response = await fetch(`${API_URL}/stats/${siteId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            if (!response.ok) return;
             const data = await response.json();
-            const visitsElement = document.getElementById(`visits-${siteId}`);
-            if (visitsElement) {
-                visitsElement.textContent = formatNumber(data.total_visits);
-            }
+            visitsCache[siteId] = data.total_visits || 0;
+            updateVisitBadges(siteId);
         } catch (error) {
             console.error(`Error loading visits for site ${siteId}:`, error);
         }
     }
 
-    // Publish site
+    function updateVisitBadges(siteId) {
+        document.querySelectorAll(`[data-visit-id="${siteId}"]`).forEach(element => {
+            element.textContent = formatNumber(visitsCache[siteId] || 0);
+        });
+    }
+
     async function publishSite(siteId) {
-        if (!confirm('¿Estás seguro de publicar este sitio en GitHub Pages?')) {
-            return;
-        }
-
+        if (!confirm('¿Estás seguro de publicar este sitio en GitHub Pages?')) return;
         showNotification('Publicando sitio...', 'info');
-
         try {
             const response = await fetch(`${API_URL}/sites/${siteId}/publish`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-
             const data = await response.json();
-
             if (response.ok) {
                 showNotification(data.message || 'Sitio publicado exitosamente', 'success');
-                setTimeout(() => refreshDashboard(), 1500);
+                await refreshDashboard();
             } else {
-                showNotification(data.detail || 'Error al publicar', 'error');
+                showNotification(data.detail || 'Error al publicar el sitio', 'error');
             }
         } catch (error) {
             console.error('Error publishing site:', error);
@@ -534,37 +751,13 @@
         }
     }
 
-    function getModelIcon(modelType) {
-        const icons = {
-            'artesanias': 'palette',
-            'cocina': 'utensils',
-            'belleza': 'cut',
-            'adecuaciones': 'tools',
-            'chivos': 'paw'
-        };
-        return icons[modelType] || 'globe';
-    }
-
-    function getModelName(modelType) {
-        const names = {
-            'artesanias': 'Artesanías',
-            'cocina': 'Cocina',
-            'belleza': 'Belleza',
-            'adecuaciones': 'Adecuaciones',
-            'chivos': 'Ganadería'
-        };
-        return names[modelType] || modelType;
-    }
-
-    async function deleteSite(id) {
+    async function deleteSite(siteId) {
         if (!confirm('¿Estás seguro de que quieres eliminar este sitio? Esta acción no se puede deshacer.')) return;
-
         try {
-            const response = await fetch(`${API_URL}/sites/${id}`, {
+            const response = await fetch(`${API_URL}/sites/${siteId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-
             if (response.ok) {
                 showNotification('Sitio eliminado exitosamente', 'success');
                 await refreshDashboard();
@@ -577,16 +770,72 @@
         }
     }
 
-    // Render top sites chart
+    function exportSitesToCsv() {
+        if (!state.filteredSites.length) {
+            showNotification('No hay datos para exportar.', 'warning');
+            return;
+        }
+        const headers = [
+            'ID', 'Nombre', 'Descripción', 'Modelo', 'Estado', 'Dominio', 'GitHub',
+            'Facebook', 'Instagram', 'TikTok', 'WhatsApp', 'Visitas', 'Creado', 'Actualizado'
+        ];
+        const rows = state.filteredSites.map(site => [
+            site.id,
+            site.name,
+            site.description || '',
+            getModelName(site.model_type),
+            site.is_published ? 'Publicado' : 'Borrador',
+            site.custom_domain || '',
+            site.github_url || '',
+            site.facebook_url || '',
+            site.instagram_url || '',
+            site.tiktok_url || '',
+            site.whatsapp_number || '',
+            visitsCache[site.id] || 0,
+            site.created_at,
+            site.updated_at
+        ]);
+
+        const csvContent = [headers, ...rows]
+            .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `webcontrol_sites_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+        showNotification('Exportación completada.', 'success');
+    }
+
+    function getModelIcon(modelType) {
+        const icons = {
+            artesanias: 'palette',
+            cocina: 'utensils',
+            belleza: 'cut',
+            adecuaciones: 'tools',
+            chivos: 'paw'
+        };
+        return icons[modelType] || 'globe';
+    }
+
+    function getModelName(modelType) {
+        const names = {
+            artesanias: 'Artesanías',
+            cocina: 'Cocina',
+            belleza: 'Belleza',
+            adecuaciones: 'Adecuaciones',
+            chivos: 'Ganadería'
+        };
+        return names[modelType] || (modelType || 'Modelo');
+    }
+
     function renderTopSitesChart(topSites) {
         const ctx = document.getElementById('topSitesChart');
-        
         if (!ctx) return;
-
-        if (chart) {
-            chart.destroy();
-        }
-
+        if (chart) chart.destroy();
         chart = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -602,44 +851,16 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 12,
-                        borderRadius: 8,
-                        titleFont: {
-                            size: 14
-                        },
-                        bodyFont: {
-                            size: 13
-                        }
-                    }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            stepSize: 1,
-                            font: {
-                                size: 12
-                            }
-                        },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        }
+                        ticks: { stepSize: 1, font: { size: 12 } },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
                     },
                     x: {
-                        ticks: {
-                            font: {
-                                size: 12
-                            }
-                        },
-                        grid: {
-                            display: false
-                        }
+                        ticks: { font: { size: 12 } },
+                        grid: { display: false }
                     }
                 }
             }
@@ -652,12 +873,8 @@
 
     function logout() {
         localStorage.removeItem('token');
-    window.location.href = '/';
+        window.location.href = '/';
     }
-
-    // Initialize
-    loadUserInfo();
-    refreshDashboard();
 </script>
 
 </body>
