@@ -177,6 +177,25 @@
                     </div>
                 </div>
             </div>
+            {% if contact_address %}
+            <div class="map-card">
+                <iframe
+                    title="Mapa de {{ site_name }}"
+                    loading="lazy"
+                    allowfullscreen
+                    referrerpolicy="no-referrer-when-downgrade"
+                    src="https://www.google.com/maps?q={{ contact_address | urlencode }}&output=embed"></iframe>
+                <div class="map-footer">
+                    <div>
+                        <strong>¿Cómo llegar?</strong><br>
+                        {{ contact_address }}
+                    </div>
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ contact_address | urlencode }}" target="_blank" rel="noopener">
+                        Abrir en Google Maps →
+                    </a>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </section>
 

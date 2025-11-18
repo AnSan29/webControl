@@ -362,6 +362,37 @@ section {
 .social-icon.ig { background: linear-gradient(120deg, #f77737, #c13584, #962fbf); }
 .social-icon.tt { background: #000; }
 
+.map-card {
+    margin-top: 2.5rem;
+    border-radius: 28px;
+    overflow: hidden;
+    border: 1px solid rgba(17, 7, 31, 0.08);
+    box-shadow: 0 25px 55px rgba(0, 0, 0, 0.15);
+}
+
+.map-card iframe {
+    width: 100%;
+    border: none;
+    height: clamp(260px, 38vw, 360px);
+    display: block;
+}
+
+.map-card .map-footer {
+    background: #fff;
+    padding: 1rem 1.4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.map-card .map-footer a {
+    color: var(--secondary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
 /* Footer */
 .footer {
     background: #11071f;

@@ -252,6 +252,38 @@ section {
     color: #fff;
 }
 
+.map-card {
+    margin-top: 2.5rem;
+    border-radius: 28px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+    background: rgba(8, 12, 24, 0.85);
+}
+
+.map-card iframe {
+    width: 100%;
+    border: none;
+    height: clamp(260px, 40vw, 360px);
+    display: block;
+}
+
+.map-card .map-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.4rem;
+    color: #fff;
+    flex-wrap: wrap;
+}
+
+.map-card .map-footer a {
+    color: var(--secondary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
 .footer {
     text-align: center;
     padding: 2.5rem 1rem;

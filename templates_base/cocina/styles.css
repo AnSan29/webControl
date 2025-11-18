@@ -519,6 +519,42 @@ img {
     margin-bottom: 1rem;
 }
 
+.map-section {
+    background: var(--bg);
+    padding-bottom: 4rem;
+}
+
+.map-card {
+    margin: 0 auto;
+    border-radius: 28px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+}
+
+.map-card iframe {
+    width: 100%;
+    border: none;
+    height: clamp(260px, 40vw, 400px);
+    display: block;
+}
+
+.map-card .map-footer {
+    background: #fff;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.map-card .map-footer a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
 /* Footer */
 .footer {
     padding: 2.5rem 1.5rem;
