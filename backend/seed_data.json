@@ -1,0 +1,207 @@
+{
+  "artesanias": {
+    "site_name": "Artesanías Wayuu La Guajira",
+    "site_description": "Mochilas, hamacas y artesanías tejidas a mano con técnicas ancestrales Wayuu. Productos únicos de La Guajira Colombia.",
+    "hero_title": "Artesanías Auténticas Wayuu",
+    "hero_subtitle": "Cada pieza tejida a mano cuenta una historia de nuestra cultura ancestral",
+    "hero_image": "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=1200",
+    "about_text": "Somos un colectivo de artesanos Wayuu dedicados a preservar nuestras tradiciones culturales. Cada mochila, hamaca y cesta es tejida a mano por mujeres de nuestra comunidad usando técnicas transmitidas de generación en generación. Trabajamos con materiales de calidad y diseños auténticos que reflejan la riqueza de nuestra cultura guajira.",
+    "about_image": "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=800",
+    "products": [
+      {
+        "name": "Mochila Wayuu Grande",
+        "description": "Mochila tejida a mano con hilo de algodón, diseños geométricos tradicionales y colores vibrantes. Capacidad: 30cm x 35cm. Tiempo de elaboración: 15 días.",
+        "price": "120000",
+        "image": "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=400"
+      },
+      {
+        "name": "Hamaca Chinchorro Doble",
+        "description": "Hamaca tradicional wayuu tejida con hilos de algodón, perfecta para dos personas. Incluye soporte. Medidas: 3m x 1.60m.",
+        "price": "280000",
+        "image": "https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?w=400"
+      },
+      {
+        "name": "Set de Cestas Decorativas",
+        "description": "Conjunto de 3 cestas tejidas con palma nativa y fibras naturales. Perfectas para decoración o almacenamiento. Tamaños: pequeña, mediana y grande.",
+        "price": "65000",
+        "image": "https://images.unsplash.com/photo-1523893279633-20e1f0281e92?w=400"
+      }
+    ],
+    "gallery_images": [
+      "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=300",
+      "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=300",
+      "https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?w=300",
+      "https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=300"
+    ],
+    "contact_phone": "+57 300 123 4567",
+    "contact_email": "info@artesaniaswayuu.com",
+    "whatsapp_number": "573001234567",
+    "facebook_url": "https://facebook.com/artesaniaswayuu",
+    "instagram_url": "https://instagram.com/artesaniaswayuu",
+    "tiktok_url": "https://tiktok.com/@artesaniaswayuu"
+  },
+  "cocina": {
+    "site_name": "Sabores de la Abuela - Comida Guajira",
+    "site_description": "Comida tradicional guajira preparada con recetas familiares. Friche de chivo, arepas de huevo y platos típicos caseros en Riohacha.",
+    "hero_title": "El Sabor Auténtico de La Guajira",
+    "hero_subtitle": "Más de 50 años preparando los mejores platos tradicionales con recetas de la abuela",
+    "hero_image": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200",
+    "about_text": "En Sabores de la Abuela llevamos tres generaciones preparando comida tradicional guajira. Todo comenzó en 1970 cuando la abuela Mercedes abrió su pequeño fogón en Riohacha. Hoy mantenemos vivas sus recetas usando ingredientes frescos de la región: chivo criollo, pescado del mar Caribe, yuca, plátano y el auténtico arroz de coco. Cada plato es preparado con el mismo amor y dedicación de siempre.",
+    "about_image": "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800",
+    "products": [
+      {
+        "name": "Friche de Chivo Tradicional",
+        "description": "Nuestro plato estrella: chivo guisado lentamente con especias, cebolla y ají. Servido con arroz de coco, yuca cocida, ensalada y patacones. Porción abundante.",
+        "price": "28000",
+        "image": "https://images.unsplash.com/photo-1546833998-877b37c2e5c6?w=400"
+      },
+      {
+        "name": "Combo Desayuno Guajiro",
+        "description": "2 arepas de huevo doradas y crujientes, suero costeño, café tinto recién pasado y jugo de corozo natural. El desayuno perfecto.",
+        "price": "12000",
+        "image": "https://images.unsplash.com/photo-1550507992-eb63ffee0847?w=400"
+      },
+      {
+        "name": "Pescado Frito con Coco",
+        "description": "Pescado fresco del día frito hasta quedar dorado, acompañado de arroz de coco cremoso, patacones, ensalada y ají de la casa.",
+        "price": "22000",
+        "image": "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400"
+      }
+    ],
+    "gallery_images": [
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300",
+      "https://images.unsplash.com/photo-1546833998-877b37c2e5c6?w=300",
+      "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=300",
+      "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=300"
+    ],
+    "contact_phone": "+57 301 234 5678",
+    "contact_email": "pedidos@saboresabuela.com",
+    "whatsapp_number": "573012345678",
+    "facebook_url": "https://facebook.com/saboresabuela",
+    "instagram_url": "https://instagram.com/saboresabuela",
+    "tiktok_url": "https://tiktok.com/@saboresabuela"
+  },
+  "belleza": {
+    "site_name": "Estilo & Belleza - Salón Profesional",
+    "site_description": "Salón de belleza profesional en Riohacha. Cortes modernos, manicure, pedicure, tratamientos capilares y más. Agenda tu cita.",
+    "hero_title": "Donde Tu Belleza Brilla",
+    "hero_subtitle": "Más de 15 años transformando estilos con profesionalismo y dedicación",
+    "hero_image": "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200",
+    "about_text": "Estilo & Belleza es tu salón de confianza en Riohacha. Con más de 15 años de experiencia, nuestro equipo de estilistas certificados ofrece servicios de alta calidad usando productos profesionales de las mejores marcas. Nos especializamos en cortes modernos, colorimetría, tratamientos capilares, manicure y pedicure. Ven y descubre por qué somos el salón preferido de La Guajira.",
+    "about_image": "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800",
+    "products": [
+      {
+        "name": "Corte y Peinado Profesional",
+        "description": "Corte personalizado con asesoría de estilo, incluye lavado con productos profesionales, masaje capilar, corte según tu rostro y peinado. Duración: 1 hora.",
+        "price": "40000",
+        "image": "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=400"
+      },
+      {
+        "name": "Manicure y Pedicure Spa",
+        "description": "Tratamiento completo: exfoliación, masaje relajante, limado, cutícula, pulido y esmaltado semi-permanente. Incluye hidratación profunda. Duración: 2 horas.",
+        "price": "55000",
+        "image": "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=400"
+      },
+      {
+        "name": "Tratamiento Keratina Premium",
+        "description": "Alisado brasileño con keratina profesional, elimina el frizz hasta por 4 meses. Incluye lavado, aplicación y planchado. Cabello brillante y manejable.",
+        "price": "180000",
+        "image": "https://images.unsplash.com/photo-1522337094846-8a818192de1f?w=400"
+      }
+    ],
+    "gallery_images": [
+      "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=300",
+      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300",
+      "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=300",
+      "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=300"
+    ],
+    "contact_phone": "+57 302 345 6789",
+    "contact_email": "citas@estiloybelleza.com",
+    "whatsapp_number": "573023456789",
+    "facebook_url": "https://facebook.com/estiloybelleza",
+    "instagram_url": "https://instagram.com/estiloybelleza",
+    "tiktok_url": "https://tiktok.com/@estiloybelleza"
+  },
+  "adecuaciones": {
+    "site_name": "Servicios del Hogar JM",
+    "site_description": "Electricidad, plomería, pintura y construcción en Riohacha. Más de 20 años de experiencia. Servicio rápido, garantizado y profesional.",
+    "hero_title": "Reparaciones y Mantenimiento Profesional",
+    "hero_subtitle": "Tu hogar en manos expertas - 20 años cumpliendo con calidad y responsabilidad",
+    "hero_image": "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=1200",
+    "about_text": "Servicios del Hogar JM es una empresa familiar con más de 20 años sirviendo a Riohacha y La Guajira. Nos especializamos en trabajos eléctricos, plomería, pintura, albañilería y mantenimiento general. Contamos con personal calificado, herramientas profesionales y garantía escrita en todos nuestros trabajos. Trabajamos con proyectos residenciales y comerciales, grandes o pequeños. Tu satisfacción es nuestra prioridad.",
+    "about_image": "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800",
+    "products": [
+      {
+        "name": "Instalación Eléctrica Completa",
+        "description": "Instalación o reparación de sistemas eléctricos: cableado, tomacorrientes, interruptores, breakers, lámparas LED. Incluye materiales básicos y certificado de garantía por 6 meses.",
+        "price": "85000",
+        "image": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=400"
+      },
+      {
+        "name": "Servicio de Plomería Urgente",
+        "description": "Reparación de fugas, destape de tuberías, instalación de sanitarios, lavaplatos, duchas y sistemas de agua. Servicio rápido 24/7. Incluye mano de obra y revisión completa.",
+        "price": "65000",
+        "image": "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=400"
+      },
+      {
+        "name": "Pintura Interior y Exterior",
+        "description": "Pintura profesional de casas y locales: preparación de superficies, resane, 2 manos de pintura premium resistente al clima. Precio por metro cuadrado. Mínimo 30m².",
+        "price": "15000",
+        "image": "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400"
+      }
+    ],
+    "gallery_images": [
+      "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=300",
+      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=300",
+      "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=300",
+      "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=300"
+    ],
+    "contact_phone": "+57 303 456 7890",
+    "contact_email": "servicios@serviciosjm.com",
+    "whatsapp_number": "573034567890",
+    "facebook_url": "https://facebook.com/serviciosjm",
+    "instagram_url": "https://instagram.com/serviciosjm",
+    "tiktok_url": ""
+  },
+  "chivos": {
+    "site_name": "Caprinos La Esperanza",
+    "site_description": "Cría y venta de cabras criollas y mejoradas en La Guajira. Queso de cabra artesanal, cabritos, animales reproductores. Ganadería sostenible.",
+    "hero_title": "Cría de Cabras de Calidad Superior",
+    "hero_subtitle": "30 años dedicados a la ganadería caprina sostenible en La Guajira",
+    "hero_image": "https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=1200",
+    "about_text": "Caprinos La Esperanza es una empresa familiar con más de 30 años en la cría de cabras en La Guajira. Criamos nuestros animales de forma natural y sostenible en 50 hectáreas de pastoreo, garantizando su bienestar y salud. Ofrecemos cabras criollas y razas mejoradas (Saanen, Nubia, Boer) para producción de leche y carne, así como queso artesanal de alta calidad. Todos nuestros animales están vacunados, desparasitados y con certificado sanitario ICA.",
+    "about_image": "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800",
+    "products": [
+      {
+        "name": "Cabra Lechera Adulta",
+        "description": "Cabra hembra de raza mejorada (Saanen o Nubia), 2-4 años, excelente producción de leche (3-4 litros/día). Vacunada, desparasitada, con certificado sanitario ICA y registro genealógico.",
+        "price": "650000",
+        "image": "https://images.unsplash.com/photo-1517849845537-4d257902454a?w=400"
+      },
+      {
+        "name": "Cabrito Destete (4-6 meses)",
+        "description": "Cabrito macho o hembra destetado, vacunado y desparasitado. Ideal para cría o engorde. Genética mejorada con buena ganancia de peso. Incluye certificado sanitario y asesoría inicial.",
+        "price": "280000",
+        "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400"
+      },
+      {
+        "name": "Queso de Cabra Artesanal (500g)",
+        "description": "Queso fresco 100% leche de cabra, elaborado artesanalmente en nuestra finca. Sin conservantes ni aditivos. Rico en proteínas y calcio. Textura suave y sabor único. Empaque al vacío.",
+        "price": "35000",
+        "image": "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400"
+      }
+    ],
+    "gallery_images": [
+      "https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=300",
+      "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=300",
+      "https://images.unsplash.com/photo-1517849845537-4d257902454a?w=300",
+      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300"
+    ],
+    "contact_phone": "+57 304 567 8901",
+    "contact_email": "info@caprinoslavesperanza.com",
+    "whatsapp_number": "573045678901",
+    "facebook_url": "https://facebook.com/caprinoslaesperanza",
+    "instagram_url": "https://instagram.com/caprinoslaesperanza",
+    "tiktok_url": "https://tiktok.com/@caprinoslaesperanza"
+  }
+}

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_name }}</title>
+    <meta name="description" content="{{ site_description }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <header class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                {% if logo_url %}
+                <img src="{{ normalize_drive_image(logo_url) }}" alt="{{ site_name }}" class="logo">
+                {% else %}
+                <span class="logo-icon">{{ model_icon }}</span>
+                {% endif %}
+                <span class="brand-name">{{ site_name }}</span>
+            </div>
+            <nav class="nav-links">
+                <a href="#inicio">Inicio</a>
+                <a href="#nosotros">Nosotros</a>
+                <a href="#servicios">Servicios</a>
+                <a href="#galeria">Galería</a>
+                <a href="#contacto">Contacto</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="hero-section">
+        <div class="hero-overlay">
+            <div class="hero-content">
+                <h2>{{ hero_title }}</h2>
+                <p>{{ site_description }}</p>
+                <a href="#servicios" class="hero-btn">Descubre Nuestros Servicios</a>
+            </div>
+            {% if hero_image %}
+            <img src="{{ hero_image }}" alt="Hero" class="hero-image">
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="nosotros" class="about-section">
+        <div class="container">
+            <div class="about-wrapper">
+                {% if about_image %}
+                <div class="about-image-side">
+                    <img src="{{ about_image }}" alt="Sobre nosotros">
+                </div>
+                {% endif %}
+                <div class="about-text-side">
+                    <h2>Sobre Nosotros</h2>
+                    <p>{{ about_text }}</p>
+                    {% if contact_address %}
+                    <p class="location-info">
+                        <i class="fas fa-map-marker-alt"></i> {{ contact_address }}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="servicios" class="services-section">
+        <div class="container">
+            <h2 class="section-title">Nuestros Servicios</h2>
+            <p class="section-subtitle">Belleza y bienestar para ti</p>
+            
+            {% if products and products|length > 0 %}
+            <div class="services-grid">
+                {% for product in products %}
+                <div class="service-card">
+                    {% if product.image %}
+                    <div class="service-image">
+                        <img src="{{ product.image }}" alt="{{ product.name }}">
+                    </div>
+                    {% endif %}
+                    <div class="service-info">
+                        <h3>{{ product.name }}</h3>
+                        <p>{{ product.description }}</p>
+                        {% if product.price %}
+                        <span class="service-price">Desde ${{ product.price }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>Servicios próximamente disponibles</p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="galeria" class="gallery-section">
+        <div class="container">
+            <h2 class="section-title">Nuestro Portafolio</h2>
+            <p class="section-subtitle">Trabajos realizados por nuestro equipo</p>
+            
+            {% if gallery_images and gallery_images|length > 0 %}
+            <div class="gallery-grid">
+                {% for image_url in gallery_images %}
+                <div class="gallery-item">
+                    <img src="{{ image_url }}" alt="Portafolio" loading="lazy">
+                    <div class="gallery-overlay">
+                        <a href="{{ image_url }}" target="_blank" class="view-btn">
+                            <i class="fas fa-expand"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="gallery-placeholders">
+                <div class="gallery-item placeholder">💅</div>
+                <div class="gallery-item placeholder">💇</div>
+                <div class="gallery-item placeholder">✨</div>
+                <div class="gallery-item placeholder">💄</div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contacto" class="contact-section">
+        <div class="container">
+            <h2 class="section-title">Contáctanos</h2>
+            <div class="contact-wrapper">
+                <div class="contact-info-box">
+                    <h3>Información de Contacto</h3>
+                    {% if contact_phone %}
+                    <p>
+                        <i class="fas fa-phone-alt"></i>
+                        <a href="tel:{{ contact_phone }}">{{ contact_phone }}</a>
+                    </p>
+                    {% endif %}
+                    {% if contact_email %}
+                    <p>
+                        <i class="fas fa-envelope"></i>
+                        <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+                    </p>
+                    {% endif %}
+                    {% if contact_address %}
+                    <p>
+                        <i class="fas fa-map-marker-alt"></i>
+                        {{ contact_address }}
+                    </p>
+                    {% endif %}
+                </div>
+
+                <div class="social-box">
+                    <h3>Síguenos</h3>
+                    <div class="social-links">
+                        {% if facebook_url %}
+                        <a href="{{ facebook_url }}" target="_blank" rel="noopener" class="social-icon fb">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        {% endif %}
+                        {% if instagram_url %}
+                        <a href="{{ instagram_url }}" target="_blank" rel="noopener" class="social-icon ig">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        {% endif %}
+                        {% if tiktok_url %}
+                        <a href="{{ tiktok_url }}" target="_blank" rel="noopener" class="social-icon tt">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; {{ current_year }} {{ site_name }}. Todos los derechos reservados.</p>
+            <p>Hecho con 💖 para tu belleza</p>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Floating Button -->
+    {% if whatsapp_number %}
+    <a href="https://wa.me/{{ whatsapp_number }}?text=Hola,%20me%20gustaría%20agendar%20una%20cita" 
+       class="whatsapp-float" 
+       target="_blank" 
+       rel="noopener"
+       title="Contactar por WhatsApp">
+        <svg width="32" height="32" fill="white" viewBox="0 0 24 24">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+        </svg>
+    </a>
+    {% endif %}
+
+    <script src="tracking.js"></script>
+</body>
+</html>

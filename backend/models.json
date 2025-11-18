@@ -1,0 +1,74 @@
+{
+  "models": [
+    {
+      "id": "artesanias",
+      "name": "Artesanías",
+      "description": "Sitio web para emprendimientos de artesanías y productos hechos a mano",
+      "palette": {
+        "primary": "#C46B29",
+        "secondary": "#E7B77D",
+        "accent": "#F1E4C6",
+        "neutral": "#D2A679"
+      },
+      "concept": "Cálido, cultural, artesanal",
+      "sections": ["hero", "about", "products", "gallery", "contact"],
+      "icon": "🎨"
+    },
+    {
+      "id": "cocina",
+      "name": "Cocina Doméstica",
+      "description": "Sitio web para negocios de comida casera y producción de alimentos",
+      "palette": {
+        "primary": "#D62828",
+        "secondary": "#F77F00",
+        "accent": "#FCBF49",
+        "neutral": "#EAE2B7"
+      },
+      "concept": "Casero, apetitoso, hogareño",
+      "sections": ["hero", "about", "menu", "gallery", "contact"],
+      "icon": "🍳"
+    },
+    {
+      "id": "adecuaciones",
+      "name": "Adecuaciones Menores",
+      "description": "Sitio web para servicios de reparación, mantenimiento y construcción",
+      "palette": {
+        "primary": "#264653",
+        "secondary": "#2A9D8F",
+        "accent": "#E9C46A",
+        "neutral": "#F4A261"
+      },
+      "concept": "Técnico, práctico, confiable",
+      "sections": ["hero", "about", "services", "projects", "contact"],
+      "icon": "🔧"
+    },
+    {
+      "id": "belleza",
+      "name": "Belleza y Barbería",
+      "description": "Sitio web para peluquerías, barberías, manicure y pedicure",
+      "palette": {
+        "primary": "#2E294E",
+        "secondary": "#541388",
+        "accent": "#F1E9DA",
+        "neutral": "#FFD400"
+      },
+      "concept": "Elegante, moderno, sofisticado",
+      "sections": ["hero", "about", "services", "gallery", "contact"],
+      "icon": "💇"
+    },
+    {
+      "id": "chivos",
+      "name": "Cría de Chivos",
+      "description": "Sitio web para negocios de cría y comercialización de animales",
+      "palette": {
+        "primary": "#8D5524",
+        "secondary": "#C68642",
+        "accent": "#E0AC69",
+        "neutral": "#F1C27D"
+      },
+      "concept": "Natural, rústico, auténtico",
+      "sections": ["hero", "about", "products", "gallery", "contact"],
+      "icon": "🐐"
+    }
+  ]
+}

@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acera - Salón de Belleza</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #e5989b;
+        --secondary-color: #ffd6ba;
+        --tertiary-color: #afafae;
+        --accent-color: #2e22e2;
+        --text-color: #333;
+        --light-bg: #fffbf7;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Quicksand", "Segoe UI", Tahoma, Geneva, Verdana,
+          sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        background-color: var(--light-bg);
+        overflow-x: hidden;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      /* Navbar Styles */
+      .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background-color: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        transition: all 0.3s ease;
+      }
+
+      .navbar-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 5%;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .logo {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        text-decoration: none;
+        letter-spacing: 1px;
+      }
+
+      .nav-menu {
+        display: flex;
+        list-style: none;
+      }
+
+      .nav-item {
+        margin-left: 2rem;
+      }
+
+      .nav-link {
+        text-decoration: none;
+        color: var(--text-color);
+        font-weight: 500;
+        position: relative;
+        transition: color 0.3s ease;
+        padding: 0.5rem 0;
+      }
+
+      .nav-link::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: var(--primary-color);
+        transition: width 0.3s ease;
+      }
+
+      .nav-link:hover {
+        color: var(--primary-color);
+      }
+
+      .nav-link:hover::after {
+        width: 100%;
+      }
+
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        cursor: pointer;
+      }
+
+      .bar {
+        width: 25px;
+        height: 3px;
+        background-color: var(--text-color);
+        margin: 3px 0;
+        transition: 0.3s;
+      }
+
+      /* Hero Section */
+      .hero {
+        height: 100vh;
+        background: linear-gradient(
+            rgba(255, 255, 255, 0.7),
+            rgba(255, 255, 255, 0.7)
+          ),
+          url("https://picsum.photos/seed/beauty-salon/1600/900.jpg");
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 0 5%;
+      }
+
+      .hero-content {
+        max-width: 800px;
+      }
+
+      .hero h1 {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+        font-weight: 700;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .hero p {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+        color: var(--text-color);
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 0.8rem 2rem;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn:hover {
+        background-color: var(--accent-color);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      /* Sections */
+      section {
+        padding: 80px 5%;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .section-title {
+        text-align: center;
+        font-size: 2.5rem;
+        margin-bottom: 3rem;
+        color: var(--primary-color);
+        position: relative;
+        display: inline-block;
+        width: 100%;
+      }
+
+      .section-title::after {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background-color: var(--secondary-color);
+      }
+
+      /* Services Section */
+      .services-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+      }
+
+      .service-card {
+        background-color: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+      }
+
+      .service-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .service-img {
+        height: 200px;
+        background-size: cover;
+        background-position: center;
+      }
+
+      .service-content {
+        padding: 1.5rem;
+      }
+
+      .service-content h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+      }
+
+      .service-content p {
+        margin-bottom: 1.5rem;
+      }
+
+      /* About Section */
+      .about-container {
+        display: flex;
+        gap: 3rem;
+        align-items: center;
+      }
+
+      .about-img {
+        flex: 1;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .about-img img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .about-content {
+        flex: 1;
+      }
+
+      .about-content h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+      }
+
+      .about-content p {
+        margin-bottom: 1.5rem;
+      }
+
+      /* Gallery Section */
+      .gallery-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+      }
+
+      .gallery-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+        height: 250px;
+        cursor: pointer;
+      }
+
+      .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+
+      .gallery-item:hover img {
+        transform: scale(1.1);
+      }
+
+      .gallery-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(229, 152, 155, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .gallery-item:hover .gallery-overlay {
+        opacity: 1;
+      }
+
+      .gallery-overlay i {
+        color: white;
+        font-size: 2rem;
+      }
+
+      /* Contact Section */
+      .contact-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+      }
+
+      .contact-form {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+      }
+
+      .contact-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .contact-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .contact-item i {
+        font-size: 1.5rem;
+        margin-right: 1rem;
+        color: var(--primary-color);
+        width: 30px;
+        text-align: center;
+      }
+
+      /* Footer */
+      footer {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 3rem 5%;
+      }
+
+      .footer-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .footer-column h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        padding-bottom: 0.5rem;
+      }
+
+      .footer-column h3::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 50px;
+        height: 2px;
+        background-color: var(--secondary-color);
+      }
+
+      .footer-column p,
+      .footer-column ul {
+        margin-bottom: 1rem;
+      }
+
+      .footer-column ul {
+        list-style: none;
+      }
+
+      .footer-column ul li {
+        margin-bottom: 0.5rem;
+      }
+
+      .footer-column a {
+        color: white;
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      .footer-column a:hover {
+        color: var(--secondary-color);
+      }
+
+      .social-links {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      .social-links a {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 40px;
+        height: 40px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        transition: background-color 0.3s ease;
+      }
+
+      .social-links a:hover {
+        background-color: var(--secondary-color);
+      }
+
+      .map-container {
+        margin-top: 2rem;
+        border-radius: 10px;
+        overflow: hidden;
+        height: 250px;
+      }
+
+      .map-container iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+
+      .copyright {
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .hamburger {
+          display: flex;
+        }
+
+        .nav-menu {
+          position: fixed;
+          left: -100%;
+          top: 70px;
+          flex-direction: column;
+          background-color: white;
+          width: 100%;
+          text-align: center;
+          transition: 0.3s;
+          box-shadow: 0 10px 27px rgba(0, 0, 0, 0.05);
+          padding: 2rem 0;
+        }
+
+        .nav-menu.active {
+          left: 0;
+        }
+
+        .nav-item {
+          margin: 0;
+          margin-bottom: 1rem;
+        }
+
+        .hero h1 {
+          font-size: 2.5rem;
+        }
+
+        .about-container {
+          flex-direction: column;
+        }
+
+        .contact-container {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-container">
+        <a href="#inicio" class="logo">Acera</a>
+        <ul class="nav-menu">
+          <li class="nav-item">
+            <a href="#inicio" class="nav-link">Inicio</a>
+          </li>
+          <li class="nav-item">
+            <a href="#servicios" class="nav-link">Servicios</a>
+          </li>
+          <li class="nav-item">
+            <a href="#acerca" class="nav-link">Acerca de</a>
+          </li>
+          <li class="nav-item">
+            <a href="#galeria" class="nav-link">Galería</a>
+          </li>
+          <li class="nav-item">
+            <a href="#contacto" class="nav-link">Contacto</a>
+          </li>
+        </ul>
+        <div class="hamburger">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="hero">
+      <div class="hero-content">
+        <h1>Belleza, Bienestar, Confianza</h1>
+        <p>
+          Descubre el encanto del Caribe con nuestra estética moderna y
+          servicios de lujo tropical
+        </p>
+        <a href="#servicios" class="btn">Nuestros Servicios</a>
+      </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="servicios">
+      <h2 class="section-title">Nuestros Servicios</h2>
+      <div class="services-container">
+        <div class="service-card">
+          <div
+            class="service-img"
+            style="
+              background-image: url('https://picsum.photos/seed/manicure/400/300.jpg');
+            "
+          ></div>
+          <div class="service-content">
+            <h3>Manicure</h3>
+            <p>
+              Transforma tus manos con nuestros tratamientos de manicure de
+              lujo. Desde esmaltes básicos hasta arte de uñas personalizado.
+            </p>
+            <a href="#contacto" class="btn">Reservar</a>
+          </div>
+        </div>
+        <div class="service-card">
+          <div
+            class="service-img"
+            style="
+              background-image: url('https://picsum.photos/seed/pedicure/400/300.jpg');
+            "
+          ></div>
+          <div class="service-content">
+            <h3>Pedicure</h3>
+            <p>
+              Relaja y renueva tus pies con nuestro spa de pedicure. Incluye
+              exfoliación, masaje y esmaltado profesional.
+            </p>
+            <a href="#contacto" class="btn">Reservar</a>
+          </div>
+        </div>
+        <div class="service-card">
+          <div
+            class="service-img"
+            style="
+              background-image: url('https://picsum.photos/seed/estetica/400/300.jpg');
+            "
+          ></div>
+          <div class="service-content">
+            <h3>Estética Facial</h3>
+            <p>
+              Tratamientos faciales personalizados para revitalizar tu piel.
+              Usamos productos de alta calidad para resultados visibles.
+            </p>
+            <a href="#contacto" class="btn">Reservar</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="acerca">
+      <h2 class="section-title">Acerca de Acera</h2>
+      <div class="about-container">
+        <div class="about-img">
+          <img
+            src="https://picsum.photos/seed/salon-interior/600/400.jpg"
+            alt="Salón Acera"
+          />
+        </div>
+        <div class="about-content">
+          <h2>Nuestra Historia y Filosofía</h2>
+          <p>
+            Acera nació en La Guajira con la visión de combinar el encanto
+            vibrante del Caribe con una estética moderna y sofisticada. Nuestro
+            nombre representa el camino hacia la belleza y el bienestar.
+          </p>
+          <p>
+            Creemos que cada persona merece sentirse única y especial. Por eso,
+            hemos creado un espacio donde la calidez tropical se encuentra con
+            el lujo y la profesionalidad para ofrecerte una experiencia
+            inolvidable.
+          </p>
+          <p>
+            Nuestro equipo de expertos está comprometido con la excelencia en
+            cada servicio, utilizando solo productos de la más alta calidad y
+            técnicas innovadoras para realzar tu belleza natural.
+          </p>
+          <a href="#contacto" class="btn">Conócenos</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="galeria">
+      <h2 class="section-title">Galería</h2>
+      <div class="gallery-container">
+        <div class="gallery-item">
+          <img
+            src="https://picsum.photos/seed/gallery1/300/300.jpg"
+            alt="Galería 1"
+          />
+          <div class="gallery-overlay">
+            <i class="fas fa-search-plus"></i>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img
+            src="https://picsum.photos/seed/gallery2/300/300.jpg"
+            alt="Galería 2"
+          />
+          <div class="gallery-overlay">
+            <i class="fas fa-search-plus"></i>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img
+            src="https://picsum.photos/seed/gallery3/300/300.jpg"
+            alt="Galería 3"
+          />
+          <div class="gallery-overlay">
+            <i class="fas fa-search-plus"></i>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img
+            src="https://picsum.photos/seed/gallery4/300/300.jpg"
+            alt="Galería 4"
+          />
+          <div class="gallery-overlay">
+            <i class="fas fa-search-plus"></i>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img
+            src="https://picsum.photos/seed/gallery5/300/300.jpg"
+            alt="Galería 5"
+          />
+          <div class="gallery-overlay">
+            <i class="fas fa-search-plus"></i>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img
+            src="https://picsum.photos/seed/gallery6/300/300.jpg"
+            alt="Galería 6"
+          />
+          <div class="gallery-overlay">
+            <i class="fas fa-search-plus"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contacto">
+      <h2 class="section-title">Contacto</h2>
+      <div class="contact-container">
+        <div class="contact-form">
+          <h3>Envíanos un mensaje</h3>
+          <form id="contactForm">
+            <div class="form-group">
+              <label for="name">Nombre</label>
+              <input type="text" id="name" name="name" required />
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" required />
+            </div>
+            <div class="form-group">
+              <label for="phone">Teléfono</label>
+              <input type="tel" id="phone" name="phone" />
+            </div>
+            <div class="form-group">
+              <label for="message">Mensaje</label>
+              <textarea
+                id="message"
+                name="message"
+                rows="5"
+                required
+              ></textarea>
+            </div>
+            <button type="submit" class="btn">Enviar Mensaje</button>
+          </form>
+        </div>
+        <div class="contact-info">
+          <h3>Información de Contacto</h3>
+          <div class="contact-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <p>Calle Principal #123, La Guajira, Colombia</p>
+          </div>
+          <div class="contact-item">
+            <i class="fas fa-phone"></i>
+            <p>+57 123 456 7890</p>
+          </div>
+          <div class="contact-item">
+            <i class="fas fa-envelope"></i>
+            <p>info@acerabeauty.com</p>
+          </div>
+          <div class="contact-item">
+            <i class="fas fa-clock"></i>
+            <p>
+              Lunes a Sábado: 9:00 AM - 7:00 PM<br />Domingo: 10:00 AM - 5:00 PM
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-container">
+        <div class="footer-column">
+          <h3>Acera</h3>
+          <p>Belleza, bienestar, confianza y calidez en cada tratamiento.</p>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+          </div>
+        </div>
+        <div class="footer-column">
+          <h3>Enlaces Rápidos</h3>
+          <ul>
+            <li><a href="#inicio">Inicio</a></li>
+            <li><a href="#servicios">Servicios</a></li>
+            <li><a href="#acerca">Acerca de</a></li>
+            <li><a href="#galeria">Galería</a></li>
+            <li><a href="#contacto">Contacto</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h3>Ubicación</h3>
+          <div class="map-container">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3926.123456789!2d-72.123456789!3d11.123456789!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTHCsDA3JzI0LjQiTiA3MsKwMDcnMjQuNCJX!5e0!3m2!1ses!2sco!4v1234567890"
+              allowfullscreen=""
+              loading="lazy"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+      <div class="copyright">
+        <p>&copy; 2023 Acera - Todos los derechos reservados</p>
+      </div>
+    </footer>
+
+    <script>
+      // Mobile menu toggle
+      const hamburger = document.querySelector(".hamburger");
+      const navMenu = document.querySelector(".nav-menu");
+
+      hamburger.addEventListener("click", () => {
+        hamburger.classList.toggle("active");
+        navMenu.classList.toggle("active");
+      });
+
+      // Close mobile menu when clicking on a link
+      document.querySelectorAll(".nav-link").forEach((link) => {
+        link.addEventListener("click", () => {
+          hamburger.classList.remove("active");
+          navMenu.classList.remove("active");
+        });
+      });
+
+      // Navbar scroll effect
+      window.addEventListener("scroll", () => {
+        const navbar = document.querySelector(".navbar");
+        if (window.scrollY > 100) {
+          navbar.style.padding = "0.5rem 0";
+          navbar.style.backgroundColor = "rgba(255, 255, 255, 0.98)";
+        } else {
+          navbar.style.padding = "1rem 0";
+          navbar.style.backgroundColor = "rgba(255, 255, 255, 0.95)";
+        }
+      });
+
+      // Form submission
+      document
+        .getElementById("contactForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          // Get form values
+          const name = document.getElementById("name").value;
+          const email = document.getElementById("email").value;
+          const phone = document.getElementById("phone").value;
+          const message = document.getElementById("message").value;
+
+          // Here you would normally send the data to a server
+          // For this example, we'll just show a success message
+          alert(`Gracias por tu mensaje, ${name}! Te contactaremos pronto.`);
+
+          // Reset form
+          this.reset();
+        });
+
+      // Lightbox for gallery
+      const galleryItems = document.querySelectorAll(".gallery-item");
+
+      galleryItems.forEach((item) => {
+        item.addEventListener("click", function () {
+          const imgSrc = this.querySelector("img").src;
+
+          // Create lightbox elements
+          const lightbox = document.createElement("div");
+          lightbox.className = "lightbox";
+          lightbox.style.position = "fixed";
+          lightbox.style.top = "0";
+          lightbox.style.left = "0";
+          lightbox.style.width = "100%";
+          lightbox.style.height = "100%";
+          lightbox.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
+          lightbox.style.display = "flex";
+          lightbox.style.justifyContent = "center";
+          lightbox.style.alignItems = "center";
+          lightbox.style.zIndex = "2000";
+
+          const img = document.createElement("img");
+          img.src = imgSrc;
+          img.style.maxWidth = "90%";
+          img.style.maxHeight = "90%";
+          img.style.borderRadius = "10px";
+
+          const closeBtn = document.createElement("div");
+          closeBtn.innerHTML = "&times;";
+          closeBtn.style.position = "absolute";
+          closeBtn.style.top = "20px";
+          closeBtn.style.right = "40px";
+          closeBtn.style.color = "white";
+          closeBtn.style.fontSize = "40px";
+          closeBtn.style.cursor = "pointer";
+
+          lightbox.appendChild(img);
+          lightbox.appendChild(closeBtn);
+          document.body.appendChild(lightbox);
+
+          // Close lightbox when clicking on close button or outside the image
+          closeBtn.addEventListener("click", () => {
+            document.body.removeChild(lightbox);
+          });
+
+          lightbox.addEventListener("click", (e) => {
+            if (e.target === lightbox) {
+              document.body.removeChild(lightbox);
+            }
+          });
+        });
+      });
+
+      // Smooth scroll for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+
+          const targetId = this.getAttribute("href");
+          if (targetId === "#") return;
+
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            window.scrollTo({
+              top: targetElement.offsetTop - 80,
+              behavior: "smooth",
+            });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

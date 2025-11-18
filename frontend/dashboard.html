@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Control de Sitios</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container flex items-center justify-between">
+            <a href="/dashboard" class="navbar-brand">🎨 Control de Sitios</a>
+            <ul class="navbar-nav">
+                <li><a href="/dashboard" class="nav-link active">Dashboard</a></li>
+                <li><a href="/models" class="nav-link">Modelos</a></li>
+                <li><a href="/create-site" class="nav-link">Crear Sitio</a></li>
+                <li><a href="#" onclick="logout()" class="nav-link">Cerrar Sesión</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main style="padding: 2rem 0;">
+        <div class="container">
+            <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 2rem;">Panel de Control</h1>
+            
+            <!-- Stats Cards -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalSites">-</div>
+                    <div class="stat-label">Total Sitios</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="publishedSites">-</div>
+                    <div class="stat-label">Sitios Publicados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalVisits">-</div>
+                    <div class="stat-label">Visitas Totales</div>
+                </div>
+            </div>
+
+            <!-- Sites Table -->
+            <div class="card">
+                <div class="card-header flex items-center justify-between">
+                    <span>Mis Sitios</span>
+                    <a href="/create-site" class="btn btn-primary btn-sm">+ Crear Sitio</a>
+                </div>
+                
+                <div id="sitesTableContainer">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Modelo</th>
+                                <th>Estado</th>
+                                <th>Visitas</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sitesTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 2rem;">
+                                    Cargando...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Top Sites Chart -->
+            <div class="card mt-4">
+                <div class="card-header">Sitios Más Visitados</div>
+                <canvas id="topSitesChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+        let chart = null;
+
+        // Cargar datos al iniciar
+        async function loadDashboard() {
+            // Verificar autenticación
+            const isAuth = await checkAuth();
+            if (!isAuth) return;
+
+            // Cargar estadísticas generales
+            await loadStats();
+
+            // Cargar lista de sitios
+            await loadSites();
+        }
+
+        // Cargar estadísticas
+        async function loadStats() {
+            try {
+                const response = await fetchAPI('/api/dashboard/stats');
+                const data = await response.json();
+
+                document.getElementById('totalSites').textContent = formatNumber(data.total_sites);
+                document.getElementById('publishedSites').textContent = formatNumber(data.published_sites);
+                document.getElementById('totalVisits').textContent = formatNumber(data.total_visits);
+
+                // Renderizar gráfico
+                renderTopSitesChart(data.top_sites);
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Cargar lista de sitios
+        async function loadSites() {
+            try {
+                const response = await fetchAPI('/api/sites');
+                const sites = await response.json();
+
+                const tbody = document.getElementById('sitesTableBody');
+
+                if (sites.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2rem;">
+                                No hay sitios creados. <a href="/create-site">Crear el primero</a>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = sites.map(site => `
+                    <tr>
+                        <td>
+                            <strong>${site.name}</strong>
+                            ${site.github_url ? `<br><small><a href="${site.github_url}" target="_blank">Ver sitio →</a></small>` : ''}
+                        </td>
+                        <td>
+                            <span>${getModelIcon(site.model_type)} ${getModelName(site.model_type)}</span>
+                        </td>
+                        <td>
+                            ${site.is_published 
+                                ? '<span class="badge badge-success">Publicado</span>' 
+                                : '<span class="badge badge-warning">Borrador</span>'
+                            }
+                        </td>
+                        <td id="visits-${site.id}">-</td>
+                        <td>${formatDate(site.created_at)}</td>
+                        <td>
+                            <div class="flex gap-1">
+                                <a href="/editor/${site.id}" class="btn btn-sm btn-primary">Editar</a>
+                                ${!site.is_published 
+                                    ? `<button onclick="publishSite(${site.id})" class="btn btn-sm btn-success">Publicar</button>`
+                                    : ''
+                                }
+                                <button onclick="deleteSite(${site.id})" class="btn btn-sm btn-danger">Eliminar</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Cargar visitas de cada sitio
+                sites.forEach(site => loadSiteVisits(site.id));
+            } catch (error) {
+                console.error('Error loading sites:', error);
+            }
+        }
+
+        // Cargar visitas de un sitio
+        async function loadSiteVisits(siteId) {
+            try {
+                const response = await fetchAPI(`/api/stats/${siteId}`);
+                const data = await response.json();
+                document.getElementById(`visits-${siteId}`).textContent = formatNumber(data.total_visits);
+            } catch (error) {
+                console.error(`Error loading visits for site ${siteId}:`, error);
+            }
+        }
+
+        // Publicar sitio
+        async function publishSite(siteId) {
+            if (!confirm('¿Estás seguro de publicar este sitio en GitHub Pages?')) {
+                return;
+            }
+
+            showNotification('Publicando sitio...', 'info');
+
+            try {
+                const response = await fetchAPI(`/api/sites/${siteId}/publish`, {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showNotification(data.message, 'success');
+                    setTimeout(() => loadDashboard(), 1000);
+                } else {
+                    showNotification(data.detail || 'Error al publicar', 'error');
+                }
+            } catch (error) {
+                console.error('Error publishing site:', error);
+                showNotification('Error al publicar sitio', 'error');
+            }
+        }
+
+        // Eliminar sitio
+        async function deleteSite(siteId) {
+            if (!confirm('¿Estás seguro de eliminar este sitio? Esta acción no se puede deshacer.')) {
+                return;
+            }
+
+            try {
+                const response = await fetchAPI(`/api/sites/${siteId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showNotification('Sitio eliminado exitosamente', 'success');
+                    loadDashboard();
+                } else {
+                    showNotification('Error al eliminar sitio', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting site:', error);
+                showNotification('Error al eliminar sitio', 'error');
+            }
+        }
+
+        // Renderizar gráfico
+        function renderTopSitesChart(topSites) {
+            const ctx = document.getElementById('topSitesChart');
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topSites.map(s => s.name),
+                    datasets: [{
+                        label: 'Visitas',
+                        data: topSites.map(s => s.visits),
+                        backgroundColor: '#3B82F6',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Inicializar
+        loadDashboard();
+    </script>
+</body>
+</html>

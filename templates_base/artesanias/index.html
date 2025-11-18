@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_name or "Artesanías Locales" }}</title>
+    <meta name="description" content="{{ site_description or 'Artesanías hechas a mano con identidad Wayuu' }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link id="fontawesome-cdn" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1Befh3Q4omPavGJ5WmX04jsnXpixK8fN0FFJw53sG7CkJ7C0JpShyp6EkGj3/9u7Q==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            try {
+                if (document.fonts && document.fonts.check('1em "Font Awesome 6 Free"')) {
+                    return;
+                }
+            } catch (err) {
+                // If document.fonts.check throws, continue to fallback.
+            }
+
+            var fallback = document.createElement('link');
+            fallback.rel = 'stylesheet';
+            fallback.href = 'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css';
+            fallback.crossOrigin = 'anonymous';
+            fallback.referrerPolicy = 'no-referrer';
+            document.head.appendChild(fallback);
+        });
+    </script>
+</head>
+<body>
+        <header>
+            <div class="container">
+                <div class="nav">
+                    <a href="#inicio" class="brand">
+                        {% if logo_url %}
+                            <img src="{{ normalize_drive_image(logo_url) }}" alt="Logo {{ site_name or 'Artesanías' }}" class="logo-img" loading="lazy">
+                        {% else %}
+                            <span class="logo-placeholder">{{ model_icon or '🎨' }}</span>
+                        {% endif %}
+                        <div>
+                            <h1>{{ site_name or 'Artesanías locales' }}</h1>
+                            {% if hero_subtitle %}
+                            <p class="brand-tagline">{{ hero_subtitle }}</p>
+                            {% endif %}
+                        </div>
+                    </a>
+                    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <nav id="primaryNav" aria-label="Navegación principal">
+                        <ul>
+                            <li><a href="#inicio" data-section="inicio">Inicio</a></li>
+                            <li><a href="#nosotros" data-section="nosotros">Sobre nosotros</a></li>
+                            <li><a href="#productos" data-section="productos">Colección</a></li>
+                            <li><a href="#galeria" data-section="galeria">Galería</a></li>
+                            <li><a href="#contacto" data-section="contacto">Contacto</a></li>
+                        </ul>
+                        <div class="nav-cta-group">
+                            {% if whatsapp_number %}
+                                <a href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}" class="nav-cta" target="_blank" rel="noopener">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                    Pedir ahora
+                                </a>
+                            {% else %}
+                                <a href="#contacto" class="nav-cta">
+                                    <i class="fa-solid fa-hand-holding-heart"></i>
+                                    Agenda tu cita
+                                </a>
+                            {% endif %}
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section id="inicio" class="hero">
+                <div class="hero-content">
+                    <h2>{{ hero_title or site_name or 'Artesanías que cuentan historias' }}</h2>
+                    <p>{{ site_description or 'Cada pieza Wayuu preserva la identidad cultural y apoya a las comunidades artesanas.' }}</p>
+                    <div class="hero-actions">
+                        <a href="#productos" class="btn btn-primary">Explorar colección</a>
+                        <a href="#contacto" class="btn btn-outline">Quiero contactar</a>
+                        {% if whatsapp_number %}
+                            <a href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}"
+                               class="btn btn-whatsapp"
+                               target="_blank"
+                               rel="noopener"
+                               aria-label="Chatear por WhatsApp">
+                                <svg viewBox="0 0 24 24" role="img" focusable="false" aria-hidden="true">
+                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.1-.472-.148-.672.15-.197.297-.768.966-.94 1.164-.173.199-.347.224-.644.075-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.447-.52.149-.174.198-.298.298-.497.1-.199.05-.373-.025-.522-.075-.149-.672-1.611-.921-2.206-.242-.58-.487-.501-.672-.51l-.573-.01c-.199 0-.522.074-.795.373s-1.05 1.025-1.05 2.499 1.077 2.893 1.227 3.092c.149.199 2.123 3.23 5.145 4.522.719.31 1.281.496 1.718.635.72.23 1.377.197 1.896.12.579-.086 1.758-.719 2.006-1.413.248-.695.248-1.291.173-1.414-.074-.123-.272-.198-.57-.347z" />
+                                </svg>
+                                <span>WhatsApp directo</span>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <section id="nosotros">
+                <div class="container">
+                    <div class="section-header">
+                        <span><i class="fa-solid fa-feather"></i> Tradición viva</span>
+                        <h2>La historia detrás de cada tejido</h2>
+                        <p>{{ about_text or 'Preservamos el arte ancestral Wayuu garantizando comercio justo y piezas únicas elaboradas a mano.' }}</p>
+                    </div>
+                    <div class="about-grid">
+                        <div class="about-media">
+                            <img src="{{ normalize_drive_image(about_image) if about_image else 'https://images.unsplash.com/photo-1560067174-e553b3647601?auto=format&fit=crop&w=900&q=80' }}" alt="Taller artesanal" loading="lazy">
+                        </div>
+                        <div class="about-content">
+                            <p>{{ about_text or 'En cada creación Wayuu convergen siglos de tradición, resiliencia y espiritualidad. Trabajamos de la mano con artesanas líderes para transformar historias en piezas memorables.' }}</p>
+                            <div class="about-highlight">
+                                “Cada color representa un paisaje, cada trama es un legado. Tejemos cultura para el mundo.”
+                            </div>
+                            <div class="contact-row">
+                                <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
+                                <span>{{ contact_address or 'La Guajira - Colombia' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="productos" style="background: rgba(255,255,255,0.75);">
+                <div class="container">
+                    <div class="section-header">
+                        <span><i class="fa-solid fa-store"></i> Colección destacada</span>
+                        <h2>Piezas artesanales disponibles</h2>
+                        <p>Selecciona los productos que quieres mostrar desde el panel de administración. Puedes incluir imágenes alojadas en Google Drive o cualquier servicio público.</p>
+                    </div>
+                    <div class="products-grid">
+                        {% if products and products|length > 0 %}
+                            {% for product in products %}
+                            <article class="product-card">
+                                {% if product.image %}
+                                    <div class="product-image">
+                                        <img src="{{ normalize_drive_image(product.image) }}" alt="{{ product.name or 'Producto artesanal' }}" loading="lazy">
+                                    </div>
+                                {% endif %}
+                                <div class="product-body">
+                                    <h3>{{ product.name or 'Producto artesanal' }}</h3>
+                                    {% if product.description %}<p>{{ product.description }}</p>{% endif %}
+                                    {% if product.price %}
+                                        <div class="product-meta">
+                                            <span>{{ product.price }}</span>
+                                            <span>Hecho a mano</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </article>
+                            {% endfor %}
+                        {% else %}
+                            <p style="text-align:center; color: var(--muted);">Añade productos desde el panel para mostrarlos aquí.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <section id="galeria">
+                <div class="container">
+                    <div class="section-header">
+                        <span><i class="fa-solid fa-images"></i> Galería visual</span>
+                        <h2>Momentos y texturas Wayuu</h2>
+                        <p>Carga fotografías de tus procesos, ferias o colecciones para conectar a tus clientes con la experiencia artesanal.</p>
+                    </div>
+                    <div class="gallery-grid">
+                        {% if gallery_images and gallery_images|length > 0 %}
+                            {% for image_url in gallery_images %}
+                                <div class="gallery-card">
+                                    <img src="{{ normalize_drive_image(image_url) }}" alt="Galería {{ site_name or 'artesanías' }}" loading="lazy">
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="gallery-card"><span>🎨</span></div>
+                            <div class="gallery-card"><span>🧶</span></div>
+                            <div class="gallery-card"><span>🌅</span></div>
+                            <div class="gallery-card"><span>🪡</span></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <section id="contacto" style="background: rgba(139,94,60,0.06);">
+                <div class="container">
+                    <div class="section-header">
+                        <span><i class="fa-solid fa-handshake-angle"></i> Conversemos</span>
+                        <h2>Contacto directo con el taller</h2>
+                        <p>Comparte tu información de contacto y redes sociales para facilitar pedidos personalizados y alianzas comerciales.</p>
+                    </div>
+                    <div class="contact-grid">
+                        <div class="contact-card">
+                            {% if contact_phone %}
+                            <div class="contact-row">
+                                <div class="contact-icon" aria-hidden="true">☎</div>
+                                <div>
+                                    <strong>Teléfono</strong><br>
+                                    <a href="tel:{{ contact_phone }}">{{ contact_phone }}</a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if contact_email %}
+                            <div class="contact-row">
+                                <div class="contact-icon" aria-hidden="true">✉</div>
+                                <div>
+                                    <strong>Email</strong><br>
+                                    <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if contact_address %}
+                            <div class="contact-row">
+                                <div class="contact-icon" aria-hidden="true">📍</div>
+                                <div>
+                                    <strong>Ubicación</strong><br>
+                                    <span>{{ contact_address }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if whatsapp_number %}
+                            <div class="contact-row">
+                                <div class="contact-icon" aria-hidden="true">💬</div>
+                                <div>
+                                    <strong>WhatsApp</strong><br>
+                                    <a href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}" target="_blank" rel="noopener">Escríbenos al {{ whatsapp_number }}</a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if whatsapp_number or facebook_url or instagram_url or tiktok_url %}
+                            <div>
+                                <strong>Redes y canales</strong>
+                                <div class="socials">
+                                    {% if whatsapp_number %}
+                                        <a href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}" aria-label="WhatsApp" rel="noopener" target="_blank">
+                                            <svg viewBox="0 0 24 24" role="img" focusable="false">
+                                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.1-.472-.148-.672.15-.197.297-.768.966-.94 1.164-.173.199-.347.224-.644.075-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.447-.52.149-.174.198-.298.298-.497.1-.199.05-.373-.025-.522-.075-.149-.672-1.611-.921-2.206-.242-.58-.487-.501-.672-.51l-.573-.01c-.199 0-.522.074-.795.373s-1.05 1.025-1.05 2.499 1.077 2.893 1.227 3.092c.149.199 2.123 3.23 5.145 4.522.719.31 1.281.496 1.718.635.72.23 1.377.197 1.896.12.579-.086 1.758-.719 2.006-1.413.248-.695.248-1.291.173-1.414-.074-.123-.272-.198-.57-.347z"/>
+                                            </svg>
+                                        </a>
+                                    {% endif %}
+                                    {% if facebook_url %}
+                                        <a href="{{ facebook_url }}" aria-label="Facebook" rel="noopener" target="_blank">
+                                            <svg viewBox="0 0 24 24" role="img" focusable="false">
+                                                <path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.79c0-2.5 1.49-3.89 3.78-3.89 1.1 0 2.25.2 2.25.2v2.47h-1.27c-1.25 0-1.64.78-1.64 1.57V12h2.8l-.45 2.89h-2.35v6.99A10 10 0 0 0 22 12z"/>
+                                            </svg>
+                                        </a>
+                                    {% endif %}
+                                    {% if instagram_url %}
+                                        <a href="{{ instagram_url }}" aria-label="Instagram" rel="noopener" target="_blank">
+                                            <svg viewBox="0 0 24 24" role="img" focusable="false">
+                                                <path d="M12 7.09A4.91 4.91 0 1 0 16.91 12 4.91 4.91 0 0 0 12 7.09zm0 8.09A3.18 3.18 0 1 1 15.18 12 3.18 3.18 0 0 1 12 15.18zm5-8.51a1.15 1.15 0 1 1-1.15-1.15 1.15 1.15 0 0 1 1.15 1.15zm3.26 1.17a5.66 5.66 0 0 0-1.55-4 5.66 5.66 0 0 0-4-1.55c-1.58-.09-6.34-.09-7.92 0a5.66 5.66 0 0 0-4 1.55 5.66 5.66 0 0 0-1.55 4c-.09 1.58-.09 6.34 0 7.92a5.66 5.66 0 0 0 1.55 4 5.66 5.66 0 0 0 4 1.55c1.58.09 6.34.09 7.92 0a5.66 5.66 0 0 0 4-1.55 5.66 5.66 0 0 0 1.55-4c.09-1.58.09-6.34 0-7.92zm-2.05 9.6a3.23 3.23 0 0 1-1.82 1.82c-1.26.5-4.25.38-5.39.38s-4.13.11-5.39-.38a3.23 3.23 0 0 1-1.82-1.82c-.5-1.26-.38-4.25-.38-5.39s-.11-4.13.38-5.39a3.23 3.23 0 0 1 1.82-1.82c1.26-.5 4.25-.38 5.39-.38s4.13-.11 5.39.38a3.23 3.23 0 0 1 1.82 1.82c.5 1.26.38 4.25.38 5.39s.12 4.13-.38 5.39z"/>
+                                            </svg>
+                                        </a>
+                                    {% endif %}
+                                    {% if tiktok_url %}
+                                        <a href="{{ tiktok_url }}" aria-label="TikTok" rel="noopener" target="_blank">
+                                            <svg viewBox="0 0 24 24" role="img" focusable="false">
+                                                <path d="M19.59 7.24a5.35 5.35 0 0 1-3.16-1.01 5.34 5.34 0 0 1-1.92-2.57h-.01a5.46 5.46 0 0 1-.22-1.07H11.2v11.8a2.18 2.18 0 1 1-1.53-2.08v-2.2a4.49 4.49 0 1 0 4.49 4.49V9.33a8.03 8.03 0 0 0 4.94 1.66V7.24z"/>
+                                            </svg>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="contact-card" style="background: rgba(255,255,255,0.65);">
+                            <h3 style="margin: 0; color: var(--primary);">Pedidos especiales</h3>
+                            <p style="color: var(--muted); margin: 0;">¿Quieres piezas personalizadas o compras al por mayor? Escríbenos y te asesoramos.</p>
+                            <div style="margin-top: 1rem; display: grid; gap: 0.8rem;">
+                                <div class="contact-row">
+                                    <div class="contact-icon" aria-hidden="true">✔</div>
+                                    <span>Pagos seguros y envíos nacionales</span>
+                                </div>
+                                <div class="contact-row">
+                                    <div class="contact-icon" aria-hidden="true">🤝</div>
+                                    <span>Trabajo directo con comunidades artesanas</span>
+                                </div>
+                                <div class="contact-row">
+                                    <div class="contact-icon" aria-hidden="true">🌎</div>
+                                    <span>Exportación disponible bajo pedido</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if contact_address %}
+                    <div class="map-card">
+                        <iframe
+                            title="Mapa de {{ site_name or 'ubicación' }}"
+                            loading="lazy"
+                            allowfullscreen
+                            referrerpolicy="no-referrer-when-downgrade"
+                            src="https://www.google.com/maps?q={{ contact_address | urlencode }}&output=embed"></iframe>
+                        <div class="map-footer">
+                            <div>
+                                <strong>¿Cómo llegar?</strong><br>
+                                {{ contact_address }}
+                            </div>
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ contact_address | urlencode }}" target="_blank" rel="noopener">Abrir en Google Maps →</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="container">
+                {% set allies = supporter_logos or [] %}
+                {% if allies %}
+                <div class="supporters">
+                    <h3>Aliados que apoyan esta causa</h3>
+                    <div class="supporters-logos">
+                        {% for supporter in allies %}
+                            <div class="supporter-badge">
+                                {% if supporter.optimized_url or supporter.url %}
+                                    <img src="{{ supporter.optimized_url or supporter.url }}"
+                                         alt="Logo {{ supporter.name }}"
+                                         width="180"
+                                         height="72"
+                                         loading="lazy"
+                                         decoding="async"
+                                         data-supporter-logo
+                                         data-supporter-name="{{ supporter.name }}">
+                                {% endif %}
+                                <span class="supporter-fallback" {% if supporter.optimized_url or supporter.url %}hidden{% endif %}>{{ supporter.initials }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                <div>{{ site_name or 'Artesanías locales' }} &mdash; {{ site_description or 'Tejidos auténticos hechos a mano.' }}</div>
+                <small>&copy; {{ current_year }} {{ site_name or 'Artesanías locales' }}. Todos los derechos reservados.</small>
+            </div>
+        </footer>
+
+        {% if whatsapp_number %}
+        <a class="whatsapp-btn" href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}" target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
+            <svg viewBox="0 0 24 24" role="img" focusable="false" aria-hidden="true">
+                <path d="M12.01 2a9.9 9.9 0 0 0-8.47 14.92L2 22l5.2-1.5A9.93 9.93 0 1 0 12.01 2zm0 2a7.9 7.9 0 0 1 6.77 12.12l-.26.39A7.9 7.9 0 0 1 7.24 18l-.4-.25A7.9 7.9 0 0 1 12 4zm4.21 9.94c-.23-.12-1.36-.74-1.57-.82-.21-.08-.37-.12-.52.12-.16.24-.6.77-.73.92-.13.15-.26.18-.48.06-.22-.11-.93-.34-1.78-1.09-.66-.59-1.11-1.33-1.24-1.56-.13-.23-.01-.35.09-.47.09-.09.2-.27.3-.4.1-.13.13-.23.2-.39.07-.16.03-.29-.02-.41-.05-.12-.5-1.2-.68-1.64-.18-.43-.36-.37-.52-.38l-.44-.01c-.16 0-.4.05-.61.28-.21.24-.8.78-.8 1.89s.82 2.19.93 2.34c.11.15 1.61 2.44 3.9 3.42.54.23.97.37 1.3.48.54.17 1.05.15 1.44.09.44-.07 1.34-.54 1.53-1.05.19-.52.19-.96.13-1.05-.05-.09-.21-.15-.43-.26z" fill="currentColor" />
+            </svg>
+        </a>
+        {% endif %}
+
+        <script>
+        (function () {
+            const navToggle = document.querySelector('.nav-toggle');
+            const navMenu = document.getElementById('primaryNav');
+            const navLinks = Array.from(document.querySelectorAll('#primaryNav a[data-section]'));
+
+            if (navToggle && navMenu) {
+                navToggle.addEventListener('click', function () {
+                    const isOpen = navMenu.classList.toggle('is-open');
+                    navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                });
+
+                navLinks.forEach(function (link) {
+                    link.addEventListener('click', function () {
+                        if (navMenu.classList.contains('is-open')) {
+                            navMenu.classList.remove('is-open');
+                            navToggle.setAttribute('aria-expanded', 'false');
+                        }
+                    });
+                });
+            }
+
+            function setActiveNav(sectionId) {
+                navLinks.forEach(function (link) {
+                    if (link.dataset.section === sectionId) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            }
+
+            if (navLinks.length) {
+                if ('IntersectionObserver' in window) {
+                    const observer = new IntersectionObserver(function (entries) {
+                        entries.forEach(function (entry) {
+                            if (entry.isIntersecting) {
+                                setActiveNav(entry.target.id);
+                            }
+                        });
+                    }, {
+                        rootMargin: '-50% 0px -50% 0px',
+                        threshold: 0
+                    });
+
+                    navLinks
+                        .map(function (link) { return document.getElementById(link.dataset.section); })
+                        .filter(Boolean)
+                        .forEach(function (section) { observer.observe(section); });
+                } else {
+                    setActiveNav(navLinks[0].dataset.section);
+                }
+
+                navLinks.forEach(function (link) {
+                    link.addEventListener('click', function () {
+                        setActiveNav(link.dataset.section);
+                    });
+                });
+            }
+        })();
+        </script>
+
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-supporter-logo]').forEach(function (img) {
+                img.addEventListener('error', function () {
+                    const wrapper = img.closest('.supporter-badge');
+                    if (!wrapper) {
+                        return;
+                    }
+                    const fallback = wrapper.querySelector('.supporter-fallback');
+                    img.remove();
+                    if (fallback) {
+                        fallback.hidden = false;
+                        fallback.style.display = 'flex';
+                    }
+                }, { once: true });
+            });
+        });
+        </script>
+        <script src="tracking.js" defer></script>
+    </body>
+    </html>
