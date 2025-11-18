@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 import json
 import os
@@ -136,6 +136,7 @@ def _create_owner_account(db: Session, site: Site) -> dict:
         plain_password=temporary_password,
         role_id=owner_role.id,
         site_id=site.id,
+        activated_at=datetime.utcnow(),
     )
     db.add(owner_user)
     db.commit()

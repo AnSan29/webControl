@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Usuarios y Roles - WebControl Studio</title>
+	<title>Usuarios - WebControl Studio</title>
 
 	<script src="https://cdn.tailwindcss.com"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -15,6 +15,20 @@
 		}
 		.fade-in { animation: enter 0.35s ease-out; }
 		.card { box-shadow: 0 25px 50px -12px rgb(15 23 42 / 0.15); }
+		.drawer-backdrop { backdrop-filter: blur(4px); }
+		.modal-panel {
+			animation: enter 0.25s ease-out;
+			box-shadow: 0 40px 80px -30px rgb(15 23 42 / 0.3);
+			max-height: calc(100vh - 3rem);
+			width: min(100%, 640px);
+			display: flex;
+			flex-direction: column;
+		}
+		@media (min-width: 768px) {
+			.modal-panel {
+				max-height: 85vh;
+			}
+		}
 	</style>
 </head>
 <body class="bg-gray-50">
@@ -47,7 +61,7 @@
 						<span class="block text-sm font-medium text-gray-500 truncate" id="userEmail">admin@webcontrol.com</span>
 					</div>
 					<ul class="py-1">
-						<li><a href="/" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Cerrar sesión</a></li>
+						<li><a href="#" onclick="logout()" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Cerrar sesión</a></li>
 					</ul>
 				</div>
 			</div>
@@ -62,37 +76,37 @@
 			<div class="flex-1 px-3 bg-white divide-y space-y-1">
 				<ul class="space-y-2 pb-2">
 					<li>
-						<a href="/dashboard" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2 group">
-							<i class="fa-solid fa-gauge w-6 h-6 text-gray-500 group-hover:text-gray-900"></i>
+						<a href="/dashboard" class="text-base text-gray-900 font-normal rounded-lg flex items-center p-2 hover:bg-gray-100 group transition duration-75">
+							<i class="fas fa-th-large w-6 h-6 text-gray-500 group-hover:text-gray-900 transition duration-75"></i>
 							<span class="ml-3">Dashboard</span>
 						</a>
 					</li>
-					<li>
-						<a href="/create-site" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2 group">
-							<i class="fa-solid fa-circle-plus w-6 h-6 text-gray-500 group-hover:text-gray-900"></i>
+					<li data-owner-hidden>
+						<a href="/create-site" class="text-base text-gray-900 font-normal rounded-lg flex items-center p-2 hover:bg-gray-100 group transition duration-75">
+							<i class="fas fa-plus-circle w-6 h-6 text-gray-500 group-hover:text-gray-900 transition duration-75"></i>
 							<span class="ml-3">Crear Sitio</span>
 						</a>
 					</li>
-					<li>
-						<a href="/models" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2 group">
-							<i class="fa-solid fa-layer-group w-6 h-6 text-gray-500 group-hover:text-gray-900"></i>
+					<li data-owner-hidden>
+						<a href="/models" class="text-base text-gray-900 font-normal rounded-lg flex items-center p-2 hover:bg-gray-100 group transition duration-75">
+							<i class="fas fa-layer-group w-6 h-6 text-gray-500 group-hover:text-gray-900 transition duration-75"></i>
 							<span class="ml-3">Modelos</span>
 						</a>
 					</li>
 					<li>
-						<span class="text-base text-blue-700 font-semibold rounded-lg flex items-center p-2 bg-blue-50 border border-blue-100">
-							<i class="fa-solid fa-users w-6 h-6 text-blue-500"></i>
-							<span class="ml-3">Usuarios y Roles</span>
-						</span>
+						<a href="/users-management" class="text-base text-blue-700 font-semibold rounded-lg flex items-center p-2 border border-blue-100 bg-blue-50 group transition duration-75" aria-current="page">
+							<i class="fas fa-users-gear w-6 h-6 text-blue-500 group-hover:text-blue-700 transition duration-75"></i>
+							<span class="ml-3">Usuarios</span>
+						</a>
 					</li>
 				</ul>
-				<div class="space-y-2 pt-2">
-					<a href="https://github.com/AnSan29/webControl" target="_blank" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2 group">
-						<i class="fab fa-github w-6 h-6 text-gray-500 group-hover:text-gray-900"></i>
+				<div class="space-y-2 pt-2" data-owner-hidden>
+					<a href="https://github.com/AnSan29/webControl" target="_blank" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 group transition duration-75 flex items-center p-2">
+						<i class="fab fa-github w-6 h-6 text-gray-500 group-hover:text-gray-900 transition duration-75"></i>
 						<span class="ml-3">GitHub</span>
 					</a>
-					<a href="#" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2 group">
-						<i class="fas fa-book w-6 h-6 text-gray-500 group-hover:text-gray-900"></i>
+					<a href="#" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 group transition duration-75 flex items-center p-2">
+						<i class="fas fa-book w-6 h-6 text-gray-500 group-hover:text-gray-900 transition duration-75"></i>
 						<span class="ml-3">Documentación</span>
 					</a>
 				</div>
@@ -111,156 +125,632 @@
 				<section class="bg-white card rounded-2xl p-6 border border-blue-100">
 					<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 						<div>
-							<p class="inline-flex items-center px-3 py-1 text-xs font-semibold uppercase tracking-wide bg-blue-50 text-blue-700 rounded-full">Beta privada</p>
-							<h1 class="text-3xl font-bold text-gray-900 mt-3">Gestión de Usuarios y Roles</h1>
-							<p class="mt-2 text-gray-600 max-w-2xl">Centraliza la administración del equipo, define roles reutilizables y prepara los permisos que conectarán con el backend de FastAPI.</p>
+							<h1 class="text-3xl font-bold text-gray-900">Usuarios</h1>
+							<p class="mt-2 text-gray-600">Gestiona los usuarios del sistema, sus roles y permisos de acceso.</p>
 						</div>
 						<div class="flex gap-2">
-							<a href="/dashboard" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
-								<i class="fa-solid fa-arrow-left mr-2"></i>Volver al dashboard
-							</a>
+							<button id="newUserBtn" class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
+								<i class="fa-solid fa-plus mr-2"></i>Nuevo
+							</button>
 						</div>
 					</div>
-				</section>
-
-				<section class="grid gap-4 md:grid-cols-3">
-					<article class="bg-white rounded-2xl border border-gray-100 p-5 fade-in">
-						<div class="flex items-center gap-3">
-							<span class="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600"><i class="fa-solid fa-users-gear"></i></span>
-							<div>
-								<p class="text-sm text-gray-500">Estado actual</p>
-								<p class="text-lg font-semibold text-gray-900">Diseño listo</p>
-							</div>
-						</div>
-						<p class="mt-3 text-sm text-gray-600">El frontend ya incluye navegación, estructura y componentes base para roles. Falta conectar la API.</p>
-					</article>
-					<article class="bg-white rounded-2xl border border-gray-100 p-5 fade-in">
-						<div class="flex items-center gap-3">
-							<span class="h-10 w-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600"><i class="fa-solid fa-user-shield"></i></span>
-							<div>
-								<p class="text-sm text-gray-500">Próximo sprint</p>
-								<p class="text-lg font-semibold text-gray-900">API de roles</p>
-							</div>
-						</div>
-						<p class="mt-3 text-sm text-gray-600">Los endpoints vivirán en <code class="bg-gray-100 px-1 rounded">/backend/routers/roles.py</code>. Este módulo ya existe como placeholder.</p>
-					</article>
-					<article class="bg-white rounded-2xl border border-gray-100 p-5 fade-in">
-						<div class="flex items-center gap-3">
-							<span class="h-10 w-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600"><i class="fa-solid fa-list-check"></i></span>
-							<div>
-								<p class="text-sm text-gray-500">Checklist</p>
-								<p class="text-lg font-semibold text-gray-900">Conexiones pendientes</p>
-							</div>
-						</div>
-						<ul class="mt-3 space-y-1 text-sm text-gray-600 list-disc list-inside">
-							<li>Definir esquema Pydantic para usuarios/roles.</li>
-							<li>Crear endpoints CRUD y protegerlos con OAuth2.</li>
-							<li>Consumir la nueva API desde esta vista.</li>
-						</ul>
-					</article>
 				</section>
 
 				<section class="bg-white rounded-2xl border border-gray-100 p-6">
-					<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-						<div>
-							<h2 class="text-xl font-semibold text-gray-900">Roles predefinidos</h2>
-							<p class="text-sm text-gray-500">Matriz sugerida para implementar permisos mínimos viables.</p>
+					<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+						<div class="flex-1 max-w-md">
+							<div class="relative">
+								<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+									<i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+								</div>
+								<input type="text" id="searchInput" placeholder="Busca en la tabla" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+							</div>
 						</div>
-						<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
-							<i class="fa-solid fa-lock mr-2"></i> Diseño funcional
-						</span>
 					</div>
 
-					<div class="mt-6 overflow-x-auto">
-						<table class="min-w-full divide-y divide-gray-200 text-sm">
+					<div class="overflow-x-auto">
+						<table class="min-w-full divide-y divide-gray-200">
 							<thead class="bg-gray-50">
 								<tr>
-									<th class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-wide">Rol</th>
-									<th class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-wide">Permisos clave</th>
-									<th class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-wide">Uso recomendado</th>
+									<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+									<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol / Grupo</th>
+									<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+									<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de activación</th>
+									<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de expiración</th>
+									<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Último acceso</th>
+									<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
 								</tr>
-							</thead>
-							<tbody class="bg-white divide-y divide-gray-100">
-								<tr>
-									<td class="px-4 py-4">
-										<p class="font-semibold text-gray-900">Administrador</p>
-										<p class="text-xs text-gray-500">Acceso total</p>
-									</td>
-									<td class="px-4 py-4 text-gray-600">CRUD de usuarios y roles, publicación de sitios, configuración avanzada.</td>
-									<td class="px-4 py-4 text-gray-600">Equipo core o founders.</td>
-								</tr>
-								<tr>
-									<td class="px-4 py-4">
-										<p class="font-semibold text-gray-900">Editor</p>
-										<p class="text-xs text-gray-500">Contenido</p>
-									</td>
-									<td class="px-4 py-4 text-gray-600">Editar sitios, subir assets, generar vistas previas.</td>
-									<td class="px-4 py-4 text-gray-600">Equipo creativo o agencias aliadas.</td>
-								</tr>
-								<tr>
-									<td class="px-4 py-4">
-										<p class="font-semibold text-gray-900">Revisor</p>
-										<p class="text-xs text-gray-500">Solo lectura</p>
-									</td>
-									<td class="px-4 py-4 text-gray-600">Ver dashboard, descargar reportes, comentar incidencias.</td>
-									<td class="px-4 py-4 text-gray-600">Stakeholders, QA o clientes.</td>
-								</tr>
+							<thead>
+							<tbody id="usersTableBody" class="bg-white divide-y divide-gray-200">
+								<!-- Users will be loaded here -->
 							</tbody>
 						</table>
 					</div>
-				</section>
 
-				<section class="grid gap-4 md:grid-cols-2">
-					<article class="bg-white rounded-2xl border border-gray-100 p-6">
-						<h3 class="text-lg font-semibold text-gray-900 mb-3">Roadmap sugerido</h3>
-						<ol class="space-y-3 text-sm text-gray-600 list-decimal list-inside">
-							<li>Completar los routers de <code class="bg-gray-100 px-1 rounded">backend/routers</code>.</li>
-							<li>Agregar modelos SQLAlchemy para usuarios y roles.</li>
-							<li>Conectar esta pantalla usando `fetch` al nuevo backend.</li>
-							<li>Aplicar `data-requires-admin` para mostrar/ocultar secciones.</li>
-						</ol>
-					</article>
-					<article class="bg-white rounded-2xl border border-gray-100 p-6">
-						<h3 class="text-lg font-semibold text-gray-900 mb-3">Notas rápidas</h3>
-						<ul class="space-y-2 text-sm text-gray-600">
-							<li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-green-500 mt-1"></i><span>Estructura reutiliza el layout Windster para mantener consistencia.</span></li>
-							<li class="flex items-start gap-2"><i class="fa-solid fa-circle-check text-green-500 mt-1"></i><span>Todos los botones son accesibles con teclado y tienen focus rings.</span></li>
-							<li class="flex items-start gap-2"><i class="fa-solid fa-circle-info text-indigo-500 mt-1"></i><span>Este módulo aún no consume datos reales; funciona como prototipo navegable.</span></li>
-						</ul>
-					</article>
+					<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mt-6">
+						<div class="flex items-center gap-2">
+							<span class="text-sm text-gray-700">Ítems por página:</span>
+							<select id="pageSizeSelect" class="border border-gray-300 rounded px-2 py-1 text-sm">
+								<option value="10">10</option>
+								<option value="25">25</option>
+								<option value="50">50</option>
+							</select>
+						</div>
+						<div class="flex items-center gap-2">
+							<span id="pageInfo" class="text-sm text-gray-700">Mostrando 1-10 de 0 usuarios</span>
+							<div class="flex gap-1">
+								<button id="prevPageBtn" class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+									<i class="fa-solid fa-chevron-left"></i>
+								</button>
+								<button id="nextPageBtn" class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+									<i class="fa-solid fa-chevron-right"></i>
+								</button>
+							</div>
+						</div>
+					</div>
 				</section>
 			</div>
 		</main>
 	</div>
 </div>
 
+<!-- User Form Modal -->
+<div id="userDrawer" class="fixed inset-0 z-50 hidden">
+	<div class="drawer-backdrop absolute inset-0 bg-slate-900/60"></div>
+	<div class="relative flex min-h-full items-start sm:items-center justify-center px-3 sm:px-6 py-6 sm:py-10">
+		<section class="w-full rounded-2xl bg-white modal-panel">
+			<header class="flex items-start justify-between border-b border-gray-100 px-6 py-5">
+				<div>
+					<p class="text-xs uppercase tracking-[0.3em] text-blue-500">Gestión de usuarios</p>
+					<h2 id="drawerTitle" class="mt-1 text-2xl font-semibold text-gray-900">Nuevo Usuario</h2>
+					<p class="mt-1 text-sm text-gray-500">Completa la información para crear o actualizar la cuenta.</p>
+				</div>
+				<button id="closeDrawerBtn" class="rounded-full p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600" aria-label="Cerrar">
+					<i class="fa-solid fa-xmark text-lg"></i>
+				</button>
+			</header>
+
+			<div class="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+				<div class="rounded-2xl border border-blue-100 bg-blue-50/80 p-4 text-sm text-blue-900 flex gap-3">
+					<i class="fa-solid fa-circle-info text-blue-500 text-xl"></i>
+					<div>
+						<p class="font-semibold">Consejo rápido</p>
+						<p class="text-blue-900/80">Los Owners requieren un sitio asignado y tienen acceso completo a su espacio; los Administradores pueden gestionar múltiples sitios.</p>
+					</div>
+				</div>
+
+				<div id="userMetaSection" class="hidden rounded-2xl border border-gray-100 bg-gray-50/70 p-4 text-sm text-gray-600 space-y-4">
+					<div class="grid gap-4 md:grid-cols-3">
+						<div>
+							<p class="text-xs uppercase tracking-widest text-gray-400">ID interno</p>
+							<p id="metaId" class="mt-1 text-gray-900 font-semibold">—</p>
+						</div>
+						<div>
+							<p class="text-xs uppercase tracking-widest text-gray-400">Rol asignado</p>
+							<p id="metaRole" class="mt-1 text-gray-900 font-semibold">—</p>
+						</div>
+						<div>
+							<p class="text-xs uppercase tracking-widest text-gray-400">Sitio</p>
+							<p id="metaSite" class="mt-1 text-gray-900 font-semibold">—</p>
+						</div>
+					</div>
+					<div class="grid gap-4 md:grid-cols-3">
+						<div>
+							<p class="text-xs uppercase tracking-widest text-gray-400">Estado</p>
+							<p id="metaStatus" class="mt-1 text-gray-900 font-semibold">—</p>
+						</div>
+						<div>
+							<p class="text-xs uppercase tracking-widest text-gray-400">Último acceso</p>
+							<p id="metaLastLogin" class="mt-1 text-gray-900 font-semibold">—</p>
+						</div>
+						<div>
+							<p class="text-xs uppercase tracking-widest text-gray-400">Expira</p>
+							<p id="metaExpires" class="mt-1 text-gray-900 font-semibold">—</p>
+						</div>
+					</div>
+					<div class="grid gap-4 md:grid-cols-2">
+						<div>
+							<p class="text-xs uppercase tracking-widest text-gray-400">Creado</p>
+							<p id="metaCreated" class="mt-1 text-gray-900 font-semibold">—</p>
+						</div>
+						<div>
+							<p class="text-xs uppercase tracking-widest text-gray-400">Última actualización</p>
+							<p id="metaUpdated" class="mt-1 text-gray-900 font-semibold">—</p>
+						</div>
+					</div>
+					<div class="flex flex-col gap-2">
+						<p class="text-xs uppercase tracking-widest text-gray-400">Contraseña visible</p>
+						<div class="flex flex-wrap items-center gap-2">
+							<code id="metaPassword" class="rounded-lg bg-white px-3 py-1 text-base font-semibold text-gray-800">—</code>
+							<button type="button" id="copyPasswordBtn" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-white transition disabled:opacity-40">
+								<i class="fa-solid fa-copy"></i>
+								Copiar
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<form id="userForm" class="space-y-6">
+					<div class="grid gap-4 md:grid-cols-2">
+						<div>
+							<label for="username" class="text-sm font-medium text-gray-700">Nombre de usuario</label>
+							<div class="mt-1 relative">
+								<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+									<i class="fa-solid fa-user"></i>
+								</span>
+								<input type="text" id="username" name="username" required class="block w-full rounded-xl border border-gray-300 py-2 pl-10 pr-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="ej. maria.campos">
+							</div>
+						</div>
+						<div>
+							<label for="email" class="text-sm font-medium text-gray-700">Correo electrónico</label>
+							<div class="mt-1 relative">
+								<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+									<i class="fa-solid fa-envelope"></i>
+								</span>
+								<input type="email" id="email" name="email" required class="block w-full rounded-xl border border-gray-300 py-2 pl-10 pr-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="usuario@webcontrol.com">
+							</div>
+						</div>
+					</div>
+
+					<div class="grid gap-4 md:grid-cols-2">
+						<div>
+							<label for="password" class="text-sm font-medium text-gray-700">Contraseña</label>
+							<input type="password" id="password" name="password" required class="mt-1 block w-full rounded-xl border border-gray-300 py-2 px-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="Mínimo 8 caracteres">
+							<p class="mt-1 text-xs text-gray-500">Déjalo vacío para mantener la contraseña actual.</p>
+						</div>
+						<div>
+							<label for="role" class="text-sm font-medium text-gray-700">Rol</label>
+							<select id="role" name="role" required class="mt-1 block w-full rounded-xl border border-gray-300 py-2 px-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+								<option value="">Seleccionar rol</option>
+								<option value="owner">Owner</option>
+								<option value="admin">Administrador</option>
+							</select>
+						</div>
+					</div>
+
+					<div id="siteField" class="hidden">
+						<label for="site_id" class="text-sm font-medium text-gray-700">Sitio asignado</label>
+						<select id="site_id" name="site_id" class="mt-1 block w-full rounded-xl border border-gray-300 py-2 px-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+							<option value="">Seleccionar sitio</option>
+						</select>
+					</div>
+
+					<div class="grid gap-4 md:grid-cols-2">
+						<div>
+							<label for="expires_at" class="text-sm font-medium text-gray-700">Fecha de expiración (opcional)</label>
+							<input type="datetime-local" id="expires_at" name="expires_at" class="mt-1 block w-full rounded-xl border border-gray-300 py-2 px-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+						</div>
+						<div class="flex items-center gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 mt-6 md:mt-8">
+							<input type="checkbox" id="is_active" name="is_active" checked class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+							<div>
+								<label for="is_active" class="text-sm font-medium text-gray-800">Usuario activo</label>
+								<p class="text-xs text-gray-500">Desactiva el acceso temporalmente sin eliminar la cuenta.</p>
+							</div>
+						</div>
+					</div>
+				</form>
+			</div>
+
+			<footer class="flex flex-col gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4 sm:flex-row sm:justify-end">
+				<button id="cancelBtn" type="button" class="w-full rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-white sm:w-auto">
+					Cancelar
+				</button>
+				<button id="saveBtn" type="button" class="w-full rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 sm:w-auto">
+					Guardar
+				</button>
+			</footer>
+		</section>
+	</div>
+</div>
+
+<script src="/static/js/main.js"></script>
 <script>
-	const toggleSidebarMobile = document.getElementById('toggleSidebarMobile');
-	const sidebar = document.getElementById('sidebar');
-	const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-	const userMenuButton = document.getElementById('userMenuButton');
-	const userMenu = document.getElementById('userMenu');
+// Global state
+let users = [];
+let filteredUsers = [];
+let currentPage = 1;
+let pageSize = 10;
+let editingUserId = null;
 
-	toggleSidebarMobile?.addEventListener('click', () => {
-		sidebar?.classList.toggle('hidden');
-		sidebarBackdrop?.classList.toggle('hidden');
+// Utility functions
+function formatDate(dateString) {
+	if (!dateString) return '-';
+	const date = new Date(dateString);
+	return date.toLocaleDateString('es-ES', {
+		year: 'numeric',
+		month: 'short',
+		day: 'numeric'
 	});
+}
 
-	sidebarBackdrop?.addEventListener('click', () => {
-		sidebar?.classList.add('hidden');
-		sidebarBackdrop?.classList.add('hidden');
+function formatDateTime(dateString) {
+	if (!dateString) return '-';
+	const date = new Date(dateString);
+	return date.toLocaleString('es-ES', {
+		dateStyle: 'medium',
+		timeStyle: 'short'
 	});
+}
 
-	userMenuButton?.addEventListener('click', (event) => {
-		event.stopPropagation();
-		userMenu?.classList.toggle('hidden');
-	});
+function toInputDateValue(dateString) {
+	if (!dateString) return '';
+	const date = new Date(dateString);
+	return date.toISOString().slice(0, 16);
+}
 
-	document.addEventListener('click', (event) => {
-		if (!userMenu?.contains(event.target) && !userMenuButton?.contains(event.target)) {
-			userMenu?.classList.add('hidden');
+function inputDateToISOString(inputValue) {
+	if (!inputValue) return null;
+	return new Date(inputValue).toISOString();
+}
+
+function getInitials(name) {
+	return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function getRoleBadge(role) {
+	const badges = {
+		'superadmin': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Superadmin</span>',
+		'admin': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Administrador</span>',
+		'owner': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Owner</span>'
+	};
+	return badges[role] || `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">${role}</span>`;
+}
+
+function getStatusBadge(user) {
+	const now = new Date();
+	const isExpired = user.expires_at ? new Date(user.expires_at) < now : false;
+	if (!user.is_active) {
+		return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">Suspendido</span>';
+	}
+	if (isExpired) {
+		return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Expirado</span>';
+	}
+	return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Activo</span>';
+}
+
+function getSiteChip(user) {
+	if (user.site && user.site.name) {
+		return `<span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700"><i class="fa-solid fa-earth-americas"></i>${user.site.name}</span>`;
+	}
+	return '<span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500"><i class="fa-regular fa-circle"></i>Sin sitio asignado</span>';
+}
+
+function renderRow(user) {
+	const avatar = user.username ? getInitials(user.username) : '?';
+	const activationDate = formatDate(user.activated_at);
+	const expirationDate = formatDate(user.expires_at);
+	const lastLogin = formatDateTime(user.last_login);
+	const roleBadge = getRoleBadge(user.role);
+	const statusBadge = getStatusBadge(user);
+	const siteChip = getSiteChip(user);
+	const idChip = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-white border border-gray-200 text-gray-600">ID #${user.id}</span>`;
+	const roleDescriptor = user.role_display || user.role_label;
+
+	return `
+		<tr class="hover:bg-gray-50">
+			<td class="px-6 py-4 whitespace-nowrap">
+				<div class="flex items-center">
+					<div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-medium">
+						${avatar}
+					</div>
+					<div class="ml-4">
+						<div class="text-sm font-medium text-gray-900">${user.username}</div>
+						<div class="text-sm text-gray-500">${user.email}</div>
+						<div class="mt-2 flex flex-wrap gap-2">${siteChip}${idChip}</div>
+					</div>
+				</div>
+			</td>
+			<td class="px-6 py-4 whitespace-nowrap text-sm">
+				${roleBadge}
+				${roleDescriptor ? `<p class="text-xs text-gray-500 mt-1">${roleDescriptor}</p>` : ''}
+			</td>
+			<td class="px-6 py-4 whitespace-nowrap text-sm">
+				${statusBadge}
+			</td>
+			<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+				${activationDate}
+			</td>
+			<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+				${expirationDate}
+			</td>
+			<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+				${lastLogin}
+			</td>
+			<td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+				<button onclick="editUser(${user.id})" class="text-indigo-600 hover:text-indigo-900 mr-3">
+					<i class="fa-solid fa-pen-to-square"></i>
+				</button>
+				<button onclick="deleteUser(${user.id})" class="text-red-600 hover:text-red-900">
+					<i class="fa-solid fa-trash"></i>
+				</button>
+			</td>
+		</tr>
+	`;
+}
+
+function updateTable() {
+	const start = (currentPage - 1) * pageSize;
+	const end = start + pageSize;
+	const pageUsers = filteredUsers.slice(start, end);
+
+	const tbody = document.getElementById('usersTableBody');
+	tbody.innerHTML = pageUsers.map(renderRow).join('');
+
+	updatePagination();
+}
+
+function updatePagination() {
+	const totalPages = Math.ceil(filteredUsers.length / pageSize);
+	const pageInfoEl = document.getElementById('pageInfo');
+	if (filteredUsers.length === 0) {
+		pageInfoEl.textContent = 'Mostrando 0 de 0 usuarios';
+	} else {
+		const start = (currentPage - 1) * pageSize + 1;
+		const end = Math.min(currentPage * pageSize, filteredUsers.length);
+		pageInfoEl.textContent = `Mostrando ${start}-${end} de ${filteredUsers.length} usuarios`;
+	}
+
+	document.getElementById('prevPageBtn').disabled = currentPage === 1 || totalPages === 0;
+	document.getElementById('nextPageBtn').disabled = currentPage === totalPages || totalPages === 0;
+}
+
+function filterUsers() {
+	const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+	filteredUsers = users.filter(user =>
+		user.username.toLowerCase().includes(searchTerm) ||
+		user.email.toLowerCase().includes(searchTerm) ||
+		user.role.toLowerCase().includes(searchTerm)
+	);
+	currentPage = 1;
+	updateTable();
+}
+
+async function loadUsers() {
+	try {
+		const response = await fetchAPI('/api/users');
+		if (!response || !response.ok) throw new Error('Failed to load users');
+		users = await response.json();
+		filteredUsers = [...users];
+		updateTable();
+	} catch (error) {
+		console.error('Error loading users:', error);
+		alert('Error al cargar usuarios');
+	}
+}
+
+async function loadSites() {
+	try {
+		const response = await fetchAPI('/api/sites');
+		if (!response || !response.ok) throw new Error('Failed to load sites');
+		const sites = await response.json();
+		const siteSelect = document.getElementById('site_id');
+		siteSelect.innerHTML = '<option value="">Seleccionar sitio</option>';
+		sites.forEach(site => {
+			const option = document.createElement('option');
+			option.value = site.id;
+			option.textContent = site.name;
+			siteSelect.appendChild(option);
+		});
+	} catch (error) {
+		console.error('Error loading sites:', error);
+	}
+}
+
+function showDrawer(title, user = null) {
+	document.getElementById('drawerTitle').textContent = title;
+	document.getElementById('userDrawer').classList.remove('hidden');
+	updateUserMeta(user);
+
+	if (user) {
+		editingUserId = user.id;
+		document.getElementById('username').value = user.username;
+		document.getElementById('email').value = user.email;
+		document.getElementById('password').required = false;
+		document.getElementById('password').value = '';
+		document.getElementById('role').value = user.role;
+		document.getElementById('site_id').value = user.site_id || '';
+		document.getElementById('expires_at').value = toInputDateValue(user.expires_at);
+		document.getElementById('is_active').checked = user.is_active;
+		toggleSiteField(user.role);
+	} else {
+		editingUserId = null;
+		document.getElementById('userForm').reset();
+		document.getElementById('password').required = true;
+		toggleSiteField('');
+	}
+}
+
+function hideDrawer() {
+	document.getElementById('userDrawer').classList.add('hidden');
+	editingUserId = null;
+	updateUserMeta(null);
+}
+
+function toggleSiteField(role) {
+	const siteField = document.getElementById('siteField');
+	siteField.classList.toggle('hidden', role !== 'owner');
+	document.getElementById('site_id').required = role === 'owner';
+}
+
+function updateUserMeta(user) {
+	const section = document.getElementById('userMetaSection');
+	const copyButton = document.getElementById('copyPasswordBtn');
+	const passwordEl = document.getElementById('metaPassword');
+	if (!section || !copyButton || !passwordEl) return;
+
+	if (!user) {
+		section.classList.add('hidden');
+		passwordEl.textContent = '—';
+		copyButton.disabled = true;
+		copyButton.dataset.password = '';
+		['metaId','metaRole','metaSite','metaStatus','metaLastLogin','metaCreated','metaUpdated','metaExpires'].forEach(id => {
+			const el = document.getElementById(id);
+			if (el) el.textContent = '—';
+		});
+		return;
+	}
+
+	section.classList.remove('hidden');
+	const statusHtml = getStatusBadge(user);
+	document.getElementById('metaId').textContent = `#${user.id}`;
+	document.getElementById('metaRole').textContent = user.role_display || user.role_label || user.role || '—';
+	document.getElementById('metaSite').textContent = (user.site && user.site.name) ? user.site.name : 'Sin sitio asignado';
+	document.getElementById('metaStatus').innerHTML = statusHtml;
+	document.getElementById('metaLastLogin').textContent = formatDateTime(user.last_login);
+	document.getElementById('metaExpires').textContent = formatDateTime(user.expires_at);
+	document.getElementById('metaCreated').textContent = formatDateTime(user.created_at);
+	document.getElementById('metaUpdated').textContent = formatDateTime(user.updated_at);
+	const passwordValue = user.plain_password || '—';
+	passwordEl.textContent = passwordValue;
+	copyButton.disabled = !user.plain_password;
+	copyButton.dataset.password = user.plain_password || '';
+}
+
+async function handleUserSubmit() {
+	const formData = new FormData(document.getElementById('userForm'));
+	const isEditing = Boolean(editingUserId);
+	const rawPassword = (formData.get('password') || '').trim();
+	const data = {
+		username: formData.get('username').trim(),
+		email: formData.get('email').trim(),
+		role: formData.get('role'),
+		site_id: formData.get('site_id') || null,
+		expires_at: inputDateToISOString(formData.get('expires_at')),
+		is_active: formData.has('is_active')
+	};
+
+	if (!isEditing && rawPassword.length < 8) {
+		alert('La contraseña debe tener al menos 8 caracteres para nuevos usuarios.');
+		return;
+	}
+
+	if (isEditing && rawPassword && rawPassword.length < 8) {
+		alert('La nueva contraseña debe tener al menos 8 caracteres.');
+		return;
+	}
+
+	if (!isEditing || rawPassword) {
+		data.password = rawPassword;
+	}
+
+	try {
+		let response;
+		if (editingUserId) {
+			response = await fetchAPI(`/api/users/${editingUserId}`, {
+				method: 'PUT',
+				body: JSON.stringify(data)
+			});
+		} else {
+			response = await fetchAPI('/api/users', {
+				method: 'POST',
+				body: JSON.stringify(data)
+			});
+		}
+
+		if (!response || !response.ok) throw new Error('Failed to save user');
+
+		hideDrawer();
+		loadUsers();
+	} catch (error) {
+		console.error('Error saving user:', error);
+		alert('Error al guardar usuario');
+	}
+}
+
+async function deleteUser(userId) {
+	if (!confirm('¿Estás seguro de que quieres eliminar este usuario?')) return;
+
+	try {
+		const response = await fetchAPI(`/api/users/${userId}`, { method: 'DELETE' });
+		if (!response || !response.ok) throw new Error('Failed to delete user');
+		loadUsers();
+	} catch (error) {
+		console.error('Error deleting user:', error);
+		alert('Error al eliminar usuario');
+	}
+}
+
+function editUser(userId) {
+	const user = users.find(u => u.id === userId);
+	if (user) showDrawer('Editar Usuario', user);
+}
+
+// Event listeners
+document.getElementById('searchInput').addEventListener('input', filterUsers);
+document.getElementById('pageSizeSelect').addEventListener('change', (e) => {
+	pageSize = parseInt(e.target.value);
+	currentPage = 1;
+	updateTable();
+});
+document.getElementById('prevPageBtn').addEventListener('click', () => {
+	if (currentPage > 1) {
+		currentPage--;
+		updateTable();
+	}
+});
+document.getElementById('nextPageBtn').addEventListener('click', () => {
+	const totalPages = Math.ceil(filteredUsers.length / pageSize);
+	if (currentPage < totalPages) {
+		currentPage++;
+		updateTable();
+	}
+});
+document.getElementById('newUserBtn').addEventListener('click', () => showDrawer('Nuevo Usuario'));
+document.getElementById('closeDrawerBtn').addEventListener('click', hideDrawer);
+document.getElementById('cancelBtn').addEventListener('click', hideDrawer);
+document.getElementById('saveBtn').addEventListener('click', handleUserSubmit);
+document.getElementById('role').addEventListener('change', (e) => toggleSiteField(e.target.value));
+
+const copyPasswordBtn = document.getElementById('copyPasswordBtn');
+if (copyPasswordBtn) {
+	copyPasswordBtn.addEventListener('click', async () => {
+		const value = copyPasswordBtn.dataset.password;
+		if (!value) return;
+		try {
+			await navigator.clipboard.writeText(value);
+			if (typeof showNotification === 'function') {
+				showNotification('Contraseña copiada al portapapeles', 'success');
+			} else {
+				console.log('Contraseña copiada');
+			}
+		} catch (error) {
+			console.error('Error copiando contraseña', error);
+			alert('No se pudo copiar la contraseña');
 		}
 	});
+}
+
+// Sidebar and menu
+document.getElementById('toggleSidebarMobile').addEventListener('click', () => {
+	document.getElementById('sidebar').classList.toggle('hidden');
+	document.getElementById('sidebarBackdrop').classList.toggle('hidden');
+});
+document.getElementById('sidebarBackdrop').addEventListener('click', () => {
+	document.getElementById('sidebar').classList.add('hidden');
+	document.getElementById('sidebarBackdrop').classList.add('hidden');
+});
+document.getElementById('userMenuButton').addEventListener('click', (event) => {
+	event.stopPropagation();
+	document.getElementById('userMenu').classList.toggle('hidden');
+});
+document.addEventListener('click', (event) => {
+	if (!document.getElementById('userMenu').contains(event.target) && !document.getElementById('userMenuButton').contains(event.target)) {
+		document.getElementById('userMenu').classList.add('hidden');
+	}
+});
+
+// Initialize
+document.addEventListener('DOMContentLoaded', async () => {
+	try {
+		if (typeof checkAuth === 'function') {
+			const isAuth = await checkAuth();
+			if (!isAuth) return;
+		}
+		await Promise.all([loadUsers(), loadSites()]);
+	} catch (error) {
+		console.error('Error initializing users module:', error);
+	}
+});
 </script>
 
 </body>

@@ -7,6 +7,7 @@ from sqlalchemy import (
     DateTime,
     Boolean,
     ForeignKey,
+    text,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
@@ -108,6 +109,8 @@ class User(Base):
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
     site_id = Column(Integer, ForeignKey("sites.id"), nullable=True, unique=True)
     is_active = Column(Boolean, default=True)
+    activated_at = Column(DateTime, nullable=True)
+    expires_at = Column(DateTime, nullable=True)
     last_login = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -130,6 +133,7 @@ def init_db():
     import bcrypt
 
     Base.metadata.create_all(bind=engine)
+    ensure_user_audit_columns()
 
     db = SessionLocal()
     try:
@@ -195,10 +199,30 @@ def seed_superadmin_user(db, bcrypt_module):
         plain_password=plain_password,
         role_id=superadmin_role.id,
         is_active=True,
+        activated_at=datetime.utcnow(),
     )
     db.add(new_user)
     db.commit()
     print(f"✅ Superadmin creado: {admin_email}")
+
+
+def ensure_user_audit_columns():
+    """Garantiza que la tabla users tenga las columnas de activación/expiración."""
+    if engine.dialect.name != "sqlite":
+        return
+
+    with engine.connect() as conn:
+        result = conn.execute(text("PRAGMA table_info(users)"))
+        existing = {row[1] for row in result}
+        statements = []
+        if "activated_at" not in existing:
+            statements.append("ALTER TABLE users ADD COLUMN activated_at DATETIME")
+        if "expires_at" not in existing:
+            statements.append("ALTER TABLE users ADD COLUMN expires_at DATETIME")
+        for statement in statements:
+            conn.execute(text(statement))
+        if statements:
+            conn.commit()
 
 
 if __name__ == "__main__":
