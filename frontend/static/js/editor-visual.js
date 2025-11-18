@@ -8,7 +8,8 @@ const editorVisual = (() => {
         previewTimer: null,
         models: [],
         inputsBound: false,
-        activePaletteId: null
+        activePaletteId: null,
+        previewMode: 'desktop'
     };
 
     const LOCAL_ASSET_HOSTS = new Set(['localhost', '127.0.0.1']);
@@ -207,6 +208,35 @@ const editorVisual = (() => {
         renderPaletteSuggestions();
     }
 
+    function setPreviewMode(mode) {
+        const allowed = new Set(['desktop', 'mobile']);
+        state.previewMode = allowed.has(mode) ? mode : 'desktop';
+        updatePreviewModeUI();
+    }
+
+    function updatePreviewModeUI() {
+        const wrapper = document.getElementById('previewWrapper');
+        if (wrapper) {
+            wrapper.dataset.mode = state.previewMode;
+        }
+        document.querySelectorAll('#previewModeToggle [data-preview-mode]').forEach(button => {
+            const isActive = button.dataset.previewMode === state.previewMode;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+    }
+
+    function setupPreviewModeControls() {
+        const toggle = document.getElementById('previewModeToggle');
+        if (!toggle) return;
+        toggle.querySelectorAll('[data-preview-mode]').forEach(button => {
+            button.addEventListener('click', () => {
+                setPreviewMode(button.dataset.previewMode);
+            });
+        });
+        updatePreviewModeUI();
+    }
+
     const IMAGE_MAX_BYTES = 6 * 1024 * 1024;
     const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/svg+xml'];
 
@@ -218,6 +248,7 @@ const editorVisual = (() => {
         await loadSite();
         bindFieldInputs();
         setupPaletteControls();
+        setupPreviewModeControls();
         refreshPreview(true);
     }
 
