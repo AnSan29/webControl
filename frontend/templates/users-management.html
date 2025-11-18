@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Usuarios · WebControl Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      body {
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        background-color: #f8fafc;
+        color: #0f172a;
+      }
+
+      .drawer-panel {
+        box-shadow: 0 25px 50px -12px rgb(15 23 42 / 0.25);
+        animation: drawer-enter 0.3s ease-out;
+      }
+
+      @keyframes drawer-enter {
+        from {
+          opacity: 0;
+          transform: translateX(40px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      .modal-backdrop {
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(2px);
+      }
+
+      .avatar-ring {
+        width: 40px;
+        height: 40px;
+        border-radius: 9999px;
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+      }
+
+      .role-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        border-radius: 9999px;
+        padding: 0.15rem 0.85rem;
+        text-transform: capitalize;
+      }
+
+      .role-chip i {
+        font-size: 0.8rem;
+      }
+
+      .role-chip.owner {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      .role-chip.admin {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+
+      .role-chip.superadmin {
+        background: #ede9fe;
+        color: #5b21b6;
+      }
+
+      .role-chip.default {
+        background: #f1f5f9;
+        color: #475569;
+      }
+
+      .sort-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-weight: 600;
+        color: #475569;
+      }
+
+      .sort-button[data-active="true"] {
+        color: #0f172a;
+      }
+
+      .sort-icon {
+        font-size: 0.8rem;
+        color: #94a3b8;
+      }
+
+      .sort-button[data-active="true"] .sort-icon {
+        color: #2563eb;
+      }
+
+      .pagination-button {
+        width: 36px;
+        height: 36px;
+        border-radius: 9999px;
+        border: 1px solid #e2e8f0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        color: #0f172a;
+      }
+
+      .pagination-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .table-scroll::-webkit-scrollbar {
+        height: 6px;
+      }
+
+      .table-scroll::-webkit-scrollbar-thumb {
+        background: #cbd5f5;
+        border-radius: 9999px;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <nav class="bg-white border-b border-gray-200 fixed z-30 w-full">
+      <div class="px-3 py-3 lg:px-5 lg:pl-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center justify-start">
+            <button
+              id="toggleSidebarMobile"
+              aria-expanded="true"
+              aria-controls="sidebar"
+              class="lg:hidden mr-2 text-gray-600 hover:text-gray-900 cursor-pointer p-2 hover:bg-gray-100 focus:bg-gray-100 focus:ring-2 focus:ring-gray-100 rounded"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                <main>
+                  <div class="pt-6 px-4 space-y-6 max-w-7xl mx-auto">
+                    <section class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+                      <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+                            Control de acceso
+                          </p>
+                          <h1 class="mt-2 text-3xl font-bold text-gray-900">Usuarios</h1>
+                          <p class="mt-2 text-gray-500 max-w-2xl">
+                            Administra perfiles, roles y fechas clave del equipo. Todo queda bajo vigilancia en un tablero limpio y profesional.
+                          </p>
+                        </div>
+                        <div class="flex gap-8 text-right">
+                          <div>
+                            <p class="text-sm text-gray-500">Usuarios activos</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="activeUsersBadge">0</p>
+                          </div>
+                          <div>
+                            <p class="text-sm text-gray-500">Total registrados</p>
+                            <p class="text-2xl font-semibold text-gray-900" id="totalUsersBadge">0</p>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                      <div class="flex flex-col gap-4 border-b border-gray-100 p-6 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="flex flex-1 flex-col gap-3 md:flex-row md:items-center">
+                          <div class="relative flex-1 min-w-[220px]">
+                            <label for="searchInput" class="sr-only">Busca en la tabla</label>
+                            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                              <i class="fas fa-magnifying-glass"></i>
+                            </span>
+                            <input
+                              id="searchInput"
+                              type="text"
+                              placeholder="Busca en la tabla"
+                              class="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
+                            />
+                          </div>
+                          <div class="flex flex-col gap-3 sm:flex-row">
+                            <select
+                              id="roleFilter"
+                              class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 sm:w-48"
+                            >
+                              <option value="all">Todos los roles</option>
+                            </select>
+                            <select
+                              id="statusFilter"
+                              class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 sm:w-48"
+                            >
+                              <option value="all">Todos los estados</option>
+                              <option value="active">Activos</option>
+                              <option value="inactive">Inactivos</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div class="flex items-center justify-end gap-3">
+                          <button
+                            id="refreshButton"
+                            class="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                          >
+                            <i class="fa-solid fa-arrow-rotate-right mr-2"></i>
+                            Actualizar
+                          </button>
+                          <button
+                            id="openCreateUser"
+                            class="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                          >
+                            <i class="fa-solid fa-plus mr-2"></i>
+                            Nuevo
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="relative">
+                        <div class="overflow-x-auto">
+                          <table class="min-w-full divide-y divide-gray-100 text-sm">
+                            <thead class="bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                              <tr>
+                                <th scope="col" class="px-6 py-3 text-left">
+                                  <button type="button" class="sort-button" data-sort-field="username">
+                                    Usuario
+                                    <i class="sort-icon fas fa-sort"></i>
+                                  </button>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left">
+                                  <button type="button" class="sort-button" data-sort-field="role">
+                                    Grupo / Rol
+                                    <i class="sort-icon fas fa-sort"></i>
+                                  </button>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left">
+                                  <button type="button" class="sort-button" data-sort-field="activated_at">
+                                    Fecha de activación
+                                    <i class="sort-icon fas fa-sort"></i>
+                                  </button>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left">
+                                  <button type="button" class="sort-button" data-sort-field="expires_at">
+                                    Fecha de expiración
+                                    <i class="sort-icon fas fa-sort"></i>
+                                  </button>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-right">Acciones</th>
+                              </tr>
+                            </thead>
+                            <tbody id="usersTableBody" class="divide-y divide-gray-100 bg-white"></tbody>
+                          </table>
+                        </div>
+
+                        <div id="tableLoader" class="py-10 text-center text-gray-500">
+                          <div class="inline-flex items-center gap-3 text-gray-600">
+                            <svg class="h-5 w-5 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Cargando usuarios...</span>
+                          </div>
+                        </div>
+                        <div id="emptyState" class="hidden border-t border-gray-100 py-16 text-center">
+                          <div class="mx-auto max-w-md">
+                            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-500">
+                              <i class="fas fa-users-slash text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">Sin resultados</h3>
+                            <p class="mt-2 text-sm text-gray-500">No encontramos usuarios con los filtros actuales. Ajusta tu búsqueda o crea un nuevo registro.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </section>
+
+                    <div class="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+                      <div class="flex items-center gap-3">
+                        <span class="text-sm text-gray-600">Ítems por página</span>
+                        <select
+                          id="pageSizeSelect"
+                          class="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
+                        >
+                          <option value="5">5</option>
+                          <option value="10" selected>10</option>
+                          <option value="25">25</option>
+                          <option value="50">50</option>
+                        </select>
+                      </div>
+                      <p id="paginationInfo" class="text-sm text-gray-500">Mostrando 0 - 0 de 0 usuarios</p>
+                      <div class="flex items-center gap-2">
+                        <button id="prevPage" class="pagination-button" aria-label="Página anterior">
+                          <i class="fas fa-chevron-left text-sm"></i>
+                        </button>
+                        <span id="currentPageLabel" class="text-sm font-semibold text-gray-700">1 / 1</span>
+                        <button id="nextPage" class="pagination-button" aria-label="Página siguiente">
+                          <i class="fas fa-chevron-right text-sm"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </main>
+                                  <button
+                                    type="button"
+                                    class="sort-button"
+                                    data-sort-field="username"
+                                  >
+                                    Usuario
+                                    <i class="sort-icon fas fa-sort"></i>
+                                  </button>
+                                </th>
+                                <th scope="col" class="p-4 text-left">
+                                  <button
+                                    type="button"
+                                    class="sort-button"
+                                    data-sort-field="role"
+                                  >
+                                    Rol
+                                    <i class="sort-icon fas fa-sort"></i>
+                                  </button>
+                                </th>
+                                <th scope="col" class="p-4 text-left">
+                                  <button
+                                    type="button"
+                                    class="sort-button"
+                                    data-sort-field="site"
+                                  >
+                                    Sitio asignado
+                                    <i class="sort-icon fas fa-sort"></i>
+                                  </button>
+                                </th>
+                                <th scope="col" class="p-4 text-left">
+                                  Estado
+                                </th>
+                                <th scope="col" class="p-4 text-left">
+                                  <button
+                                    type="button"
+                                    class="sort-button"
+                                    data-sort-field="created_at"
+                                  >
+                                    Creado
+                                    <i class="sort-icon fas fa-sort"></i>
+                                  </button>
+                                </th>
+                                <th scope="col" class="p-4 text-right">
+                                  Acciones
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody
+                              id="usersTableBody"
+                              class="bg-white divide-y divide-gray-200"
+                            ></tbody>
+                          </table>
+                        </div>
+                        <div
+                          id="tableLoader"
+                          class="py-10 text-center text-gray-500"
+                        >
+                          <div
+                            class="inline-flex items-center gap-3 text-gray-600"
+                          >
+                            <svg
+                              class="animate-spin h-5 w-5 text-blue-600"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                class="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                stroke-width="4"
+                              ></circle>
+                              <path
+                                class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                            <span>Cargando usuarios...</span>
+                          </div>
+                        </div>
+                        <div id="emptyState" class="hidden py-16 text-center">
+                          <div class="max-w-md mx-auto">
+                            <div
+                              class="w-14 h-14 mx-auto rounded-full bg-gray-100 text-gray-500 flex items-center justify-center mb-4"
+                            >
+                              <i class="fas fa-users-slash text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">
+                              Sin resultados
+                            </h3>
+                            <p class="mt-2 text-sm text-gray-500">
+                              No encontramos usuarios con los filtros actuales.
+                              Ajusta tu búsqueda o crea un nuevo registro.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <div
+                class="bg-white border border-gray-200 rounded-2xl shadow-sm sm:flex items-center w-full sm:justify-between p-4"
+              >
+                <div
+                  class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4"
+                >
+                  <div class="flex items-center space-x-2">
+                    <button
+                      id="prevPage"
+                      class="pagination-button"
+                      aria-label="Página anterior"
+                    >
+                      <i class="fas fa-chevron-left text-sm"></i>
+                    </button>
+                    <span
+                      id="currentPageLabel"
+                      class="text-sm font-semibold text-gray-700"
+                      >1 / 1</span
+                    >
+                    <button
+                      id="nextPage"
+                      class="pagination-button"
+                      aria-label="Página siguiente"
+                    >
+                      <i class="fas fa-chevron-right text-sm"></i>
+                    </button>
+                  </div>
+                  <p id="paginationInfo" class="text-sm text-gray-500">
+                    Mostrando 0 - 0 de 0 usuarios
+                  </p>
+                </div>
+                <div
+                  class="flex items-center gap-2 text-sm text-gray-600 mt-4 sm:mt-0"
+                >
+                  <span>Mostrar</span>
+                  <select
+                    id="pageSizeSelect"
+                    class="border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-700 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                  </select>
+                  <span>por página</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div id="userDrawer" class="fixed inset-0 z-40 hidden" aria-hidden="true">
+      <div
+        class="absolute inset-0 modal-backdrop"
+        data-close="userDrawer"
+      ></div>
+      <div
+        class="absolute right-0 top-0 h-full w-full max-w-xl bg-white p-6 overflow-y-auto drawer-panel"
+      >
+        <div class="flex items-start justify-between mb-6">
+          <div>
+            <p class="text-xs uppercase tracking-wide text-gray-500">
+              Control de acceso
+            </p>
+            <h2 class="text-2xl font-bold text-gray-900" id="drawerTitle">
+              Nuevo usuario
+            </h2>
+            <p class="text-sm text-gray-500 mt-1" id="drawerSubtitle">
+              Define credenciales, rol y estatus
+            </p>
+          </div>
+          <button
+            id="closeUserDrawer"
+            class="p-2 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100"
+          >
+            <span class="sr-only">Cerrar panel</span>
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <form id="userForm" class="space-y-5">
+          <input type="hidden" id="userIdField" />
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Nombre de usuario</label
+            >
+            <input
+              type="text"
+              id="usernameInput"
+              required
+              minlength="3"
+              class="mt-1 block w-full border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="ej. carmen.gestor"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Correo electrónico</label
+            >
+            <input
+              type="email"
+              id="emailInput"
+              required
+              class="mt-1 block w-full border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="usuario@webcontrol.com"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Rol fijo</label
+            >
+            <select
+              id="roleSelect"
+              class="mt-1 block w-full border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="" disabled selected>
+                Selecciona un rol fijo (cargando...)
+              </option>
+            </select>
+            <p class="mt-1 text-xs text-gray-500">
+              Los superadmins solo se crean desde seed. Owners requieren un
+              sitio exclusivo.
+            </p>
+          </div>
+
+          <div id="siteSelectWrapper" class="hidden">
+            <label class="block text-sm font-medium text-gray-700"
+              >Sitio asignado</label
+            >
+            <select
+              id="siteSelect"
+              class="mt-1 block w-full border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Selecciona un sitio disponible</option>
+            </select>
+            <p id="siteHelper" class="mt-1 text-xs text-gray-500">
+              Solo se listan sitios sin owner asignado.
+            </p>
+          </div>
+
+          <div
+            id="ownerSiteReadonly"
+            class="hidden border border-blue-100 bg-blue-50 text-blue-700 text-sm rounded-xl px-4 py-3"
+          >
+            <i class="fas fa-info-circle mr-2"></i>
+            <span
+              >Este owner administra: <strong id="ownerSiteLabel"></strong
+            ></span>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-gray-700">Estado</p>
+                <p class="text-xs text-gray-500" id="activeLabel">Activo</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  class="sr-only peer"
+                  checked
+                />
+                <div
+                  class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-200 rounded-full peer peer-checked:bg-blue-600 transition"
+                ></div>
+                <span class="sr-only">Alternar estado</span>
+              </label>
+            </div>
+          </div>
+
+          <div
+            id="activationInfo"
+            class="hidden rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700"
+          >
+            <i class="fas fa-bolt mr-2"></i>
+            <span>
+              Activado el
+              <strong id="activationDateLabel" class="font-semibold">—</strong>
+            </span>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700"
+              >Fecha de expiración</label
+            >
+            <input
+              type="date"
+              id="expiresAtInput"
+              class="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p class="mt-1 text-xs text-gray-500">
+              Opcional. Deja vacío para usuarios permanentes.
+            </p>
+          </div>
+
+          <div id="passwordFields" class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700"
+              >Contraseña temporal</label
+            >
+            <div class="flex gap-2">
+              <input
+                type="text"
+                id="passwordInput"
+                class="flex-1 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Genera automáticamente"
+              />
+              <button
+                id="generateTempPassword"
+                class="px-3 py-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200"
+              >
+                <i class="fas fa-wand-magic-sparkles"></i>
+              </button>
+            </div>
+            <p class="text-xs text-gray-500">
+              Comparte esta contraseña de manera segura con el nuevo usuario.
+            </p>
+          </div>
+
+          <div class="pt-3 border-t border-gray-100">
+            <button
+              id="drawerSubmit"
+              type="submit"
+              class="w-full inline-flex items-center justify-center px-4 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Guardar cambios
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="deleteModal" class="fixed inset-0 z-50 hidden">
+      <div
+        class="absolute inset-0 modal-backdrop"
+        data-close="deleteModal"
+      ></div>
+      <div
+        class="relative mx-auto mt-24 max-w-md w-full bg-white rounded-2xl shadow-2xl p-6"
+      >
+        <div class="flex items-start gap-3">
+          <div
+            class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center"
+          >
+            <i class="fas fa-triangle-exclamation text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-gray-900">Eliminar usuario</h3>
+            <p class="text-sm text-gray-600 mt-1">
+              Estás a punto de eliminar a
+              <span id="deleteUserName" class="font-semibold text-gray-900"
+                >Usuario</span
+              >. Esta acción no se puede deshacer.
+            </p>
+          </div>
+        </div>
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <button
+            id="cancelDeleteButton"
+            class="px-4 py-2 rounded-xl text-gray-600 hover:bg-gray-100"
+          >
+            Cancelar
+          </button>
+          <button
+            id="confirmDeleteButton"
+            class="px-4 py-2 rounded-xl text-white bg-rose-600 hover:bg-rose-700"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="toast"
+      class="fixed bottom-6 right-6 hidden transform transition-all duration-300 z-50"
+    >
+      <div
+        id="toastContainer"
+        class="bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3"
+      >
+        <span id="toastMessage">Acción realizada</span>
+      </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    <script>
+      (function () {
+        const state = {
+          users: [],
+          roles: [],
+          sites: [],
+          filteredUsers: [],
+          filters: { search: "", role: "all", status: "all" },
+          sort: { field: "activated_at", direction: "desc" },
+          pagination: { page: 1, pageSize: 10 },
+          editingUser: null,
+          deletingUser: null,
+        };
+
+        const elements = {
+          userName: document.getElementById("userName"),
+          userEmail: document.getElementById("userEmail"),
+          activeUsersBadge: document.getElementById("activeUsersBadge"),
+          totalUsersBadge: document.getElementById("totalUsersBadge"),
+          searchInput: document.getElementById("searchInput"),
+          roleFilter: document.getElementById("roleFilter"),
+          statusFilter: document.getElementById("statusFilter"),
+          refreshButton: document.getElementById("refreshButton"),
+          tableBody: document.getElementById("usersTableBody"),
+          tableLoader: document.getElementById("tableLoader"),
+          emptyState: document.getElementById("emptyState"),
+          paginationInfo: document.getElementById("paginationInfo"),
+          pageSizeSelect: document.getElementById("pageSizeSelect"),
+          prevPage: document.getElementById("prevPage"),
+          nextPage: document.getElementById("nextPage"),
+          currentPageLabel: document.getElementById("currentPageLabel"),
+          sortButtons: document.querySelectorAll("[data-sort-field]"),
+          createButton: document.getElementById("openCreateUser"),
+          userDrawer: document.getElementById("userDrawer"),
+          userForm: document.getElementById("userForm"),
+          drawerTitle: document.getElementById("drawerTitle"),
+          drawerSubtitle: document.getElementById("drawerSubtitle"),
+          drawerSubmit: document.getElementById("drawerSubmit"),
+          closeDrawer: document.getElementById("closeUserDrawer"),
+          userId: document.getElementById("userIdField"),
+          username: document.getElementById("usernameInput"),
+          email: document.getElementById("emailInput"),
+          roleSelect: document.getElementById("roleSelect"),
+          siteWrapper: document.getElementById("siteSelectWrapper"),
+          siteSelect: document.getElementById("siteSelect"),
+          siteHelper: document.getElementById("siteHelper"),
+          ownerSiteReadonly: document.getElementById("ownerSiteReadonly"),
+          ownerSiteLabel: document.getElementById("ownerSiteLabel"),
+          activeToggle: document.getElementById("isActive"),
+          activeLabel: document.getElementById("activeLabel"),
+          activationInfo: document.getElementById("activationInfo"),
+          activationDateLabel: document.getElementById("activationDateLabel"),
+          passwordFields: document.getElementById("passwordFields"),
+          passwordInput: document.getElementById("passwordInput"),
+          generateTempPassword: document.getElementById("generateTempPassword"),
+          expiresInput: document.getElementById("expiresAtInput"),
+          deleteModal: document.getElementById("deleteModal"),
+          deleteUserName: document.getElementById("deleteUserName"),
+          confirmDeleteButton: document.getElementById("confirmDeleteButton"),
+          cancelDeleteButton: document.getElementById("cancelDeleteButton"),
+          toast: document.getElementById("toast"),
+          toastMessage: document.getElementById("toastMessage"),
+          toastContainer: document.getElementById("toastContainer"),
+        };
+
+        init();
+
+        async function init() {
+          const allowed = await guardAccess();
+          if (!allowed) return;
+          attachShellInteractions();
+          bindEvents();
+          setTableLoading(true);
+          await loadRoles();
+          await Promise.all([loadSites(), loadUsers()]);
+          refreshTable();
+          setTableLoading(false);
+        }
+
+        function attachShellInteractions() {
+          const toggleSidebar = document.getElementById("toggleSidebarMobile");
+          const sidebar = document.getElementById("sidebar");
+          const backdrop = document.getElementById("sidebarBackdrop");
+          if (toggleSidebar && sidebar && backdrop) {
+            toggleSidebar.addEventListener("click", () => {
+              sidebar.classList.toggle("hidden");
+              backdrop.classList.toggle("hidden");
+            });
+            backdrop.addEventListener("click", () => {
+              sidebar.classList.add("hidden");
+              backdrop.classList.add("hidden");
+            });
+          }
+
+          const userMenuButton = document.getElementById("userMenuButton");
+          const userMenu = document.getElementById("userMenu");
+          if (userMenuButton && userMenu) {
+            userMenuButton.addEventListener("click", (event) => {
+              event.stopPropagation();
+              userMenu.classList.toggle("hidden");
+            });
+            document.addEventListener("click", (event) => {
+              if (
+                !userMenu.contains(event.target) &&
+                !userMenuButton.contains(event.target)
+              ) {
+                userMenu.classList.add("hidden");
+              }
+            });
+          }
+        }
+
+        function bindEvents() {
+          elements.searchInput.addEventListener("input", (event) => {
+            state.filters.search = event.target.value.toLowerCase();
+            state.pagination.page = 1;
+            refreshTable();
+          });
+
+          elements.roleFilter.addEventListener("change", (event) => {
+            state.filters.role = event.target.value;
+            state.pagination.page = 1;
+            refreshTable();
+          });
+
+          elements.statusFilter.addEventListener("change", (event) => {
+            state.filters.status = event.target.value;
+            state.pagination.page = 1;
+            refreshTable();
+          });
+
+          elements.pageSizeSelect.addEventListener("change", (event) => {
+            state.pagination.pageSize = Number(event.target.value) || 10;
+            state.pagination.page = 1;
+            refreshTable();
+          });
+
+          elements.prevPage.addEventListener("click", () => {
+            if (state.pagination.page > 1) {
+              state.pagination.page -= 1;
+              renderTable();
+              updatePaginationControls();
+            }
+          });
+
+          elements.nextPage.addEventListener("click", () => {
+            const totalPages = getTotalPages();
+            if (state.pagination.page < totalPages) {
+              state.pagination.page += 1;
+              renderTable();
+              updatePaginationControls();
+            }
+          });
+
+          elements.refreshButton.addEventListener("click", async () => {
+            setTableLoading(true);
+            await loadUsers();
+            refreshTable();
+            setTableLoading(false);
+            showToast("Lista actualizada");
+          });
+
+          elements.createButton.addEventListener("click", () => {
+            openUserDrawer();
+          });
+
+          elements.generateTempPassword.addEventListener("click", (event) => {
+            event.preventDefault();
+            elements.passwordInput.value = generateSecurePassword();
+          });
+
+          elements.activeToggle.addEventListener("change", () => {
+            elements.activeLabel.textContent = elements.activeToggle.checked
+              ? "Activo"
+              : "Inactivo";
+          });
+
+          elements.roleSelect.addEventListener("change", () => {
+            handleRoleChange();
+          });
+
+          elements.userForm.addEventListener("submit", handleUserSubmit);
+          elements.closeDrawer.addEventListener("click", closeUserDrawer);
+
+          document
+            .querySelectorAll('[data-close="userDrawer"]')
+            .forEach((backdrop) =>
+              backdrop.addEventListener("click", closeUserDrawer)
+            );
+          document
+            .querySelectorAll('[data-close="deleteModal"]')
+            .forEach((backdrop) =>
+              backdrop.addEventListener("click", closeDeleteModal)
+            );
+
+          elements.cancelDeleteButton.addEventListener("click", (event) => {
+            event.preventDefault();
+            closeDeleteModal();
+          });
+
+          elements.confirmDeleteButton.addEventListener(
+            "click",
+            handleDeleteConfirm
+          );
+
+          elements.sortButtons.forEach((button) => {
+            button.addEventListener("click", () =>
+              handleSort(button.dataset.sortField)
+            );
+          });
+
+          elements.tableBody.addEventListener("click", handleTableActionClick);
+        }
+
+        async function guardAccess() {
+          const token = localStorage.getItem("token");
+          if (!token) {
+            window.location.href = "/";
+            return false;
+          }
+          try {
+            const response = await fetchAPI("/api/me");
+            if (!response || !response.ok) {
+              localStorage.removeItem("token");
+              window.location.href = "/";
+              return false;
+            }
+            const user = await response.json();
+            const role = (user.role || "").toLowerCase();
+            if (role !== "superadmin") {
+              window.location.href = "/dashboard";
+              return false;
+            }
+            elements.userName.textContent = user.username || "Superadmin";
+            elements.userEmail.textContent = user.email || "";
+            applyNavVisibility(role);
+            return true;
+          } catch (error) {
+            console.error("Auth guard error", error);
+            localStorage.removeItem("token");
+            window.location.href = "/";
+            return false;
+          }
+        }
+
+        function applyNavVisibility(role) {
+          const isSuperadmin = role === "superadmin";
+          const isOwner = role === "owner";
+          document.querySelectorAll("[data-superadmin-only]").forEach((el) => {
+            el.classList.toggle("hidden", !isSuperadmin);
+          });
+          document.querySelectorAll("[data-owner-hidden]").forEach((el) => {
+            el.classList.toggle("hidden", isOwner);
+          });
+          document.querySelectorAll("[data-owner-only]").forEach((el) => {
+            el.classList.toggle("hidden", !isOwner);
+          });
+        }
+
+        async function loadRoles() {
+          try {
+            const response = await fetchAPI("/api/roles");
+            if (!response.ok)
+              throw new Error("No se pudieron cargar los roles");
+            const data = await response.json();
+            state.roles = Array.isArray(data) ? data : [];
+            populateRoleControls();
+          } catch (error) {
+            console.error(error);
+            state.roles = [];
+            populateRoleControls(true);
+            showToast("Error al cargar roles", "error");
+          }
+        }
+
+        function populateRoleControls(hasError = false) {
+          const filterSelect = elements.roleFilter;
+          const currentFilter = filterSelect.value;
+          filterSelect.innerHTML = "";
+          const baseOption = document.createElement("option");
+          baseOption.value = "all";
+          baseOption.textContent = "Todos los roles";
+          filterSelect.appendChild(baseOption);
+
+          state.roles.forEach((role) => {
+            const option = document.createElement("option");
+            const roleValue = normalizeRoleValue(role.name);
+            option.value = roleValue;
+            option.textContent = role.display_name || role.name;
+            filterSelect.appendChild(option);
+          });
+
+          if (
+            currentFilter &&
+            currentFilter !== "all" &&
+            state.roles.some(
+              (role) => normalizeRoleValue(role.name) === currentFilter
+            )
+          ) {
+            filterSelect.value = currentFilter;
+          } else {
+            filterSelect.value = "all";
+          }
+
+          const roleSelect = elements.roleSelect;
+          const previousValue = roleSelect.value;
+          roleSelect.innerHTML = "";
+          if (!state.roles.length) {
+            const option = document.createElement("option");
+            option.value = "";
+            option.textContent = hasError
+              ? "No se pudieron cargar los roles"
+              : "Cargando roles...";
+            option.disabled = true;
+            option.selected = true;
+            roleSelect.appendChild(option);
+            roleSelect.disabled = true;
+            return;
+          }
+
+          state.roles.forEach((role) => {
+            const option = document.createElement("option");
+            const roleValue = normalizeRoleValue(role.name);
+            option.value = roleValue;
+            option.textContent = role.display_name || role.name;
+            if (role.description)
+              option.textContent += ` • ${role.description}`;
+            if (roleValue === "superadmin") {
+              option.disabled = true;
+              option.textContent += " (solo seed)";
+            }
+            roleSelect.appendChild(option);
+          });
+
+          roleSelect.disabled = Boolean(state.editingUser);
+          const candidateValue = state.editingUser
+            ? normalizeRoleValue(state.editingUser.role)
+            : previousValue || normalizeRoleValue(state.roles[0]?.name);
+          if (candidateValue) {
+            roleSelect.value = candidateValue;
+          }
+
+          handleRoleChange();
+        }
+
+        async function loadUsers() {
+          try {
+            const response = await fetchAPI("/api/users");
+            if (!response.ok)
+              throw new Error("No se pudieron cargar los usuarios");
+            const data = await response.json();
+            state.users = Array.isArray(data) ? data : [];
+            const activeCount = state.users.filter((user) => user.is_active).length;
+            elements.totalUsersBadge.textContent = state.users.length;
+            elements.activeUsersBadge.textContent = activeCount;
+          } catch (error) {
+            console.error(error);
+            showToast("Error al cargar usuarios", "error");
+            state.users = [];
+            elements.totalUsersBadge.textContent = 0;
+            elements.activeUsersBadge.textContent = 0;
+          }
+        }
+
+        async function loadSites() {
+          try {
+            const response = await fetchAPI("/api/sites");
+            if (!response.ok)
+              throw new Error("No se pudieron cargar los sitios");
+            const data = await response.json();
+            state.sites = Array.isArray(data) ? data : data?.sites || [];
+          } catch (error) {
+            console.error(error);
+            state.sites = [];
+          }
+        }
+
+        function refreshTable() {
+          const filtered = filterUsers();
+          const sorted = sortUsers(filtered);
+          state.filteredUsers = sorted;
+          ensureValidPage();
+          renderTable();
+          updatePaginationControls();
+          updateSortIndicators();
+        }
+
+        function filterUsers() {
+          return state.users.filter((user) => {
+            const haystack = [
+              user.username,
+              user.email,
+              user.role,
+              user.site?.name,
+            ]
+              .filter(Boolean)
+              .join(" ")
+              .toLowerCase();
+            if (
+              state.filters.search &&
+              !haystack.includes(state.filters.search)
+            ) {
+              return false;
+            }
+            if (
+              state.filters.role !== "all" &&
+              normalizeRoleValue(user.role) !== state.filters.role
+            ) {
+              return false;
+            }
+            if (state.filters.status !== "all") {
+              const active = state.filters.status === "active";
+              if (Boolean(user.is_active) !== active) {
+                return false;
+              }
+            }
+            return true;
+          });
+        }
+
+        function sortUsers(list) {
+          const { field, direction } = state.sort;
+          const factor = direction === "asc" ? 1 : -1;
+          return [...list].sort((a, b) => {
+            const aValue = getComparableValue(a, field);
+            const bValue = getComparableValue(b, field);
+            if (aValue < bValue) return -1 * factor;
+            if (aValue > bValue) return 1 * factor;
+            return 0;
+          });
+        }
+
+        function getComparableValue(user, field) {
+          switch (field) {
+            case "username":
+              return (user.username || "").toLowerCase();
+            case "email":
+              return (user.email || "").toLowerCase();
+            case "role":
+              return normalizeRoleValue(user.role);
+            case "site":
+              return (user.site?.name || "").toLowerCase();
+            case "activated_at":
+              return new Date(user.activated_at || user.created_at || 0).getTime();
+            case "expires_at":
+              return user.expires_at
+                ? new Date(user.expires_at).getTime()
+                : Number.POSITIVE_INFINITY;
+            case "created_at":
+            default:
+              return new Date(user.created_at || 0).getTime();
+          }
+        }
+
+        function ensureValidPage() {
+          const totalPages = getTotalPages();
+          if (state.pagination.page > totalPages) {
+            state.pagination.page = Math.max(1, totalPages);
+          }
+        }
+
+        function getTotalPages() {
+          if (!state.filteredUsers.length) return 1;
+          return Math.ceil(
+            state.filteredUsers.length / state.pagination.pageSize
+          );
+        }
+
+        function renderTable() {
+          const start = (state.pagination.page - 1) * state.pagination.pageSize;
+          const end = start + state.pagination.pageSize;
+          const visibleUsers = state.filteredUsers.slice(start, end);
+          elements.emptyState.classList.toggle(
+            "hidden",
+            state.filteredUsers.length !== 0
+          );
+          elements.tableBody.innerHTML = visibleUsers
+            .map((user) => renderRow(user))
+            .join("");
+          elements.tableLoader.classList.add("hidden");
+        }
+
+        function renderRow(user) {
+          const roleValue = normalizeRoleValue(user.role);
+          const roleLabel = user.role_label || resolveRoleLabel(roleValue);
+          const badgeClass = roleBadgeClass(roleValue);
+          const avatarInitial = (user.username || "?").charAt(0).toUpperCase();
+          const statusLabel = user.is_active ? "Activo" : "Inactivo";
+          const statusChipClass = user.is_active
+            ? "bg-emerald-50 text-emerald-700"
+            : "bg-gray-100 text-gray-500";
+          const activationDate = formatDateOnly(user.activated_at || user.created_at);
+          const activationDetail = formatDateTimeShort(user.activated_at || user.created_at);
+          const expirationDate = formatDateOnly(user.expires_at);
+          const hasExpiration = Boolean(user.expires_at);
+          const isExpired = hasExpiration && new Date(user.expires_at) < new Date();
+          const expirationLabel = expirationDate || "Sin definir";
+          const expirationClass = hasExpiration
+            ? isExpired
+              ? "text-rose-600 font-semibold"
+              : "text-gray-900"
+            : "text-gray-400";
+          const expirationBadge = isExpired
+            ? '<span class="ml-2 rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-600">Expirado</span>'
+            : "";
+          const siteLine = user.site?.name
+            ? `<p class="text-xs text-gray-400">• ${user.site.name}</p>`
+            : "";
+          return `
+            <tr class="hover:bg-gray-50" data-user-id="${user.id}">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-4">
+                  <span class="avatar-ring">${avatarInitial}</span>
+                  <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="text-base font-semibold text-gray-900">${user.username || "—"}</span>
+                      <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusChipClass}">${statusLabel}</span>
+                    </div>
+                    <p class="text-sm text-gray-500">${user.email || "—"}</p>
+                    ${siteLine}
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <span class="role-chip ${badgeClass}">
+                  ${roleIcon(roleValue)}
+                  ${roleLabel}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="text-sm font-medium text-gray-900">${activationDate || "—"}</div>
+                <div class="text-xs text-gray-500">${activationDetail || ""}</div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center text-sm ${expirationClass}">
+                  ${expirationLabel}
+                  ${expirationBadge}
+                </div>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <div class="inline-flex items-center gap-2">
+                  <button class="rounded-full border border-gray-200 p-2 text-gray-600 hover:bg-blue-50 hover:text-blue-600" data-action="edit" data-user-id="${user.id}" title="Editar">
+                    <i class="fa-regular fa-pen-to-square"></i>
+                  </button>
+                  ${
+                    roleValue === "superadmin"
+                      ? ""
+                      : `<button class="rounded-full border border-gray-200 p-2 text-gray-600 hover:bg-rose-50 hover:text-rose-600" data-action="delete" data-user-id="${user.id}" title="Eliminar">
+                        <i class="fa-regular fa-trash-can"></i>
+                      </button>`
+                  }
+                </div>
+              </td>
+            </tr>
+          `;
+        }
+
+        function updatePaginationControls() {
+          const total = state.filteredUsers.length;
+          if (!total) {
+            elements.paginationInfo.textContent = "Sin registros para mostrar";
+            elements.currentPageLabel.textContent = "0 / 0";
+            elements.prevPage.disabled = true;
+            elements.nextPage.disabled = true;
+            return;
+          }
+          const start =
+            (state.pagination.page - 1) * state.pagination.pageSize + 1;
+          const end = Math.min(start + state.pagination.pageSize - 1, total);
+          const totalPages = getTotalPages();
+          elements.paginationInfo.textContent = `Mostrando ${start} - ${end} de ${total} usuarios`;
+          elements.currentPageLabel.textContent = `${state.pagination.page} / ${totalPages}`;
+          elements.prevPage.disabled = state.pagination.page === 1;
+          elements.nextPage.disabled = state.pagination.page >= totalPages;
+          elements.pageSizeSelect.value = state.pagination.pageSize;
+        }
+
+        function handleSort(field) {
+          if (state.sort.field === field) {
+            state.sort.direction =
+              state.sort.direction === "asc" ? "desc" : "asc";
+          } else {
+            state.sort.field = field;
+            state.sort.direction = field === "created_at" ? "desc" : "asc";
+          }
+          refreshTable();
+        }
+
+        function updateSortIndicators() {
+          elements.sortButtons.forEach((button) => {
+            const field = button.dataset.sortField;
+            const icon = button.querySelector(".sort-icon");
+            if (state.sort.field === field) {
+              button.dataset.active = "true";
+              icon.className = `sort-icon fas ${
+                state.sort.direction === "asc" ? "fa-sort-up" : "fa-sort-down"
+              }`;
+            } else {
+              button.dataset.active = "false";
+              icon.className = "sort-icon fas fa-sort";
+            }
+          });
+        }
+
+        function handleTableActionClick(event) {
+          const button = event.target.closest("[data-action]");
+          if (!button) return;
+          const userId = Number(button.dataset.userId);
+          const user = state.users.find((item) => item.id === userId);
+          if (!user) return;
+          const action = button.dataset.action;
+          if (action === "edit") {
+            openUserDrawer(user);
+          }
+          if (action === "delete") {
+            openDeleteModal(user);
+          }
+        }
+
+        function openUserDrawer(user = null) {
+          state.editingUser = user;
+          populateRoleControls();
+          const isEdit = Boolean(user);
+          elements.userDrawer.classList.remove("hidden");
+          elements.userId.value = user?.id || "";
+          elements.username.value = user?.username || "";
+          elements.email.value = user?.email || "";
+          if (!isEdit && !elements.roleSelect.value && state.roles.length) {
+            elements.roleSelect.value = normalizeRoleValue(
+              state.roles[0]?.name
+            );
+          }
+          elements.activeToggle.checked = user ? Boolean(user.is_active) : true;
+          elements.activeLabel.textContent = elements.activeToggle.checked
+            ? "Activo"
+            : "Inactivo";
+          if (user) {
+            elements.activationInfo.classList.remove("hidden");
+            elements.activationDateLabel.textContent = formatDateTime(
+              user.activated_at || user.created_at
+            );
+          } else {
+            elements.activationInfo.classList.add("hidden");
+            elements.activationDateLabel.textContent = "";
+          }
+          elements.expiresInput.value = user?.expires_at
+            ? toInputDateValue(user.expires_at)
+            : "";
+          elements.passwordFields.classList.toggle("hidden", isEdit);
+          elements.passwordInput.required = !isEdit;
+          elements.passwordInput.value = isEdit ? "" : generateSecurePassword();
+          elements.ownerSiteReadonly.classList.add("hidden");
+          elements.siteWrapper.classList.add("hidden");
+
+          if (
+            isEdit &&
+            normalizeRoleValue(user.role) === "owner" &&
+            user.site
+          ) {
+            elements.ownerSiteLabel.textContent = `${user.site.name} (#${user.site.id})`;
+            elements.ownerSiteReadonly.classList.remove("hidden");
+          } else if (!isEdit && elements.roleSelect.value === "owner") {
+            elements.siteWrapper.classList.remove("hidden");
+            refreshSiteOptions();
+          }
+
+          handleRoleChange();
+
+          elements.drawerTitle.textContent = isEdit
+            ? "Editar usuario"
+            : "Nuevo usuario";
+          elements.drawerSubtitle.textContent = isEdit
+            ? "Actualiza estado, correo o asignaciones"
+            : "Crea credenciales con rol fijo";
+          elements.drawerSubmit.textContent = isEdit
+            ? "Guardar cambios"
+            : "Crear usuario";
+        }
+
+        function closeUserDrawer() {
+          state.editingUser = null;
+          elements.userDrawer.classList.add("hidden");
+          populateRoleControls();
+        }
+
+        async function handleUserSubmit(event) {
+          event.preventDefault();
+          const isEdit = Boolean(state.editingUser);
+          const payload = {
+            username: elements.username.value.trim(),
+            email: elements.email.value.trim(),
+            role: elements.roleSelect.value,
+            is_active: elements.activeToggle.checked,
+          };
+          const expirationRaw = elements.expiresInput.value;
+          if (expirationRaw) {
+            const iso = inputDateToISOString(expirationRaw);
+            if (!iso) {
+              showToast("Fecha de expiración inválida", "error");
+              return;
+            }
+            payload.expires_at = iso;
+          } else {
+            payload.expires_at = null;
+          }
+
+          if (!payload.username || !payload.email) {
+            showToast("Completa los campos obligatorios", "error");
+            return;
+          }
+
+          if (!isEdit) {
+            const password = elements.passwordInput.value.trim();
+            if (!password || password.length < 8) {
+              showToast(
+                "La contraseña debe tener al menos 8 caracteres",
+                "error"
+              );
+              return;
+            }
+            payload.password = password;
+            if (payload.role === "owner") {
+              const siteId = elements.siteSelect.value;
+              if (!siteId) {
+                showToast("Selecciona un sitio para el owner", "error");
+                return;
+              }
+              payload.site_id = Number(siteId);
+            }
+          }
+
+          try {
+            const endpoint = isEdit
+              ? `/api/users/${state.editingUser.id}`
+              : "/api/users";
+            const response = await fetchAPI(endpoint, {
+              method: isEdit ? "PUT" : "POST",
+              body: JSON.stringify(payload),
+            });
+            const data = await response.json();
+            if (!response.ok) {
+              throw new Error(data.detail || "No se pudo guardar el usuario");
+            }
+            showToast(isEdit ? "Usuario actualizado" : "Usuario creado");
+            closeUserDrawer();
+            await loadUsers();
+            refreshTable();
+          } catch (error) {
+            console.error(error);
+            showToast(error.message, "error");
+          }
+        }
+
+        function handleRoleChange() {
+          const value = normalizeRoleValue(elements.roleSelect.value);
+          const isOwner = value === "owner";
+          const isEdit = Boolean(state.editingUser);
+          if (!isEdit) {
+            elements.siteWrapper.classList.toggle("hidden", !isOwner);
+            if (isOwner) {
+              refreshSiteOptions();
+            }
+          }
+        }
+
+        function refreshSiteOptions(currentSiteId = null) {
+          const select = elements.siteSelect;
+          const helper = elements.siteHelper;
+          select.innerHTML = "";
+          const placeholder = document.createElement("option");
+          placeholder.value = "";
+          placeholder.textContent = "Selecciona un sitio disponible";
+          select.appendChild(placeholder);
+
+          const available = getAvailableSites(currentSiteId);
+          available.forEach((site) => {
+            const option = document.createElement("option");
+            option.value = site.id;
+            option.textContent = `${site.name} (#${site.id})`;
+            select.appendChild(option);
+          });
+
+          helper.textContent = available.length
+            ? "Solo se listan sitios sin owner asignado."
+            : "No hay sitios disponibles en este momento.";
+          select.disabled = available.length === 0;
+        }
+
+        function getAvailableSites(currentSiteId = null) {
+          const taken = new Set(
+            state.users
+              .filter(
+                (user) =>
+                  normalizeRoleValue(user.role) === "owner" && user.site_id
+              )
+              .map((user) => user.site_id)
+          );
+          if (currentSiteId) {
+            taken.delete(currentSiteId);
+          }
+          return state.sites.filter((site) => !taken.has(site.id));
+        }
+
+        function openDeleteModal(user) {
+          state.deletingUser = user;
+          elements.deleteUserName.textContent = user.username;
+          elements.deleteModal.classList.remove("hidden");
+        }
+
+        function closeDeleteModal() {
+          state.deletingUser = null;
+          elements.deleteModal.classList.add("hidden");
+        }
+
+        async function handleDeleteConfirm() {
+          if (!state.deletingUser) return;
+          try {
+            const response = await fetchAPI(
+              `/api/users/${state.deletingUser.id}`,
+              {
+                method: "DELETE",
+              }
+            );
+            if (!response.ok) {
+              const data = await response.json();
+              throw new Error(data.detail || "No se pudo eliminar al usuario");
+            }
+            showToast("Usuario eliminado", "success");
+            closeDeleteModal();
+            await loadUsers();
+            refreshTable();
+          } catch (error) {
+            console.error(error);
+            showToast(error.message, "error");
+          }
+        }
+
+        function normalizeRoleValue(value) {
+          return (value || "").toString().trim().toLowerCase();
+        }
+
+        function resolveRoleLabel(roleValue) {
+          const match = state.roles.find(
+            (role) => normalizeRoleValue(role.name) === roleValue
+          );
+          if (!match) return roleValue ? roleValue.toUpperCase() : "—";
+          return match.display_name || match.name || roleValue.toUpperCase();
+        }
+
+        function roleBadgeClass(roleValue) {
+          if (roleValue === "owner") return "owner";
+          if (roleValue === "admin") return "admin";
+          if (roleValue === "superadmin") return "superadmin";
+          return "default";
+        }
+
+        function roleIcon(role) {
+          if (role === "owner") return '<i class="fas fa-store"></i>';
+          if (role === "admin") return '<i class="fas fa-user-tie"></i>';
+          if (role === "superadmin") return '<i class="fas fa-crown"></i>';
+          return '<i class="fas fa-user"></i>';
+        }
+
+        function formatDateTime(value) {
+          if (!value) return "—";
+          const date = new Date(value);
+          if (Number.isNaN(date.getTime())) return value;
+          return date.toLocaleString("es-MX", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }
+
+        function formatDateTimeShort(value) {
+          if (!value) return "";
+          const date = new Date(value);
+          if (Number.isNaN(date.getTime())) return "";
+          return date.toLocaleString("es-MX", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }
+
+        function formatDateOnly(value) {
+          if (!value) return null;
+          const date = new Date(value);
+          if (Number.isNaN(date.getTime())) return null;
+          return date.toLocaleDateString("es-ES", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          });
+        }
+
+        function toInputDateValue(value) {
+          if (!value) return "";
+          const date = new Date(value);
+          if (Number.isNaN(date.getTime())) return "";
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        }
+
+        function inputDateToISOString(value) {
+          if (!value) return null;
+          const [year, month, day] = value.split("-");
+          if (!year || !month || !day) return null;
+          const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), 23, 59, 59));
+          if (Number.isNaN(date.getTime())) return null;
+          return date.toISOString();
+        }
+
+        function generateSecurePassword(length = 12) {
+          const chars =
+            "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789@$!%*?&";
+          let result = "";
+          const cryptoObj = window.crypto || window.msCrypto;
+          if (cryptoObj?.getRandomValues) {
+            const buffer = new Uint32Array(length);
+            cryptoObj.getRandomValues(buffer);
+            for (let i = 0; i < length; i++) {
+              result += chars[buffer[i] % chars.length];
+            }
+          } else {
+            for (let i = 0; i < length; i++) {
+              result += chars[Math.floor(Math.random() * chars.length)];
+            }
+          }
+          return result;
+        }
+
+        function setTableLoading(isLoading) {
+          elements.tableLoader.classList.toggle("hidden", !isLoading);
+          elements.tableBody.classList.toggle("opacity-30", isLoading);
+        }
+
+        function showToast(message, type = "success") {
+          elements.toastMessage.textContent = message;
+          if (type === "error") {
+            elements.toastContainer.className =
+              "bg-rose-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3";
+          } else if (type === "info") {
+            elements.toastContainer.className =
+              "bg-blue-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3";
+          } else if (type === "success") {
+            elements.toastContainer.className =
+              "bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3";
+          } else {
+            elements.toastContainer.className =
+              "bg-gray-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3";
+          }
+          elements.toast.classList.remove("hidden");
+          elements.toast.style.opacity = 1;
+          clearTimeout(elements.toast.timeoutId);
+          elements.toast.timeoutId = setTimeout(() => {
+            elements.toast.style.opacity = 0;
+            setTimeout(() => elements.toast.classList.add("hidden"), 200);
+          }, 2600);
+        }
+      })();
+
+      window.logout = function () {
+        [
+          "token",
+          "email",
+          "role",
+          "site_id",
+          "user_payload",
+          "remember_login",
+        ].forEach((key) => localStorage.removeItem(key));
+        window.location.href = "/";
+      };
+    </script>
+  </body>
+</html>
