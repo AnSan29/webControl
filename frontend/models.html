@@ -1,71 +1,375 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modelos de Negocio - Control de Sitios</title>
-    <link rel="stylesheet" href="/static/css/main.css">
-</head>
-<body>
-    <nav class="navbar">
-        <div class="container flex items-center justify-between">
-            <a href="/dashboard" class="navbar-brand">🎨 Control de Sitios</a>
-            <ul class="navbar-nav">
-                <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
-                <li><a href="/models" class="nav-link active">Modelos</a></li>
-                <li><a href="/create-site" class="nav-link">Crear Sitio</a></li>
-                <li><a href="#" onclick="logout()" class="nav-link">Cerrar Sesión</a></li>
-            </ul>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Modelos - WebControl Studio</title>
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="stylesheet" href="/static/css/ui-kit.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="wc-body">
+    <header class="wc-navbar">
+      <div
+        class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4 px-4 py-4"
+      >
+        <div class="flex items-center gap-3">
+          <span
+            class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-600 text-white text-xl shadow-lg"
+            >🎨</span
+          >
+          <div>
+            <p class="wc-navbar__ghost">Library</p>
+            <p class="text-lg font-semibold text-slate-900">
+              Biblioteca de modelos
+            </p>
+          </div>
         </div>
-    </nav>
-
-    <main style="padding: 2rem 0;">
-        <div class="container">
-            <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem;">Modelos de Negocio</h1>
-            <p style="color: #6B7280; margin-bottom: 2rem;">Selecciona el modelo que mejor se adapte a tu negocio</p>
-            
-            <div class="card-grid" id="modelsGrid">
-                <div style="text-align: center; padding: 2rem;">Cargando...</div>
+        <div class="flex items-center gap-3">
+          <a href="/create-site" class="wc-button wc-button--primary">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            Crear sitio
+          </a>
+          <button
+            id="modelsMenuButton"
+            type="button"
+            class="wc-avatar-ring"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            <span><i class="fas fa-user"></i></span>
+          </button>
+          <div
+            id="modelsUserMenu"
+            class="hidden absolute right-4 top-20 w-60 rounded-2xl border border-slate-100 bg-white shadow-2xl"
+          >
+            <div class="px-4 py-4">
+              <p
+                class="text-sm font-semibold text-slate-900"
+                id="modelsUserName"
+              >
+                Admin
+              </p>
+              <p class="text-xs text-slate-500" id="modelsUserEmail">
+                admin@webcontrol.com
+              </p>
             </div>
+            <button
+              onclick="logout()"
+              class="w-full border-t border-slate-100 px-4 py-3 text-left text-sm text-slate-600 hover:text-slate-900"
+            >
+              Cerrar sesión
+            </button>
+          </div>
         </div>
+      </div>
+    </header>
+
+    <main class="wc-main">
+      <div class="max-w-6xl mx-auto space-y-10">
+        <section class="wc-page-heading">
+          <span class="wc-page-heading__eyebrow">Curated library</span>
+          <h1 class="wc-page-heading__title">Modelos de negocio</h1>
+          <p class="wc-page-heading__subtitle">
+            Explora colecciones diseñadas para acelerar la creación de sitios.
+            Cada modelo incluye paletas, layout base y tono de contenido.
+          </p>
+        </section>
+
+        <section class="wc-stats-grid">
+          <article class="wc-stat-card" data-hover-lift>
+            <p class="wc-stat-card__label">Modelos disponibles</p>
+            <p class="wc-stat-card__value" id="metricTotalModels">0</p>
+            <span class="wc-chip">Colecciones</span>
+          </article>
+          <article class="wc-stat-card" data-hover-lift>
+            <p class="wc-stat-card__label">Categorías</p>
+            <p class="wc-stat-card__value" id="metricCategories">0</p>
+            <span class="wc-chip wc-chip--success">Segmentos</span>
+          </article>
+          <article class="wc-stat-card" data-hover-lift>
+            <p class="wc-stat-card__label">Promedio de secciones</p>
+            <p class="wc-stat-card__value" id="metricSections">0</p>
+            <span class="wc-chip wc-chip--warning">Bloques</span>
+          </article>
+        </section>
+
+        <section class="wc-card" data-hover-lift>
+          <div class="p-6 space-y-6">
+            <div
+              class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+            >
+              <div class="flex-1 max-w-lg relative">
+                <span
+                  class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"
+                  ><i class="fa-solid fa-magnifying-glass"></i
+                ></span>
+                <input
+                  id="modelSearch"
+                  type="text"
+                  class="wc-form-control pl-11"
+                  placeholder="Busca por nombre, categoría o tono"
+                />
+              </div>
+              <div class="flex flex-wrap items-center gap-3">
+                <span class="text-xs uppercase tracking-[0.3em] text-slate-500"
+                  >Filtros</span
+                >
+                <button class="wc-filter-chip active" data-filter="all">
+                  Todos
+                </button>
+                <button class="wc-filter-chip" data-filter="featured">
+                  Destacados
+                </button>
+                <button class="wc-filter-chip" data-filter="commerce">
+                  Comercio
+                </button>
+                <button class="wc-filter-chip" data-filter="services">
+                  Servicios
+                </button>
+                <button class="wc-filter-chip" data-filter="events">
+                  Eventos
+                </button>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-3 text-sm text-slate-600">
+              <div
+                class="flex items-center gap-2 rounded-full bg-slate-50 px-3 py-1"
+              >
+                <i class="fa-solid fa-bolt text-amber-500"></i>
+                <span>Sugerencias basadas en uso reciente</span>
+              </div>
+              <div
+                class="flex items-center gap-2 rounded-full bg-slate-50 px-3 py-1"
+              >
+                <i class="fa-solid fa-layer-group text-sky-500"></i>
+                <span>Incluye layout optimizado</span>
+              </div>
+            </div>
+          </div>
+          <hr class="border-slate-100" />
+          <div class="p-6 pt-0">
+            <div id="modelsSkeleton" class="models-grid">
+              <div class="skeleton-card"></div>
+              <div class="skeleton-card"></div>
+              <div class="skeleton-card"></div>
+            </div>
+            <div id="modelsEmptyState" class="hidden">
+              <div class="wc-empty-state">
+                <h4>No encontramos modelos</h4>
+                <p>Ajusta los filtros o revisa nuevas categorías.</p>
+              </div>
+            </div>
+            <div id="modelsGrid" class="models-grid hidden"></div>
+          </div>
+        </section>
+      </div>
     </main>
 
     <script src="/static/js/main.js"></script>
     <script>
-        async function loadModels() {
+      let allModels = [];
+      let filteredModels = [];
+      let activeModelFilter = "all";
+
+      const metricTotalModels = document.getElementById("metricTotalModels");
+      const metricCategories = document.getElementById("metricCategories");
+      const metricSections = document.getElementById("metricSections");
+      const modelsGrid = document.getElementById("modelsGrid");
+      const modelsSkeleton = document.getElementById("modelsSkeleton");
+      const modelsEmptyState = document.getElementById("modelsEmptyState");
+      const modelSearchInput = document.getElementById("modelSearch");
+      const filterChips = document.querySelectorAll(".wc-filter-chip");
+
+      function formatMetric(value) {
+        return new Intl.NumberFormat("es-ES").format(value ?? 0);
+      }
+
+      function buildPaletteRow(palette = {}) {
+        return Object.entries(palette)
+          .map(
+            ([key, color]) => `
+        <div class="palette-dot" style="background:${color}" title="${key}: ${color}"></div>
+    `
+          )
+          .join("");
+      }
+
+      function buildTagPills(tags = []) {
+        if (!tags.length) return "";
+        return tags
+          .map(
+            (tag) =>
+              `<span class="tag-pill"><i class="fa-solid fa-hashtag"></i>${tag}</span>`
+          )
+          .join("");
+      }
+
+      function renderModelCard(model) {
+        const paletteRow = buildPaletteRow(model.palette || {});
+        const tags = buildTagPills(model.tags || []);
+        const sectionsCount =
+          model.sections?.length || model.section_count || 0;
+        const badge = model.featured
+          ? '<span class="wc-chip wc-chip--warning">Destacado</span>'
+          : "";
+
+        return `
+        <article class="model-card" data-hover-lift>
+            <header class="flex items-start justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="h-12 w-12 rounded-2xl bg-slate-900/5 text-3xl flex items-center justify-center">${
+                      model.icon || "🎯"
+                    }</div>
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400">${
+                          model.category_label || model.category || "Colección"
+                        }</p>
+                        <h3 class="text-xl font-semibold text-slate-900">${
+                          model.name
+                        }</h3>
+                    </div>
+                </div>
+                ${badge}
+            </header>
+            <p class="text-sm text-slate-600">${
+              model.description ||
+              "Colección adaptable con bloques listos para lanzar experiencias digitales."
+            }</p>
+            <div class="rounded-2xl border border-slate-100 bg-slate-50 p-3 flex items-center gap-2">
+                <i class="fa-solid fa-lightbulb text-amber-500"></i>
+                <span class="text-sm text-slate-600">${
+                  model.concept ||
+                  "Tono creativo y storytelling listo para personalizar."
+                }</span>
+            </div>
+            <div class="flex gap-2 items-center">
+                ${paletteRow}
+            </div>
+            <div class="flex flex-wrap gap-2">${tags}</div>
+            <footer class="mt-auto flex items-center justify-between">
+                <div class="text-sm text-slate-500">
+                    <i class="fa-solid fa-layer-group text-slate-400 mr-1"></i>
+                    ${sectionsCount} secciones
+                </div>
+                <a class="wc-button wc-button--ghost" href="/create-site?model=${
+                  model.id
+                }">
+                    Usar modelo
+                    <i class="fa-solid fa-arrow-right-long"></i>
+                </a>
+            </footer>
+        </article>
+    `;
+      }
+
+      function updateMetrics() {
+        const categories = new Set(allModels.map((model) => model.category))
+          .size;
+        const sectionsAverage = allModels.length
+          ? allModels.reduce(
+              (acc, model) =>
+                acc + (model.sections?.length || model.section_count || 0),
+              0
+            ) / allModels.length
+          : 0;
+        metricTotalModels.textContent = formatMetric(allModels.length);
+        metricCategories.textContent = formatMetric(categories);
+        metricSections.textContent = formatMetric(Math.round(sectionsAverage));
+      }
+
+      function applyModelFilters() {
+        const search = (modelSearchInput?.value || "").toLowerCase();
+        filteredModels = allModels.filter((model) => {
+          const matchesSearch = [
+            model.name,
+            model.description,
+            model.concept,
+            model.category,
+          ]
+            .filter(Boolean)
+            .some((value) => value.toLowerCase().includes(search));
+          if (!matchesSearch) return false;
+          switch (activeModelFilter) {
+            case "featured":
+              return Boolean(model.featured);
+            case "commerce":
+              return (model.category || "").toLowerCase().includes("com");
+            case "services":
+              return (model.category || "").toLowerCase().includes("serv");
+            case "events":
+              return (model.category || "").toLowerCase().includes("event");
+            default:
+              return true;
+          }
+        });
+        renderModelsGrid();
+      }
+
+      function renderModelsGrid() {
+        modelsSkeleton.classList.add("hidden");
+        if (!filteredModels.length) {
+          modelsGrid.classList.add("hidden");
+          modelsEmptyState.classList.remove("hidden");
+          return;
+        }
+        modelsEmptyState.classList.add("hidden");
+        modelsGrid.classList.remove("hidden");
+        modelsGrid.innerHTML = filteredModels.map(renderModelCard).join("");
+      }
+
+      async function loadModels() {
+        try {
+          if (typeof checkAuth === "function") {
             const isAuth = await checkAuth();
             if (!isAuth) return;
-
-            const models = await loadBusinessModels();
-            const grid = document.getElementById('modelsGrid');
-
-            grid.innerHTML = models.map(model => `
-                <div class="card" style="border-top: 4px solid ${model.palette.primary};">
-                    <div style="text-align: center; font-size: 3rem; margin-bottom: 1rem;">
-                        ${model.icon}
-                    </div>
-                    <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; text-align: center;">
-                        ${model.name}
-                    </h3>
-                    <p style="color: #6B7280; text-align: center; margin-bottom: 1rem;">
-                        ${model.description}
-                    </p>
-                    <div style="display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1rem;">
-                        ${Object.values(model.palette).map(color => 
-                            `<div style="width: 40px; height: 40px; background: ${color}; border-radius: 0.5rem;"></div>`
-                        ).join('')}
-                    </div>
-                    <p style="text-align: center; font-style: italic; color: #6B7280; margin-bottom: 1rem;">
-                        ${model.concept}
-                    </p>
-                    <a href="/create-site?model=${model.id}" class="btn btn-primary" style="width: 100%; text-align: center;">
-                        Usar este modelo
-                    </a>
-                </div>
-            `).join('');
+          }
+          const models = await loadBusinessModels();
+          allModels = Array.isArray(models) ? models : [];
+          filteredModels = [...allModels];
+          updateMetrics();
+          renderModelsGrid();
+        } catch (error) {
+          console.error("Error loading models:", error);
+          showNotification("No se pudieron cargar los modelos", "error");
         }
+      }
 
-        loadModels();
+      function setupModelsInteractions() {
+        modelSearchInput?.addEventListener("input", () => {
+          debounce(() => applyModelFilters(), 200)();
+        });
+        filterChips.forEach((chip) => {
+          chip.addEventListener("click", () => {
+            filterChips.forEach((c) => c.classList.remove("active"));
+            chip.classList.add("active");
+            activeModelFilter = chip.dataset.filter;
+            applyModelFilters();
+          });
+        });
+        const btn = document.getElementById("modelsMenuButton");
+        const menu = document.getElementById("modelsUserMenu");
+        if (btn && menu) {
+          btn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            menu.classList.toggle("hidden");
+          });
+          window.addEventListener("click", (event) => {
+            if (!menu.contains(event.target) && !btn.contains(event.target)) {
+              menu.classList.add("hidden");
+            }
+          });
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        setupModelsInteractions();
+        await loadModels();
+      });
     </script>
-</body>
+  </body>
 </html>

@@ -37,6 +37,7 @@
       .site-description {
         max-width: 420px;
         display: -webkit-box;
+        line-clamp: 2;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
@@ -45,6 +46,7 @@
 
       .mosaic-description {
         display: -webkit-box;
+        line-clamp: 3;
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
@@ -1168,8 +1170,15 @@
       }
 
       async function publishSite(siteId) {
-        if (!confirm("¿Estás seguro de publicar este sitio en GitHub Pages?"))
-          return;
+        const confirmed = await confirmAction(
+          "¿Estás seguro de publicar este sitio en GitHub Pages?",
+          {
+            title: "Publicar sitio",
+            icon: "info",
+            confirmText: "Sí, publicar",
+          }
+        );
+        if (!confirmed) return;
         showNotification("Publicando sitio...", "info");
         try {
           const response = await fetch(`${API_URL}/sites/${siteId}/publish`, {
@@ -1196,12 +1205,15 @@
       }
 
       async function deleteSite(siteId) {
-        if (
-          !confirm(
-            "¿Estás seguro de que quieres eliminar este sitio? Esta acción no se puede deshacer."
-          )
-        )
-          return;
+        const confirmed = await confirmAction(
+          "¿Estás seguro de que quieres eliminar este sitio? Esta acción no se puede deshacer.",
+          {
+            title: "Eliminar sitio",
+            icon: "warning",
+            confirmText: "Sí, eliminar",
+          }
+        );
+        if (!confirmed) return;
         try {
           const response = await fetch(`${API_URL}/sites/${siteId}`, {
             method: "DELETE",
