@@ -1,150 +1,237 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard - Control de Sitios</title>
-    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-</head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container flex items-center justify-between">
-            <a href="/dashboard" class="navbar-brand">🎨 Control de Sitios</a>
-            <ul class="navbar-nav">
-                <li><a href="/dashboard" class="nav-link active">Dashboard</a></li>
-                <li><a href="/models" class="nav-link">Modelos</a></li>
-                <li><a href="/create-site" class="nav-link">Crear Sitio</a></li>
-                <li><a href="#" onclick="logout()" class="nav-link">Cerrar Sesión</a></li>
-            </ul>
+  </head>
+  <body class="wc-body">
+    <header class="wc-navbar">
+      <div
+        class="max-w-6xl mx-auto flex flex-wrap gap-4 items-center justify-between px-4 py-4"
+      >
+        <div class="flex items-center gap-3">
+          <span
+            class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white text-xl shadow-lg"
+            >🎨</span
+          >
+          <div>
+            <p class="text-sm text-slate-500">WebControl Studio</p>
+            <p class="font-semibold text-slate-900">Panel Central</p>
+          </div>
         </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main style="padding: 2rem 0;">
-        <div class="container">
-            <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 2rem;">Panel de Control</h1>
-            
-            <!-- Stats Cards -->
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card">
-                    <div class="stat-value" id="totalSites">-</div>
-                    <div class="stat-label">Total Sitios</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="publishedSites">-</div>
-                    <div class="stat-label">Sitios Publicados</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="totalVisits">-</div>
-                    <div class="stat-label">Visitas Totales</div>
-                </div>
-            </div>
-
-            <!-- Sites Table -->
-            <div class="card">
-                <div class="card-header flex items-center justify-between">
-                    <span>Mis Sitios</span>
-                    <a href="/create-site" class="btn btn-primary btn-sm">+ Crear Sitio</a>
-                </div>
-                
-                <div id="sitesTableContainer">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Modelo</th>
-                                <th>Estado</th>
-                                <th>Visitas</th>
-                                <th>Fecha</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sitesTableBody">
-                            <tr>
-                                <td colspan="6" style="text-align: center; padding: 2rem;">
-                                    Cargando...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Top Sites Chart -->
-            <div class="card mt-4">
-                <div class="card-header">Sitios Más Visitados</div>
-                <canvas id="topSitesChart" style="max-height: 300px;"></canvas>
-            </div>
+        <div class="flex flex-wrap gap-3">
+          <a href="/models" class="wc-button wc-button--ghost"
+            >Explorar modelos</a
+          >
+          <a href="/create-site" class="wc-button wc-button--primary">
+            <i class="fas fa-plus"></i> Nuevo sitio
+          </a>
+          <button
+            onclick="logout()"
+            class="wc-button"
+            style="background: rgba(15, 23, 42, 0.1); color: #0f172a"
+          >
+            <i class="fas fa-arrow-right-from-bracket"></i> Salir
+          </button>
         </div>
+      </div>
+    </header>
+
+    <main class="wc-main">
+      <div class="max-w-6xl mx-auto space-y-10">
+        <section class="wc-page-heading">
+          <span class="wc-page-heading__eyebrow">Resumen ejecutivo</span>
+          <h1 class="wc-page-heading__title">Panel de Control</h1>
+          <p class="wc-page-heading__subtitle">
+            Monitoriza tus sitios, publica cambios con confianza y mantén una
+            visión clara del desempeño en tiempo real.
+          </p>
+        </section>
+
+        <section class="wc-hero-panel">
+          <div
+            class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between"
+          >
+            <div>
+              <p class="text-sm uppercase tracking-[0.35em] text-slate-500">
+                Automatización creativa
+              </p>
+              <h2 class="text-2xl font-semibold text-slate-900 mt-2">
+                Impulsa tus sitios con información accionable
+              </h2>
+              <p class="text-slate-600 mt-2 max-w-2xl">
+                Conecta modelos, publica directamente a GitHub Pages y comparte
+                experiencias pulidas para cada negocio.
+              </p>
+            </div>
+            <div class="wc-hero-panel__actions">
+              <a href="/create-site" class="wc-button wc-button--primary">
+                <i class="fas fa-bolt"></i> Crear sitio inmediato
+              </a>
+              <a href="/dashboard" class="wc-button wc-button--ghost">
+                <i class="fas fa-chart-line"></i> Ver analíticas
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section class="wc-stats-grid" id="statsGrid">
+          <article class="wc-stat-card">
+            <p class="wc-stat-card__label">Total sitios</p>
+            <p class="wc-stat-card__value" id="totalSites">-</p>
+            <span class="wc-chip">Operativos</span>
+          </article>
+          <article class="wc-stat-card">
+            <p class="wc-stat-card__label">Publicados</p>
+            <p class="wc-stat-card__value" id="publishedSites">-</p>
+            <span class="wc-chip wc-chip--success">En producción</span>
+          </article>
+          <article class="wc-stat-card">
+            <p class="wc-stat-card__label">Visitas totales</p>
+            <p class="wc-stat-card__value" id="totalVisits">-</p>
+            <span class="wc-chip wc-chip--warning">Últimos 30 días</span>
+          </article>
+        </section>
+
+        <section class="wc-card">
+          <div
+            class="p-6 flex flex-wrap gap-4 items-center justify-between border-b border-slate-100"
+          >
+            <div>
+              <h3 class="wc-card__title">Mis Sitios</h3>
+              <p class="text-sm text-slate-500">
+                Gestiona, publica y sincroniza cada proyecto
+              </p>
+            </div>
+            <a href="/create-site" class="wc-button wc-button--primary">
+              <i class="fas fa-plus"></i> Crear sitio
+            </a>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="wc-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Modelo</th>
+                  <th>Estado</th>
+                  <th>Visitas</th>
+                  <th>Creado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="sitesTableBody">
+                <tr>
+                  <td colspan="6" class="text-center py-16">
+                    <div class="wc-empty-state">
+                      <h4>Sin datos por ahora</h4>
+                      <p>Conecta tu primer sitio para visualizar métricas.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="wc-card">
+          <div class="p-6 border-b border-slate-100">
+            <h3 class="wc-card__title">Sitios más visitados</h3>
+            <p class="text-sm text-slate-500">Ranking dinámico de tráfico</p>
+          </div>
+          <div class="p-6">
+            <canvas id="topSitesChart" style="max-height: 320px"></canvas>
+          </div>
+        </section>
+      </div>
     </main>
 
     <script src="/static/js/main.js"></script>
     <script>
-        let chart = null;
+      let chart = null;
 
-        // Cargar datos al iniciar
-        async function loadDashboard() {
-            // Verificar autenticación
-            const isAuth = await checkAuth();
-            if (!isAuth) return;
+      // Cargar datos al iniciar
+      async function loadDashboard() {
+        // Verificar autenticación
+        const isAuth = await checkAuth();
+        if (!isAuth) return;
 
-            // Cargar estadísticas generales
-            await loadStats();
-
-            // Cargar lista de sitios
-            await loadSites();
-        }
-
-        // Cargar estadísticas
-        async function loadStats() {
-            try {
-                const response = await fetchAPI('/api/dashboard/stats');
-                const data = await response.json();
-
-                document.getElementById('totalSites').textContent = formatNumber(data.total_sites);
-                document.getElementById('publishedSites').textContent = formatNumber(data.published_sites);
-                document.getElementById('totalVisits').textContent = formatNumber(data.total_visits);
-
-                // Renderizar gráfico
-                renderTopSitesChart(data.top_sites);
-            } catch (error) {
-                console.error('Error loading stats:', error);
-            }
-        }
+        // Cargar estadísticas generales
+        await loadStats();
 
         // Cargar lista de sitios
-        async function loadSites() {
-            try {
-                const response = await fetchAPI('/api/sites');
-                const sites = await response.json();
+        await loadSites();
+      }
 
-                const tbody = document.getElementById('sitesTableBody');
+      // Cargar estadísticas
+      async function loadStats() {
+        try {
+          const response = await fetchAPI("/api/dashboard/stats");
+          const data = await response.json();
 
-                if (sites.length === 0) {
-                    tbody.innerHTML = `
+          document.getElementById("totalSites").textContent = formatNumber(
+            data.total_sites
+          );
+          document.getElementById("publishedSites").textContent = formatNumber(
+            data.published_sites
+          );
+          document.getElementById("totalVisits").textContent = formatNumber(
+            data.total_visits
+          );
+
+          // Renderizar gráfico
+          renderTopSitesChart(data.top_sites);
+        } catch (error) {
+          console.error("Error loading stats:", error);
+        }
+      }
+
+      // Cargar lista de sitios
+      async function loadSites() {
+        try {
+          const response = await fetchAPI("/api/sites");
+          const sites = await response.json();
+
+          const tbody = document.getElementById("sitesTableBody");
+
+          if (sites.length === 0) {
+            tbody.innerHTML = `
                         <tr>
                             <td colspan="6" style="text-align: center; padding: 2rem;">
                                 No hay sitios creados. <a href="/create-site">Crear el primero</a>
                             </td>
                         </tr>
                     `;
-                    return;
-                }
+            return;
+          }
 
-                tbody.innerHTML = sites.map(site => `
+          tbody.innerHTML = sites
+            .map(
+              (site) => `
                     <tr>
                         <td>
                             <strong>${site.name}</strong>
-                            ${site.github_url ? `<br><small><a href="${site.github_url}" target="_blank">Ver sitio →</a></small>` : ''}
+                            ${
+                              site.github_url
+                                ? `<br><small><a href="${site.github_url}" target="_blank">Ver sitio →</a></small>`
+                                : ""
+                            }
                         </td>
                         <td>
-                            <span>${getModelIcon(site.model_type)} ${getModelName(site.model_type)}</span>
+                            <span>${getModelIcon(
+                              site.model_type
+                            )} ${getModelName(site.model_type)}</span>
                         </td>
                         <td>
-                            ${site.is_published 
-                                ? '<span class="badge badge-success">Publicado</span>' 
+                            ${
+                              site.is_published
+                                ? '<span class="badge badge-success">Publicado</span>'
                                 : '<span class="badge badge-warning">Borrador</span>'
                             }
                         </td>
@@ -152,126 +239,155 @@
                         <td>${formatDate(site.created_at)}</td>
                         <td>
                             <div class="flex gap-1">
-                                <a href="/editor/${site.id}" class="btn btn-sm btn-primary">Editar</a>
-                                ${!site.is_published 
+                                <a href="/editor/${
+                                  site.id
+                                }" class="btn btn-sm btn-primary">Editar</a>
+                                ${
+                                  !site.is_published
                                     ? `<button onclick="publishSite(${site.id})" class="btn btn-sm btn-success">Publicar</button>`
-                                    : ''
+                                    : ""
                                 }
-                                <button onclick="deleteSite(${site.id})" class="btn btn-sm btn-danger">Eliminar</button>
+                                <button onclick="deleteSite(${
+                                  site.id
+                                })" class="btn btn-sm btn-danger">Eliminar</button>
                             </div>
                         </td>
                     </tr>
-                `).join('');
+                `
+            )
+            .join("");
 
-                // Cargar visitas de cada sitio
-                sites.forEach(site => loadSiteVisits(site.id));
-            } catch (error) {
-                console.error('Error loading sites:', error);
-            }
+          // Cargar visitas de cada sitio
+          sites.forEach((site) => loadSiteVisits(site.id));
+        } catch (error) {
+          console.error("Error loading sites:", error);
+        }
+      }
+
+      // Cargar visitas de un sitio
+      async function loadSiteVisits(siteId) {
+        try {
+          const response = await fetchAPI(`/api/stats/${siteId}`);
+          const data = await response.json();
+          document.getElementById(`visits-${siteId}`).textContent =
+            formatNumber(data.total_visits);
+        } catch (error) {
+          console.error(`Error loading visits for site ${siteId}:`, error);
+        }
+      }
+
+      // Publicar sitio
+      async function publishSite(siteId) {
+        const confirmed = await confirmAction(
+          "¿Estás seguro de publicar este sitio en GitHub Pages?",
+          {
+            title: "Publicar sitio",
+            icon: "info",
+            confirmText: "Sí, publicar",
+          }
+        );
+
+        if (!confirmed) {
+          return;
         }
 
-        // Cargar visitas de un sitio
-        async function loadSiteVisits(siteId) {
-            try {
-                const response = await fetchAPI(`/api/stats/${siteId}`);
-                const data = await response.json();
-                document.getElementById(`visits-${siteId}`).textContent = formatNumber(data.total_visits);
-            } catch (error) {
-                console.error(`Error loading visits for site ${siteId}:`, error);
-            }
+        showNotification("Publicando sitio...", "info");
+
+        try {
+          const response = await fetchAPI(`/api/sites/${siteId}/publish`, {
+            method: "POST",
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            showNotification(data.message, "success");
+            setTimeout(() => loadDashboard(), 1000);
+          } else {
+            showNotification(data.detail || "Error al publicar", "error");
+          }
+        } catch (error) {
+          console.error("Error publishing site:", error);
+          showNotification("Error al publicar sitio", "error");
+        }
+      }
+
+      // Eliminar sitio
+      async function deleteSite(siteId) {
+        const confirmed = await confirmAction(
+          "¿Estás seguro de eliminar este sitio? Esta acción no se puede deshacer.",
+          {
+            title: "Eliminar sitio",
+            icon: "warning",
+            confirmText: "Sí, eliminar",
+            cancelText: "Cancelar",
+          }
+        );
+
+        if (!confirmed) {
+          return;
         }
 
-        // Publicar sitio
-        async function publishSite(siteId) {
-            if (!confirm('¿Estás seguro de publicar este sitio en GitHub Pages?')) {
-                return;
-            }
+        try {
+          const response = await fetchAPI(`/api/sites/${siteId}`, {
+            method: "DELETE",
+          });
 
-            showNotification('Publicando sitio...', 'info');
+          if (response.ok) {
+            showNotification("Sitio eliminado exitosamente", "success");
+            loadDashboard();
+          } else {
+            showNotification("Error al eliminar sitio", "error");
+          }
+        } catch (error) {
+          console.error("Error deleting site:", error);
+          showNotification("Error al eliminar sitio", "error");
+        }
+      }
 
-            try {
-                const response = await fetchAPI(`/api/sites/${siteId}/publish`, {
-                    method: 'POST'
-                });
+      // Renderizar gráfico
+      function renderTopSitesChart(topSites) {
+        const ctx = document.getElementById("topSitesChart");
 
-                const data = await response.json();
-
-                if (response.ok) {
-                    showNotification(data.message, 'success');
-                    setTimeout(() => loadDashboard(), 1000);
-                } else {
-                    showNotification(data.detail || 'Error al publicar', 'error');
-                }
-            } catch (error) {
-                console.error('Error publishing site:', error);
-                showNotification('Error al publicar sitio', 'error');
-            }
+        if (chart) {
+          chart.destroy();
         }
 
-        // Eliminar sitio
-        async function deleteSite(siteId) {
-            if (!confirm('¿Estás seguro de eliminar este sitio? Esta acción no se puede deshacer.')) {
-                return;
-            }
-
-            try {
-                const response = await fetchAPI(`/api/sites/${siteId}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    showNotification('Sitio eliminado exitosamente', 'success');
-                    loadDashboard();
-                } else {
-                    showNotification('Error al eliminar sitio', 'error');
-                }
-            } catch (error) {
-                console.error('Error deleting site:', error);
-                showNotification('Error al eliminar sitio', 'error');
-            }
-        }
-
-        // Renderizar gráfico
-        function renderTopSitesChart(topSites) {
-            const ctx = document.getElementById('topSitesChart');
-
-            if (chart) {
-                chart.destroy();
-            }
-
-            chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: topSites.map(s => s.name),
-                    datasets: [{
-                        label: 'Visitas',
-                        data: topSites.map(s => s.visits),
-                        backgroundColor: '#3B82F6',
-                        borderRadius: 5
-                    }]
+        chart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: topSites.map((s) => s.name),
+            datasets: [
+              {
+                label: "Visitas",
+                data: topSites.map((s) => s.visits),
+                backgroundColor: "#3B82F6",
+                borderRadius: 5,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                display: false,
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  stepSize: 1,
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1
-                            }
-                        }
-                    }
-                }
-            });
-        }
+              },
+            },
+          },
+        });
+      }
 
-        // Inicializar
-        loadDashboard();
+      // Inicializar
+      loadDashboard();
     </script>
-</body>
+  </body>
 </html>

@@ -1,1053 +1,1357 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Editor de Sitios - WebControl Studio</title>
+                <span class="ml-3">GitHub!!!</span>
+              </a>
+              <a
+                href="/USAGE"
+                class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2"
+              >
+                <i class="fas fa-book w-6 h-6 text-gray-500"></i>
+                <span class="ml-3">Documentación</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
 
-	<!-- Tailwind & Icons -->
-	<script src="https://cdn.tailwindcss.com"></script>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <div
+      class="bg-gray-900 opacity-50 hidden fixed inset-0 z-10"
+      id="sidebarBackdrop"
+    ></div>
 
-	<link rel="stylesheet" href="/static/css/main.css">
+    <!-- Main -->
+    <div class="flex overflow-hidden bg-white pt-16">
+      <div
+        id="main-content"
+        class="h-full w-full bg-gray-50 relative overflow-y-auto lg:ml-64"
+      >
+        <main class="pt-6 px-4 pb-10">
+          <div class="flex flex-col gap-6">
+            <!-- Header -->
+            <div
+              class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+            >
+              <div>
+                <nav
+                  class="flex text-sm text-gray-500 mb-2"
+                  aria-label="Breadcrumb"
+                >
+                  <ol class="inline-flex items-center space-x-1">
+                    <li class="inline-flex items-center">
+                      <a
+                        href="/dashboard"
+                        class="inline-flex items-center text-gray-500 hover:text-gray-700"
+                      >
+                        <i class="fas fa-home mr-2"></i>
+                        Dashboard
+                      </a>
+                    </li>
+                    <li>
+                      <div class="flex items-center">
+                        <i
+                          class="fas fa-chevron-right text-xs mx-3 text-gray-400"
+                        ></i>
+                        <span class="text-gray-500">Sitios</span>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="flex items-center">
+                        <i
+                          class="fas fa-chevron-right text-xs mx-3 text-gray-400"
+                        ></i>
+                        <span
+                          class="text-gray-700 font-medium"
+                          id="breadcrumbSite"
+                          >Cargando...</span
+                        >
+                      </div>
+                    </li>
+                  </ol>
+                </nav>
+                <div class="flex items-center gap-3 flex-wrap">
+                  <h1 class="text-3xl font-bold text-gray-900" id="siteName">
+                    Editor de sitio
+                  </h1>
+                  <span
+                    id="syncStatus"
+                    class="hidden inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700"
+                  >
+                    <i class="fas fa-rotate mr-2"></i>
+                    Auto sync activo
+                  </span>
+                </div>
+                <p class="text-gray-500 mt-1">
+                  Personaliza cada sección de tu sitio con componentes Windster.
+                </p>
+              </div>
+              <div class="flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onclick="saveSite()"
+                  class="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-100"
+                >
+                  <i class="fas fa-save mr-2"></i>
+                  Guardar cambios
+                </button>
+                <button
+                  type="button"
+                  onclick="publishSite()"
+                  class="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow"
+                >
+                  <i class="fas fa-cloud-upload-alt mr-2"></i>
+                  Publicar sitio
+                </button>
+              </div>
+            </div>
 
-	<style>
-		body {
-			font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-		}
+            <!-- Tabs -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+              <div class="flex border-b border-gray-100">
+                <button
+                  id="tab-content"
+                  class="tab-button active"
+                  onclick="showTab('content')"
+                >
+                  <i class="fas fa-pen-nib mr-2"></i>
+                  Contenido
+                </button>
+                <button
+                  id="tab-stats"
+                  class="tab-button"
+                  onclick="showTab('stats')"
+                >
+                  <i class="fas fa-chart-line mr-2"></i>
+                  Analíticas
+                </button>
+              </div>
+              <div class="p-6">
+                <form
+                  id="editorForm"
+                  class="space-y-6"
+                  onsubmit="event.preventDefault(); saveSite();"
+                >
+                  <!-- Información general -->
+                  <section class="form-card">
+                    <div class="flex items-start justify-between mb-6">
+                      <div>
+                        <p class="section-heading">Información general</p>
+                        <p class="section-subtitle">
+                          Define el nombre y descripción principal del sitio.
+                        </p>
+                      </div>
+                    </div>
+                    <div class="form-grid">
+                      <div class="form-group">
+                        <label class="form-label" for="name"
+                          >Nombre del sitio</label
+                        >
+                        <input
+                          type="text"
+                          id="name"
+                          name="name"
+                          class="form-input"
+                          placeholder="Mi negocio increíble"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="description"
+                          >Descripción corta</label
+                        >
+                        <input
+                          type="text"
+                          id="description"
+                          name="description"
+                          class="form-input"
+                          placeholder="Breve resumen para SEO"
+                        />
+                      </div>
+                    </div>
+                  </section>
 
-		.tab-button {
-			padding: 1rem 1.5rem;
-			font-size: 0.875rem;
-			font-weight: 600;
-			border-bottom: 2px solid transparent;
-			color: #6B7280;
-			transition: all 0.2s ease;
-		}
+                  <!-- Hero -->
+                  <section class="form-card">
+                    <div class="flex items-start justify-between mb-6">
+                      <div>
+                        <p class="section-heading">Sección principal (Hero)</p>
+                        <p class="section-subtitle">
+                          Impacta con un título y descripción llamativos.
+                        </p>
+                      </div>
+                      <div class="flex gap-2">
+                        <input
+                          type="file"
+                          id="heroImageUpload"
+                          accept="image/*"
+                          class="hidden"
+                          onchange="uploadImage(this, 'hero_image', 'heroImagePreview')"
+                        />
+                        <button
+                          type="button"
+                          onclick="document.getElementById('heroImageUpload').click()"
+                          class="btn btn-outline btn-sm"
+                        >
+                          <i class="fas fa-upload mr-2"></i>Subir imagen
+                        </button>
+                        <button
+                          type="button"
+                          onclick="toggleUrlInput('hero')"
+                          class="btn btn-outline btn-sm"
+                        >
+                          <i class="fas fa-link mr-2"></i>URL
+                        </button>
+                      </div>
+                    </div>
+                    <div class="form-grid">
+                      <div class="space-y-4">
+                        <div class="form-group">
+                          <label class="form-label" for="hero_title"
+                            >Título principal</label
+                          >
+                          <input
+                            type="text"
+                            id="hero_title"
+                            name="hero_title"
+                            class="form-input"
+                            placeholder="Creamos experiencias digitales"
+                          />
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label" for="hero_subtitle"
+                            >Subtítulo</label
+                          >
+                          <textarea
+                            id="hero_subtitle"
+                            name="hero_subtitle"
+                            class="form-textarea"
+                            placeholder="Describe brevemente el valor de tu negocio"
+                          ></textarea>
+                        </div>
+                        <div
+                          class="form-group"
+                          id="heroImageUrlGroup"
+                          style="display: none"
+                        >
+                          <label class="form-label" for="hero_image"
+                            >URL de imagen</label
+                          >
+                          <input
+                            type="url"
+                            id="hero_image"
+                            name="hero_image"
+                            class="form-input"
+                            placeholder="https://..."
+                            onchange="updateImagePreview('hero_image', 'heroImagePreview')"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <div id="heroImagePreview" class="image-preview">
+                          <span>Previsualización de imagen hero</span>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
 
-		.tab-button:hover {
-			color: #2563EB;
-			border-bottom-color: #BFDBFE;
-		}
+                  <!-- Sobre nosotros -->
+                  <section class="form-card">
+                    <div class="flex items-start justify-between mb-6">
+                      <div>
+                        <p class="section-heading">Sección Sobre nosotros</p>
+                        <p class="section-subtitle">
+                          Comparte la historia y valores de tu marca.
+                        </p>
+                      </div>
+                      <div class="flex gap-2">
+                        <input
+                          type="file"
+                          id="aboutImageUpload"
+                          accept="image/*"
+                          class="hidden"
+                          onchange="uploadImage(this, 'about_image', 'aboutImagePreview')"
+                        />
+                        <button
+                          type="button"
+                          onclick="document.getElementById('aboutImageUpload').click()"
+                          class="btn btn-outline btn-sm"
+                        >
+                          <i class="fas fa-upload mr-2"></i>Subir imagen
+                        </button>
+                        <button
+                          type="button"
+                          onclick="toggleUrlInput('about')"
+                          class="btn btn-outline btn-sm"
+                        >
+                          <i class="fas fa-link mr-2"></i>URL
+                        </button>
+                      </div>
+                    </div>
+                    <div class="form-grid">
+                      <div class="space-y-4">
+                        <div class="form-group">
+                          <label class="form-label" for="about_text"
+                            >Descripción</label
+                          >
+                          <textarea
+                            id="about_text"
+                            name="about_text"
+                            class="form-textarea"
+                            placeholder="Cuenta la historia de tu marca"
+                          ></textarea>
+                        </div>
+                        <div
+                          class="form-group"
+                          id="aboutImageUrlGroup"
+                          style="display: none"
+                        >
+                          <label class="form-label" for="about_image"
+                            >URL de imagen</label
+                          >
+                          <input
+                            type="url"
+                            id="about_image"
+                            name="about_image"
+                            class="form-input"
+                            placeholder="https://..."
+                            onchange="updateImagePreview('about_image', 'aboutImagePreview')"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <div id="aboutImagePreview" class="image-preview">
+                          <span>Previsualización de sección</span>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
 
-		.tab-button.active {
-			color: #2563EB;
-			border-bottom-color: #2563EB;
-		}
+                  <!-- Contacto -->
+                  <section class="form-card">
+                    <div class="flex items-start justify-between mb-6">
+                      <div>
+                        <p class="section-heading">Información de contacto</p>
+                        <p class="section-subtitle">
+                          Mantente accesible para tus clientes.
+                        </p>
+                      </div>
+                    </div>
+                    <div class="grid gap-4 md:grid-cols-2">
+                      <div class="form-group">
+                        <label class="form-label" for="contact_email"
+                          >Correo electrónico</label
+                        >
+                        <input
+                          type="email"
+                          id="contact_email"
+                          name="contact_email"
+                          class="form-input"
+                          placeholder="contacto@tuempresa.com"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="contact_phone"
+                          >Teléfono</label
+                        >
+                        <input
+                          type="text"
+                          id="contact_phone"
+                          name="contact_phone"
+                          class="form-input"
+                          placeholder="(+57) 300 000 0000"
+                        />
+                      </div>
+                      <div class="form-group md:col-span-2">
+                        <label class="form-label" for="contact_address"
+                          >Dirección</label
+                        >
+                        <input
+                          type="text"
+                          id="contact_address"
+                          name="contact_address"
+                          class="form-input"
+                          placeholder="Calle 123 #45 - 67"
+                        />
+                      </div>
+                      <div class="form-group md:col-span-2">
+                        <label class="form-label">WhatsApp</label>
+                        <div class="whatsapp-input-container">
+                          <div class="whatsapp-icon-badge">
+                            <i class="fab fa-whatsapp text-white text-xl"></i>
+                          </div>
+                          <input
+                            type="text"
+                            id="whatsapp_number"
+                            name="whatsapp_number"
+                            class="form-input"
+                            placeholder="3001234567"
+                          />
+                        </div>
+                        <p class="input-help">
+                          Ingresa solo números, el código de país se añade
+                          automáticamente.
+                        </p>
+                      </div>
+                    </div>
+                  </section>
 
-		.section-heading {
-			font-size: 1.125rem;
-			font-weight: 600;
-			color: #111827;
-			margin-bottom: 0.25rem;
-		}
+                  <!-- Redes sociales -->
+                  <section class="form-card">
+                    <div class="flex items-start justify-between mb-6">
+                      <div>
+                        <p class="section-heading">Redes sociales</p>
+                        <p class="section-subtitle">
+                          Conecta tus perfiles oficiales.
+                        </p>
+                      </div>
+                    </div>
+                    <div class="form-grid">
+                      <div class="form-group">
+                        <label class="form-label" for="facebook_url"
+                          >Facebook</label
+                        >
+                        <input
+                          type="url"
+                          id="facebook_url"
+                          name="facebook_url"
+                          class="form-input"
+                          placeholder="https://facebook.com/tuempresa"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="instagram_url"
+                          >Instagram</label
+                        >
+                        <input
+                          type="url"
+                          id="instagram_url"
+                          name="instagram_url"
+                          class="form-input"
+                          placeholder="https://instagram.com/tuempresa"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="tiktok_url"
+                          >TikTok</label
+                        >
+                        <input
+                          type="url"
+                          id="tiktok_url"
+                          name="tiktok_url"
+                          class="form-input"
+                          placeholder="https://tiktok.com/@tuempresa"
+                        />
+                      </div>
+                    </div>
+                  </section>
 
-		.section-subtitle {
-			font-size: 0.875rem;
-			color: #6B7280;
-		}
+                  <!-- Productos -->
+                  <section class="form-card">
+                    <div
+                      class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4"
+                    >
+                      <div>
+                        <p class="section-heading">Productos y servicios</p>
+                        <p class="section-subtitle">
+                          Organiza tarjetas visuales para destacar tus ofertas.
+                        </p>
+                      </div>
+                      <div class="flex gap-2">
+                        <button
+                          type="button"
+                          onclick="addNewProduct()"
+                          class="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg bg-blue-50 text-blue-700"
+                        >
+                          <i class="fas fa-plus mr-2"></i>
+                          Agregar producto
+                        </button>
+                        <button
+                          type="button"
+                          onclick="addProductTemplate()"
+                          class="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg bg-gray-100 text-gray-700"
+                        >
+                          <i class="fas fa-magic mr-2"></i>
+                          Producto demo
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      id="productsContainer"
+                      class="grid gap-4 lg:grid-cols-2"
+                    ></div>
+                    <div
+                      id="noProductsMessage"
+                      class="text-center py-10 text-gray-400 border border-dashed border-gray-200 rounded-xl"
+                    >
+                      <p class="text-lg font-semibold mb-2">
+                        Aún no tienes productos
+                      </p>
+                      <p class="text-sm mb-4">
+                        Crea tu primera tarjeta para mostrar tus servicios.
+                      </p>
+                      <button
+                        type="button"
+                        onclick="addNewProduct()"
+                        class="btn btn-primary btn-sm"
+                      >
+                        Agregar producto
+                      </button>
+                    </div>
+                    <textarea
+                      id="products_json"
+                      name="products_json"
+                      class="hidden"
+                    ></textarea>
+                  </section>
 
-		.image-preview {
-			border: 2px dashed #E5E7EB;
-			border-radius: 1rem;
-			min-height: 200px;
-			background-size: cover;
-			background-position: center;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			color: #9CA3AF;
-			position: relative;
-			transition: border-color 0.3s ease;
-		}
+                  <!-- Galería -->
+                  <section class="form-card">
+                    <div
+                      class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4"
+                    >
+                      <div>
+                        <p class="section-heading">Galería visual</p>
+                        <p class="section-subtitle">
+                          Sube fotografías que refuercen la confianza en tu
+                          negocio.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onclick="addNewGalleryImage()"
+                        class="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg bg-blue-50 text-blue-700"
+                      >
+                        <i class="fas fa-images mr-2"></i>
+                        Agregar imagen
+                      </button>
+                    </div>
+                    <div
+                      id="galleryContainer"
+                      class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                    ></div>
+                    <div
+                      id="noGalleryMessage"
+                      class="text-center py-10 text-gray-400 border border-dashed border-gray-200 rounded-xl"
+                    >
+                      <p class="text-lg font-semibold mb-2">
+                        No hay imágenes aún
+                      </p>
+                      <p class="text-sm mb-4">
+                        Comparte tu trabajo o instalaciones.
+                      </p>
+                      <button
+                        type="button"
+                        onclick="addNewGalleryImage()"
+                        class="btn btn-primary btn-sm"
+                      >
+                        Agregar imagen
+                      </button>
+                    </div>
+                    <textarea
+                      id="gallery_images_input"
+                      name="gallery_images"
+                      class="hidden"
+                    ></textarea>
+                  </section>
 
-		.image-preview.has-image::after {
-			content: '';
-			position: absolute;
-			inset: 0;
-			background: rgba(0, 0, 0, 0.15);
-			border-radius: 1rem;
-		}
+                  <!-- Colores -->
+                  <section class="form-card">
+                    <div class="flex flex-col gap-2 mb-6">
+                      <p class="section-heading">Personalización de colores</p>
+                      <p class="section-subtitle">
+                        Define el estilo visual de botones y acentos.
+                      </p>
+                    </div>
+                    <div class="mb-6">
+                      <label class="form-label font-semibold text-gray-800"
+                        >Paletas curadas por modelo</label
+                      >
+                      <div
+                        class="mt-3 grid gap-4 md:grid-cols-[1.4fr,1fr] items-start"
+                      >
+                        <select
+                          id="editorPaletteSelect"
+                          class="w-full rounded-xl border border-gray-200 py-2.5 px-3 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+                          disabled
+                        >
+                          <option value="">Cargando paletas...</option>
+                        </select>
+                        <div
+                          id="editorPalettePreview"
+                          class="grid grid-cols-4 gap-2"
+                        ></div>
+                      </div>
+                      <p class="text-xs text-gray-500 mt-2">
+                        Elegir una paleta ajusta automáticamente los colores
+                        primario y secundario.
+                      </p>
+                    </div>
+                    <div class="grid gap-6 md:grid-cols-2">
+                      <div class="form-group">
+                        <label class="form-label" for="primary_color"
+                          >Color primario</label
+                        >
+                        <div class="color-picker-container">
+                          <input
+                            type="color"
+                            id="primary_color"
+                            name="primary_color"
+                            class="color-input"
+                            value="#3B82F6"
+                            onchange="updateColorPreview('primary')"
+                          />
+                          <div
+                            class="color-preview-box"
+                            id="primaryColorPreview"
+                          >
+                            <div class="color-preview-swatch"></div>
+                            <span class="color-preview-label"
+                              >Botones principales</span
+                            >
+                          </div>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="secondary_color"
+                          >Color secundario</label
+                        >
+                        <div class="color-picker-container">
+                          <input
+                            type="color"
+                            id="secondary_color"
+                            name="secondary_color"
+                            class="color-input"
+                            value="#8B5CF6"
+                            onchange="updateColorPreview('secondary')"
+                          />
+                          <div
+                            class="color-preview-box"
+                            id="secondaryColorPreview"
+                          >
+                            <div class="color-preview-swatch"></div>
+                            <span class="color-preview-label"
+                              >Acentos y enlaces</span
+                            >
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="mt-6 flex gap-4 flex-wrap">
+                      <button
+                        type="button"
+                        id="demoButtonPrimary"
+                        class="btn"
+                        style="pointer-events: none"
+                      >
+                        Botón primario
+                      </button>
+                      <button
+                        type="button"
+                        id="demoButtonSecondary"
+                        class="btn btn-outline"
+                        style="pointer-events: none"
+                      >
+                        Botón secundario
+                      </button>
+                    </div>
+                  </section>
 
-		.image-preview span {
-			position: relative;
-			z-index: 1;
-		}
+                  <!-- Configuración avanzada -->
+                  <section class="form-card">
+                    <div class="flex flex-col gap-2 mb-6">
+                      <p class="section-heading">Configuración avanzada</p>
+                      <p class="section-subtitle">
+                        Personaliza recursos técnicos del sitio.
+                      </p>
+                    </div>
+                    <div class="form-grid">
+                      <div class="form-group">
+                        <label class="form-label" for="logo_url">Logo</label>
+                        <input
+                          type="url"
+                          id="logo_url"
+                          name="logo_url"
+                          class="form-input"
+                          placeholder="https://..."
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="custom_domain"
+                          >Dominio personalizado</label
+                        >
+                        <input
+                          type="text"
+                          id="custom_domain"
+                          name="custom_domain"
+                          class="form-input"
+                          placeholder="misitio.com"
+                        />
+                      </div>
+                    </div>
+                  </section>
+                </form>
 
-		.form-card {
-			background: #FFFFFF;
-			border-radius: 1.5rem;
-			border: 1px solid #F3F4F6;
-			box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
-			padding: 1.5rem;
-		}
+                <!-- Stats Tab -->
+                <div id="statsTab" class="hidden space-y-6">
+                  <div class="grid gap-4 md:grid-cols-3">
+                    <div
+                      class="bg-blue-50 border border-blue-100 rounded-2xl p-6"
+                    >
+                      <p class="text-sm text-blue-600 font-medium mb-2">
+                        Visitas totales
+                      </p>
+                      <p
+                        class="text-3xl font-bold text-blue-900"
+                        id="totalVisits"
+                      >
+                        0
+                      </p>
+                    </div>
+                    <div
+                      class="bg-green-50 border border-green-100 rounded-2xl p-6"
+                    >
+                      <p class="text-sm text-green-600 font-medium mb-2">
+                        Estado
+                      </p>
+                      <p class="text-lg" id="siteState">Borrador</p>
+                    </div>
+                    <div
+                      class="bg-purple-50 border border-purple-100 rounded-2xl p-6"
+                    >
+                      <p class="text-sm text-purple-600 font-medium mb-2">
+                        Modelo
+                      </p>
+                      <p class="text-lg" id="siteModel">-</p>
+                    </div>
+                  </div>
+                  <div
+                    class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
+                  >
+                    <div class="flex items-center justify-between mb-4">
+                      <div>
+                        <p class="section-heading mb-0">Visitas por día</p>
+                        <p class="section-subtitle">Últimos 7 días</p>
+                      </div>
+                    </div>
+                    <canvas id="visitsChart" height="120"></canvas>
+                  </div>
+                  <div
+                    class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
+                    id="siteInfoCard"
+                  >
+                    <p class="section-heading mb-4">Información del sitio</p>
+                    <div
+                      id="siteInfo"
+                      class="space-y-2 text-sm text-gray-600"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
 
-		.form-grid {
-			display: grid;
-			gap: 1rem;
-		}
+    <script src="/static/js/main.js"></script>
+    <script>
+      let currentSiteId = null;
+      let chart = null;
+      let editorPaletteSelect = null;
+      let editorPalettePreview = null;
+      let currentModelType = null;
+      window.productsData = [];
+      window.galleryData = [];
+      const LOCAL_ASSET_HOSTS = new Set(["localhost", "127.0.0.1"]);
 
-		@media (min-width: 768px) {
-			.form-grid {
-				grid-template-columns: repeat(2, minmax(0, 1fr));
-			}
-		}
+      function canonicalizeAssetUrl(value) {
+        if (!value || typeof value !== "string") {
+          return "";
+        }
+        let trimmed = value.trim();
+        if (!trimmed) {
+          return "";
+        }
+        if (/^data:/i.test(trimmed)) {
+          return trimmed;
+        }
+        if (trimmed.startsWith("./")) {
+          trimmed = trimmed.replace(/^\.\/+/, "");
+        }
+        if (trimmed.startsWith("images/")) {
+          return trimmed;
+        }
+        if (trimmed.startsWith("/images/")) {
+          return trimmed.replace(/^\/+/, "");
+        }
+        if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("//")) {
+          try {
+            const parsed = new URL(trimmed, window.location.origin);
+            if (
+              LOCAL_ASSET_HOSTS.has(parsed.hostname) &&
+              parsed.pathname.startsWith("/images/")
+            ) {
+              return parsed.pathname.replace(/^\/+/, "");
+            }
+          } catch (error) {
+            return trimmed;
+          }
+          return trimmed;
+        }
+        return trimmed;
+      }
 
-		.input-help {
-			font-size: 0.75rem;
-			color: #9CA3AF;
-			margin-top: 0.25rem;
-		}
-	</style>
-</head>
-<body class="bg-gray-50">
+      function resolvePreviewAssetUrl(value) {
+        const canonical = canonicalizeAssetUrl(value);
+        if (!canonical) {
+          return "";
+        }
+        if (/^(data:|https?:|\/\/)/i.test(canonical)) {
+          return canonical;
+        }
+        const relative = canonical.replace(/^\/+/, "");
+        if (!relative) {
+          return "";
+        }
+        if (relative.startsWith("images/")) {
+          return `/images/${relative.slice(7)}`;
+        }
+        return `/${relative}`;
+      }
 
-<!-- Navbar -->
-<nav class="bg-white border-b border-gray-200 fixed z-30 w-full">
-	<div class="px-3 py-3 lg:px-5 lg:pl-3">
-		<div class="flex items-center justify-between">
-			<div class="flex items-center justify-start">
-				<button id="toggleSidebarMobile" aria-expanded="true" aria-controls="sidebar" class="lg:hidden mr-2 text-gray-600 hover:text-gray-900 cursor-pointer p-2 hover:bg-gray-100 focus:bg-gray-100 focus:ring-2 focus:ring-gray-100 rounded">
-					<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-						<path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-					</svg>
-				</button>
-				<a href="/dashboard" class="text-xl font-bold flex items-center lg:ml-2.5">
-					<i class="fas fa-globe text-blue-600 mr-2"></i>
-					<span class="self-center whitespace-nowrap">WebControl Studio</span>
-				</a>
-			</div>
-			<div class="flex items-center">
-				<button id="userMenuButton" type="button" class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300">
-					<span class="sr-only">Abrir menú de usuario</span>
-					<div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
-						<i class="fas fa-user"></i>
-					</div>
-				</button>
-				<div id="userMenu" class="hidden z-50 my-4 text-base list-none bg-white rounded divide-y divide-gray-100 shadow absolute right-0 top-12">
-					<div class="py-3 px-4">
-						<span class="block text-sm text-gray-900" id="userName">Admin</span>
-						<span class="block text-sm font-medium text-gray-500 truncate" id="userEmail">admin@webcontrol.com</span>
-					</div>
-					<ul class="py-1">
-						<li>
-							<a href="#" onclick="logout()" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">Cerrar sesión</a>
-						</li>
-					</ul>
-				</div>
-			</div>
-		</div>
-	</div>
-</nav>
+      document.addEventListener("DOMContentLoaded", () => {
+        editorPaletteSelect = document.getElementById("editorPaletteSelect");
+        editorPalettePreview = document.getElementById("editorPalettePreview");
+        setupLayoutInteractions();
+        setupEditorPaletteListener();
+        loadSite();
+      });
 
-<!-- Sidebar -->
-<aside id="sidebar" class="fixed hidden z-20 h-full top-0 left-0 pt-16 lg:flex flex-shrink-0 flex-col w-64 transition-width duration-75" aria-label="Sidebar">
-	<div class="relative flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white pt-0">
-		<div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-			<div class="flex-1 px-3 bg-white divide-y space-y-1">
-				<ul class="space-y-2 pb-2">
-					<li>
-						<a href="/dashboard" class="text-base text-gray-900 font-normal rounded-lg flex items-center p-2 hover:bg-gray-100">
-							<i class="fas fa-th-large w-6 h-6 text-gray-500"></i>
-							<span class="ml-3">Dashboard</span>
-						</a>
-					</li>
-					<li>
-						<a href="/create-site" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2">
-							<i class="fas fa-plus-circle w-6 h-6 text-gray-500"></i>
-							<span class="ml-3">Crear Sitio</span>
-						</a>
-					</li>
-					<li>
-						<a href="/models" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2">
-							<i class="fas fa-layer-group w-6 h-6 text-gray-500"></i>
-							<span class="ml-3">Modelos</span>
-						</a>
-					</li>
-					<li>
-						<div class="text-xs font-semibold text-gray-400 uppercase px-2 mt-4">Editor</div>
-						<div class="text-base text-blue-600 font-semibold rounded-lg bg-blue-50 flex items-center p-2 mt-2">
-							<i class="fas fa-pen-to-square w-6 h-6"></i>
-							<span class="ml-3">Sitio actual</span>
-						</div>
-					</li>
-				</ul>
-				<div class="space-y-2 pt-2">
-					<a href="https://github.com/AnSan29/webControl" target="_blank" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2">
-						<i class="fab fa-github w-6 h-6 text-gray-500"></i>
-						<span class="ml-3">GitHub</span>
-					</a>
-					<a href="/USAGE" class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2">
-						<i class="fas fa-book w-6 h-6 text-gray-500"></i>
-						<span class="ml-3">Documentación</span>
-					</a>
-				</div>
-			</div>
-		</div>
-	</div>
-</aside>
+      function setupLayoutInteractions() {
+        const toggleSidebarMobile = document.getElementById(
+          "toggleSidebarMobile"
+        );
+        const sidebar = document.getElementById("sidebar");
+        const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+        const userMenuButton = document.getElementById("userMenuButton");
+        const userMenu = document.getElementById("userMenu");
 
-<div class="bg-gray-900 opacity-50 hidden fixed inset-0 z-10" id="sidebarBackdrop"></div>
+        const storedEmail = localStorage.getItem("email");
+        if (storedEmail) {
+          const name = storedEmail.split("@")[0];
+          const nameEl = document.getElementById("userName");
+          const emailEl = document.getElementById("userEmail");
+          if (nameEl) nameEl.textContent = name;
+          if (emailEl) emailEl.textContent = storedEmail;
+        }
 
-<!-- Main -->
-<div class="flex overflow-hidden bg-white pt-16">
-	<div id="main-content" class="h-full w-full bg-gray-50 relative overflow-y-auto lg:ml-64">
-		<main class="pt-6 px-4 pb-10">
-			<div class="flex flex-col gap-6">
-				<!-- Header -->
-				<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-					<div>
-						<nav class="flex text-sm text-gray-500 mb-2" aria-label="Breadcrumb">
-							<ol class="inline-flex items-center space-x-1">
-								<li class="inline-flex items-center">
-									<a href="/dashboard" class="inline-flex items-center text-gray-500 hover:text-gray-700">
-										<i class="fas fa-home mr-2"></i>
-										Dashboard
-									</a>
-								</li>
-								<li>
-									<div class="flex items-center">
-										<i class="fas fa-chevron-right text-xs mx-3 text-gray-400"></i>
-										<span class="text-gray-500">Sitios</span>
-									</div>
-								</li>
-								<li>
-									<div class="flex items-center">
-										<i class="fas fa-chevron-right text-xs mx-3 text-gray-400"></i>
-										<span class="text-gray-700 font-medium" id="breadcrumbSite">Cargando...</span>
-									</div>
-								</li>
-							</ol>
-						</nav>
-						<div class="flex items-center gap-3 flex-wrap">
-							<h1 class="text-3xl font-bold text-gray-900" id="siteName">Editor de sitio</h1>
-							<span id="syncStatus" class="hidden inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-								<i class="fas fa-rotate mr-2"></i>
-								Auto sync activo
-							</span>
-						</div>
-						<p class="text-gray-500 mt-1">Personaliza cada sección de tu sitio con componentes Windster.</p>
-					</div>
-					<div class="flex flex-col sm:flex-row gap-3">
-						<button type="button" onclick="saveSite()" class="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-100">
-							<i class="fas fa-save mr-2"></i>
-							Guardar cambios
-						</button>
-						<button type="button" onclick="publishSite()" class="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow">
-							<i class="fas fa-cloud-upload-alt mr-2"></i>
-							Publicar sitio
-						</button>
-					</div>
-				</div>
+        if (toggleSidebarMobile) {
+          toggleSidebarMobile.addEventListener("click", () => {
+            sidebar.classList.toggle("hidden");
+            sidebarBackdrop.classList.toggle("hidden");
+          });
+        }
 
-				<!-- Tabs -->
-				<div class="bg-white rounded-2xl shadow-sm border border-gray-100">
-					<div class="flex border-b border-gray-100">
-						<button id="tab-content" class="tab-button active" onclick="showTab('content')">
-							<i class="fas fa-pen-nib mr-2"></i>
-							Contenido
-						</button>
-						<button id="tab-stats" class="tab-button" onclick="showTab('stats')">
-							<i class="fas fa-chart-line mr-2"></i>
-							Analíticas
-						</button>
-					</div>
-					<div class="p-6">
-						<form id="editorForm" class="space-y-6" onsubmit="event.preventDefault(); saveSite();">
-							<!-- Información general -->
-							<section class="form-card">
-								<div class="flex items-start justify-between mb-6">
-									<div>
-										<p class="section-heading">Información general</p>
-										<p class="section-subtitle">Define el nombre y descripción principal del sitio.</p>
-									</div>
-								</div>
-								<div class="form-grid">
-									<div class="form-group">
-										<label class="form-label" for="name">Nombre del sitio</label>
-										<input type="text" id="name" name="name" class="form-input" placeholder="Mi negocio increíble">
-									</div>
-									<div class="form-group">
-										<label class="form-label" for="description">Descripción corta</label>
-										<input type="text" id="description" name="description" class="form-input" placeholder="Breve resumen para SEO">
-									</div>
-								</div>
-							</section>
+        if (sidebarBackdrop) {
+          sidebarBackdrop.addEventListener("click", () => {
+            sidebar.classList.add("hidden");
+            sidebarBackdrop.classList.add("hidden");
+          });
+        }
 
-							<!-- Hero -->
-							<section class="form-card">
-								<div class="flex items-start justify-between mb-6">
-									<div>
-										<p class="section-heading">Sección principal (Hero)</p>
-										<p class="section-subtitle">Impacta con un título y descripción llamativos.</p>
-									</div>
-									<div class="flex gap-2">
-										<input type="file" id="heroImageUpload" accept="image/*" class="hidden" onchange="uploadImage(this, 'hero_image', 'heroImagePreview')">
-										<button type="button" onclick="document.getElementById('heroImageUpload').click()" class="btn btn-outline btn-sm">
-											<i class="fas fa-upload mr-2"></i>Subir imagen
-										</button>
-										<button type="button" onclick="toggleUrlInput('hero')" class="btn btn-outline btn-sm">
-											<i class="fas fa-link mr-2"></i>URL
-										</button>
-									</div>
-								</div>
-								<div class="form-grid">
-									<div class="space-y-4">
-										<div class="form-group">
-											<label class="form-label" for="hero_title">Título principal</label>
-											<input type="text" id="hero_title" name="hero_title" class="form-input" placeholder="Creamos experiencias digitales">
-										</div>
-										<div class="form-group">
-											<label class="form-label" for="hero_subtitle">Subtítulo</label>
-											<textarea id="hero_subtitle" name="hero_subtitle" class="form-textarea" placeholder="Describe brevemente el valor de tu negocio"></textarea>
-										</div>
-										<div class="form-group" id="heroImageUrlGroup" style="display:none;">
-											<label class="form-label" for="hero_image">URL de imagen</label>
-											<input type="url" id="hero_image" name="hero_image" class="form-input" placeholder="https://..." onchange="updateImagePreview('hero_image', 'heroImagePreview')">
-										</div>
-									</div>
-									<div>
-										<div id="heroImagePreview" class="image-preview">
-											<span>Previsualización de imagen hero</span>
-										</div>
-									</div>
-								</div>
-							</section>
+        if (userMenuButton && userMenu) {
+          userMenuButton.addEventListener("click", (event) => {
+            event.stopPropagation();
+            userMenu.classList.toggle("hidden");
+          });
 
-							<!-- Sobre nosotros -->
-							<section class="form-card">
-								<div class="flex items-start justify-between mb-6">
-									<div>
-										<p class="section-heading">Sección Sobre nosotros</p>
-										<p class="section-subtitle">Comparte la historia y valores de tu marca.</p>
-									</div>
-									<div class="flex gap-2">
-										<input type="file" id="aboutImageUpload" accept="image/*" class="hidden" onchange="uploadImage(this, 'about_image', 'aboutImagePreview')">
-										<button type="button" onclick="document.getElementById('aboutImageUpload').click()" class="btn btn-outline btn-sm">
-											<i class="fas fa-upload mr-2"></i>Subir imagen
-										</button>
-										<button type="button" onclick="toggleUrlInput('about')" class="btn btn-outline btn-sm">
-											<i class="fas fa-link mr-2"></i>URL
-										</button>
-									</div>
-								</div>
-								<div class="form-grid">
-									<div class="space-y-4">
-										<div class="form-group">
-											<label class="form-label" for="about_text">Descripción</label>
-											<textarea id="about_text" name="about_text" class="form-textarea" placeholder="Cuenta la historia de tu marca"></textarea>
-										</div>
-										<div class="form-group" id="aboutImageUrlGroup" style="display:none;">
-											<label class="form-label" for="about_image">URL de imagen</label>
-											<input type="url" id="about_image" name="about_image" class="form-input" placeholder="https://..." onchange="updateImagePreview('about_image', 'aboutImagePreview')">
-										</div>
-									</div>
-									<div>
-										<div id="aboutImagePreview" class="image-preview">
-											<span>Previsualización de sección</span>
-										</div>
-									</div>
-								</div>
-							</section>
+          document.addEventListener("click", (event) => {
+            if (
+              !userMenu.contains(event.target) &&
+              !userMenuButton.contains(event.target)
+            ) {
+              userMenu.classList.add("hidden");
+            }
+          });
+        }
+      }
 
-							<!-- Contacto -->
-							<section class="form-card">
-								<div class="flex items-start justify-between mb-6">
-									<div>
-										<p class="section-heading">Información de contacto</p>
-										<p class="section-subtitle">Mantente accesible para tus clientes.</p>
-									</div>
-								</div>
-								<div class="grid gap-4 md:grid-cols-2">
-									<div class="form-group">
-										<label class="form-label" for="contact_email">Correo electrónico</label>
-										<input type="email" id="contact_email" name="contact_email" class="form-input" placeholder="contacto@tuempresa.com">
-									</div>
-									<div class="form-group">
-										<label class="form-label" for="contact_phone">Teléfono</label>
-										<input type="text" id="contact_phone" name="contact_phone" class="form-input" placeholder="(+57) 300 000 0000">
-									</div>
-									<div class="form-group md:col-span-2">
-										<label class="form-label" for="contact_address">Dirección</label>
-										<input type="text" id="contact_address" name="contact_address" class="form-input" placeholder="Calle 123 #45 - 67">
-									</div>
-									<div class="form-group md:col-span-2">
-										<label class="form-label">WhatsApp</label>
-										<div class="whatsapp-input-container">
-											<div class="whatsapp-icon-badge">
-												<i class="fab fa-whatsapp text-white text-xl"></i>
-											</div>
-											<input type="text" id="whatsapp_number" name="whatsapp_number" class="form-input" placeholder="3001234567">
-										</div>
-										<p class="input-help">Ingresa solo números, el código de país se añade automáticamente.</p>
-									</div>
-								</div>
-							</section>
+      function setupEditorPaletteListener() {
+        if (!editorPaletteSelect) return;
+        editorPaletteSelect.addEventListener("change", () => {
+          if (!currentModelType) return;
+          const selectedPalette = findPaletteForModel(
+            currentModelType,
+            editorPaletteSelect.value
+          );
+          if (selectedPalette) {
+            applyPaletteToInputs(selectedPalette);
+            renderEditorPalettePreview(selectedPalette);
+          }
+        });
+      }
 
-							<!-- Redes sociales -->
-							<section class="form-card">
-								<div class="flex items-start justify-between mb-6">
-									<div>
-										<p class="section-heading">Redes sociales</p>
-										<p class="section-subtitle">Conecta tus perfiles oficiales.</p>
-									</div>
-								</div>
-								<div class="form-grid">
-									<div class="form-group">
-										<label class="form-label" for="facebook_url">Facebook</label>
-										<input type="url" id="facebook_url" name="facebook_url" class="form-input" placeholder="https://facebook.com/tuempresa">
-									</div>
-									<div class="form-group">
-										<label class="form-label" for="instagram_url">Instagram</label>
-										<input type="url" id="instagram_url" name="instagram_url" class="form-input" placeholder="https://instagram.com/tuempresa">
-									</div>
-									<div class="form-group">
-										<label class="form-label" for="tiktok_url">TikTok</label>
-										<input type="url" id="tiktok_url" name="tiktok_url" class="form-input" placeholder="https://tiktok.com/@tuempresa">
-									</div>
-								</div>
-							</section>
-
-							<!-- Productos -->
-							<section class="form-card">
-								<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4">
-									<div>
-										<p class="section-heading">Productos y servicios</p>
-										<p class="section-subtitle">Organiza tarjetas visuales para destacar tus ofertas.</p>
-									</div>
-									<div class="flex gap-2">
-										<button type="button" onclick="addNewProduct()" class="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg bg-blue-50 text-blue-700">
-											<i class="fas fa-plus mr-2"></i>
-											Agregar producto
-										</button>
-										<button type="button" onclick="addProductTemplate()" class="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg bg-gray-100 text-gray-700">
-											<i class="fas fa-magic mr-2"></i>
-											Producto demo
-										</button>
-									</div>
-								</div>
-								<div id="productsContainer" class="grid gap-4 lg:grid-cols-2"></div>
-								<div id="noProductsMessage" class="text-center py-10 text-gray-400 border border-dashed border-gray-200 rounded-xl">
-									<p class="text-lg font-semibold mb-2">Aún no tienes productos</p>
-									<p class="text-sm mb-4">Crea tu primera tarjeta para mostrar tus servicios.</p>
-									<button type="button" onclick="addNewProduct()" class="btn btn-primary btn-sm">Agregar producto</button>
-								</div>
-								<textarea id="products_json" name="products_json" class="hidden"></textarea>
-							</section>
-
-							<!-- Galería -->
-							<section class="form-card">
-								<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-4">
-									<div>
-										<p class="section-heading">Galería visual</p>
-										<p class="section-subtitle">Sube fotografías que refuercen la confianza en tu negocio.</p>
-									</div>
-									<button type="button" onclick="addNewGalleryImage()" class="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg bg-blue-50 text-blue-700">
-										<i class="fas fa-images mr-2"></i>
-										Agregar imagen
-									</button>
-								</div>
-								<div id="galleryContainer" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
-								<div id="noGalleryMessage" class="text-center py-10 text-gray-400 border border-dashed border-gray-200 rounded-xl">
-									<p class="text-lg font-semibold mb-2">No hay imágenes aún</p>
-									<p class="text-sm mb-4">Comparte tu trabajo o instalaciones.</p>
-									<button type="button" onclick="addNewGalleryImage()" class="btn btn-primary btn-sm">Agregar imagen</button>
-								</div>
-								<textarea id="gallery_images_input" name="gallery_images" class="hidden"></textarea>
-							</section>
-
-							<!-- Colores -->
-							<section class="form-card">
-								<div class="flex flex-col gap-2 mb-6">
-									<p class="section-heading">Personalización de colores</p>
-									<p class="section-subtitle">Define el estilo visual de botones y acentos.</p>
-								</div>
-								<div class="mb-6">
-									<label class="form-label font-semibold text-gray-800">Paletas curadas por modelo</label>
-									<div class="mt-3 grid gap-4 md:grid-cols-[1.4fr,1fr] items-start">
-										<select id="editorPaletteSelect" class="w-full rounded-xl border border-gray-200 py-2.5 px-3 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500" disabled>
-											<option value="">Cargando paletas...</option>
-										</select>
-										<div id="editorPalettePreview" class="grid grid-cols-4 gap-2"></div>
-									</div>
-									<p class="text-xs text-gray-500 mt-2">Elegir una paleta ajusta automáticamente los colores primario y secundario.</p>
-								</div>
-								<div class="grid gap-6 md:grid-cols-2">
-									<div class="form-group">
-										<label class="form-label" for="primary_color">Color primario</label>
-										<div class="color-picker-container">
-											<input type="color" id="primary_color" name="primary_color" class="color-input" value="#3B82F6" onchange="updateColorPreview('primary')">
-											<div class="color-preview-box" id="primaryColorPreview">
-												<div class="color-preview-swatch"></div>
-												<span class="color-preview-label">Botones principales</span>
-											</div>
-										</div>
-									</div>
-									<div class="form-group">
-										<label class="form-label" for="secondary_color">Color secundario</label>
-										<div class="color-picker-container">
-											<input type="color" id="secondary_color" name="secondary_color" class="color-input" value="#8B5CF6" onchange="updateColorPreview('secondary')">
-											<div class="color-preview-box" id="secondaryColorPreview">
-												<div class="color-preview-swatch"></div>
-												<span class="color-preview-label">Acentos y enlaces</span>
-											</div>
-										</div>
-									</div>
-								</div>
-								<div class="mt-6 flex gap-4 flex-wrap">
-									<button type="button" id="demoButtonPrimary" class="btn" style="pointer-events:none;">Botón primario</button>
-									<button type="button" id="demoButtonSecondary" class="btn btn-outline" style="pointer-events:none;">Botón secundario</button>
-								</div>
-							</section>
-
-							<!-- Configuración avanzada -->
-							<section class="form-card">
-								<div class="flex flex-col gap-2 mb-6">
-									<p class="section-heading">Configuración avanzada</p>
-									<p class="section-subtitle">Personaliza recursos técnicos del sitio.</p>
-								</div>
-								<div class="form-grid">
-									<div class="form-group">
-										<label class="form-label" for="logo_url">Logo</label>
-										<input type="url" id="logo_url" name="logo_url" class="form-input" placeholder="https://...">
-									</div>
-									<div class="form-group">
-										<label class="form-label" for="custom_domain">Dominio personalizado</label>
-										<input type="text" id="custom_domain" name="custom_domain" class="form-input" placeholder="misitio.com">
-									</div>
-								</div>
-							</section>
-						</form>
-
-						<!-- Stats Tab -->
-						<div id="statsTab" class="hidden space-y-6">
-							<div class="grid gap-4 md:grid-cols-3">
-								<div class="bg-blue-50 border border-blue-100 rounded-2xl p-6">
-									<p class="text-sm text-blue-600 font-medium mb-2">Visitas totales</p>
-									<p class="text-3xl font-bold text-blue-900" id="totalVisits">0</p>
-								</div>
-								<div class="bg-green-50 border border-green-100 rounded-2xl p-6">
-									<p class="text-sm text-green-600 font-medium mb-2">Estado</p>
-									<p class="text-lg" id="siteState">Borrador</p>
-								</div>
-								<div class="bg-purple-50 border border-purple-100 rounded-2xl p-6">
-									<p class="text-sm text-purple-600 font-medium mb-2">Modelo</p>
-									<p class="text-lg" id="siteModel">-</p>
-								</div>
-							</div>
-							<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-								<div class="flex items-center justify-between mb-4">
-									<div>
-										<p class="section-heading mb-0">Visitas por día</p>
-										<p class="section-subtitle">Últimos 7 días</p>
-									</div>
-								</div>
-								<canvas id="visitsChart" height="120"></canvas>
-							</div>
-							<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6" id="siteInfoCard">
-								<p class="section-heading mb-4">Información del sitio</p>
-								<div id="siteInfo" class="space-y-2 text-sm text-gray-600"></div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</main>
-	</div>
-</div>
-
-<script src="/static/js/main.js"></script>
-<script>
-	let currentSiteId = null;
-	let chart = null;
-	let editorPaletteSelect = null;
-	let editorPalettePreview = null;
-	let currentModelType = null;
-	window.productsData = [];
-	window.galleryData = [];
-	const LOCAL_ASSET_HOSTS = new Set(['localhost', '127.0.0.1']);
-
-	function canonicalizeAssetUrl(value) {
-		if (!value || typeof value !== 'string') {
-			return '';
-		}
-		let trimmed = value.trim();
-		if (!trimmed) {
-			return '';
-		}
-		if (/^data:/i.test(trimmed)) {
-			return trimmed;
-		}
-		if (trimmed.startsWith('./')) {
-			trimmed = trimmed.replace(/^\.\/+/, '');
-		}
-		if (trimmed.startsWith('images/')) {
-			return trimmed;
-		}
-		if (trimmed.startsWith('/images/')) {
-			return trimmed.replace(/^\/+/, '');
-		}
-		if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith('//')) {
-			try {
-				const parsed = new URL(trimmed, window.location.origin);
-				if (LOCAL_ASSET_HOSTS.has(parsed.hostname) && parsed.pathname.startsWith('/images/')) {
-					return parsed.pathname.replace(/^\/+/, '');
-				}
-			} catch (error) {
-				return trimmed;
-			}
-			return trimmed;
-		}
-		return trimmed;
-	}
-
-	function resolvePreviewAssetUrl(value) {
-		const canonical = canonicalizeAssetUrl(value);
-		if (!canonical) {
-			return '';
-		}
-		if (/^(data:|https?:|\/\/)/i.test(canonical)) {
-			return canonical;
-		}
-		const relative = canonical.replace(/^\/+/, '');
-		if (!relative) {
-			return '';
-		}
-		if (relative.startsWith('images/')) {
-			return `/images/${relative.slice(7)}`;
-		}
-		return `/${relative}`;
-	}
-
-	document.addEventListener('DOMContentLoaded', () => {
-		editorPaletteSelect = document.getElementById('editorPaletteSelect');
-		editorPalettePreview = document.getElementById('editorPalettePreview');
-		setupLayoutInteractions();
-		setupEditorPaletteListener();
-		loadSite();
-	});
-
-	function setupLayoutInteractions() {
-		const toggleSidebarMobile = document.getElementById('toggleSidebarMobile');
-		const sidebar = document.getElementById('sidebar');
-		const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-		const userMenuButton = document.getElementById('userMenuButton');
-		const userMenu = document.getElementById('userMenu');
-
-		const storedEmail = localStorage.getItem('email');
-		if (storedEmail) {
-			const name = storedEmail.split('@')[0];
-			const nameEl = document.getElementById('userName');
-			const emailEl = document.getElementById('userEmail');
-			if (nameEl) nameEl.textContent = name;
-			if (emailEl) emailEl.textContent = storedEmail;
-		}
-
-		if (toggleSidebarMobile) {
-			toggleSidebarMobile.addEventListener('click', () => {
-				sidebar.classList.toggle('hidden');
-				sidebarBackdrop.classList.toggle('hidden');
-			});
-		}
-
-		if (sidebarBackdrop) {
-			sidebarBackdrop.addEventListener('click', () => {
-				sidebar.classList.add('hidden');
-				sidebarBackdrop.classList.add('hidden');
-			});
-		}
-
-		if (userMenuButton && userMenu) {
-			userMenuButton.addEventListener('click', (event) => {
-				event.stopPropagation();
-				userMenu.classList.toggle('hidden');
-			});
-
-			document.addEventListener('click', (event) => {
-				if (!userMenu.contains(event.target) && !userMenuButton.contains(event.target)) {
-					userMenu.classList.add('hidden');
-				}
-			});
-		}
-	}
-
-	function setupEditorPaletteListener() {
-		if (!editorPaletteSelect) return;
-		editorPaletteSelect.addEventListener('change', () => {
-			if (!currentModelType) return;
-			const selectedPalette = findPaletteForModel(currentModelType, editorPaletteSelect.value);
-			if (selectedPalette) {
-				applyPaletteToInputs(selectedPalette);
-				renderEditorPalettePreview(selectedPalette);
-			}
-		});
-	}
-
-	function renderEditorPalettePreview(palette) {
-		if (!editorPalettePreview) return;
-		if (!palette) {
-			editorPalettePreview.innerHTML = '<p class="text-xs text-gray-400 col-span-4">Sin paleta disponible para este modelo.</p>';
-			return;
-		}
-		const items = [
-			{ label: 'Primario', value: palette.primary },
-			{ label: 'Secundario', value: palette.secondary },
-			{ label: 'Acento', value: palette.accent },
-			{ label: 'Fondo', value: palette.background }
-		].filter(item => item.value);
-		editorPalettePreview.innerHTML = items.map(item => `
+      function renderEditorPalettePreview(palette) {
+        if (!editorPalettePreview) return;
+        if (!palette) {
+          editorPalettePreview.innerHTML =
+            '<p class="text-xs text-gray-400 col-span-4">Sin paleta disponible para este modelo.</p>';
+          return;
+        }
+        const items = [
+          { label: "Primario", value: palette.primary },
+          { label: "Secundario", value: palette.secondary },
+          { label: "Acento", value: palette.accent },
+          { label: "Fondo", value: palette.background },
+        ].filter((item) => item.value);
+        editorPalettePreview.innerHTML = items
+          .map(
+            (item) => `
 			<div class="rounded-xl h-16 border border-white/30 shadow-inner relative overflow-hidden" style="background:${item.value}">
 				<span class="absolute bottom-1 left-2 text-[11px] font-semibold text-white mix-blend-difference">${item.label}</span>
 			</div>
-		`).join('');
-	}
+		`
+          )
+          .join("");
+      }
 
-	function applyPaletteToInputs(palette) {
-		const primaryInput = document.getElementById('primary_color');
-		const secondaryInput = document.getElementById('secondary_color');
-		if (!primaryInput || !secondaryInput || !palette) return;
-		if (palette.primary) {
-			primaryInput.value = palette.primary;
-			updateColorPreview('primary');
-		}
-		if (palette.secondary) {
-			secondaryInput.value = palette.secondary;
-			updateColorPreview('secondary');
-		}
-	}
+      function applyPaletteToInputs(palette) {
+        const primaryInput = document.getElementById("primary_color");
+        const secondaryInput = document.getElementById("secondary_color");
+        if (!primaryInput || !secondaryInput || !palette) return;
+        if (palette.primary) {
+          primaryInput.value = palette.primary;
+          updateColorPreview("primary");
+        }
+        if (palette.secondary) {
+          secondaryInput.value = palette.secondary;
+          updateColorPreview("secondary");
+        }
+      }
 
-	function hydrateEditorPalette(modelType) {
-		currentModelType = modelType;
-		if (!editorPaletteSelect) return;
-		const palettes = getPalettesForModel(modelType) || [];
-		if (!palettes.length) {
-			editorPaletteSelect.disabled = true;
-			editorPaletteSelect.innerHTML = '<option value="">Sin paletas predefinidas</option>';
-			renderEditorPalettePreview({
-				primary: document.getElementById('primary_color')?.value,
-				secondary: document.getElementById('secondary_color')?.value
-			});
-			return;
-		}
-		editorPaletteSelect.disabled = false;
-		editorPaletteSelect.innerHTML = palettes.map(palette => `<option value="${palette.id}">${palette.label}</option>`).join('');
-		const currentPrimary = document.getElementById('primary_color')?.value?.toUpperCase();
-		const currentSecondary = document.getElementById('secondary_color')?.value?.toUpperCase();
-		const matched = palettes.find(palette => palette.primary.toUpperCase() === currentPrimary && palette.secondary.toUpperCase() === currentSecondary) || palettes[0];
-		editorPaletteSelect.value = matched.id;
-		renderEditorPalettePreview(matched);
-	}
+      function hydrateEditorPalette(modelType) {
+        currentModelType = modelType;
+        if (!editorPaletteSelect) return;
+        const palettes = getPalettesForModel(modelType) || [];
+        if (!palettes.length) {
+          editorPaletteSelect.disabled = true;
+          editorPaletteSelect.innerHTML =
+            '<option value="">Sin paletas predefinidas</option>';
+          renderEditorPalettePreview({
+            primary: document.getElementById("primary_color")?.value,
+            secondary: document.getElementById("secondary_color")?.value,
+          });
+          return;
+        }
+        editorPaletteSelect.disabled = false;
+        editorPaletteSelect.innerHTML = palettes
+          .map(
+            (palette) =>
+              `<option value="${palette.id}">${palette.label}</option>`
+          )
+          .join("");
+        const currentPrimary = document
+          .getElementById("primary_color")
+          ?.value?.toUpperCase();
+        const currentSecondary = document
+          .getElementById("secondary_color")
+          ?.value?.toUpperCase();
+        const matched =
+          palettes.find(
+            (palette) =>
+              palette.primary.toUpperCase() === currentPrimary &&
+              palette.secondary.toUpperCase() === currentSecondary
+          ) || palettes[0];
+        editorPaletteSelect.value = matched.id;
+        renderEditorPalettePreview(matched);
+      }
 
-	async function loadSite() {
-		const isAuth = await checkAuth();
-		if (!isAuth) return;
+      async function loadSite() {
+        const isAuth = await checkAuth();
+        if (!isAuth) return;
 
-		const path = window.location.pathname;
-		currentSiteId = path.split('/').pop();
+        const path = window.location.pathname;
+        currentSiteId = path.split("/").pop();
 
-		try {
-			const response = await fetchAPI(`/api/sites/${currentSiteId}`);
-			const site = await response.json();
-			currentModelType = site.model_type;
+        try {
+          const response = await fetchAPI(`/api/sites/${currentSiteId}`);
+          const site = await response.json();
+          currentModelType = site.model_type;
 
-			document.getElementById('siteName').textContent = site.name;
-			const breadcrumb = document.getElementById('breadcrumbSite');
-			if (breadcrumb) breadcrumb.textContent = site.name;
+          document.getElementById("siteName").textContent = site.name;
+          const breadcrumb = document.getElementById("breadcrumbSite");
+          if (breadcrumb) breadcrumb.textContent = site.name;
 
-			document.getElementById('name').value = site.name || '';
-			document.getElementById('description').value = site.description || '';
-			document.getElementById('hero_title').value = site.hero_title || '';
-			document.getElementById('hero_subtitle').value = site.hero_subtitle || '';
-			document.getElementById('hero_image').value = canonicalizeAssetUrl(site.hero_image || '');
-			document.getElementById('about_text').value = site.about_text || '';
-			document.getElementById('about_image').value = canonicalizeAssetUrl(site.about_image || '');
-			document.getElementById('contact_email').value = site.contact_email || '';
-			document.getElementById('contact_phone').value = site.contact_phone || '';
-			document.getElementById('whatsapp_number').value = site.whatsapp_number || '';
-			document.getElementById('contact_address').value = site.contact_address || '';
-			document.getElementById('facebook_url').value = site.facebook_url || '';
-			document.getElementById('instagram_url').value = site.instagram_url || '';
-			document.getElementById('tiktok_url').value = site.tiktok_url || '';
-			document.getElementById('primary_color').value = site.primary_color || '#3B82F6';
-			document.getElementById('secondary_color').value = site.secondary_color || '#8B5CF6';
-			document.getElementById('logo_url').value = canonicalizeAssetUrl(site.logo_url || '');
-			document.getElementById('custom_domain').value = site.custom_domain || '';
+          document.getElementById("name").value = site.name || "";
+          document.getElementById("description").value = site.description || "";
+          document.getElementById("hero_title").value = site.hero_title || "";
+          document.getElementById("hero_subtitle").value =
+            site.hero_subtitle || "";
+          document.getElementById("hero_image").value = canonicalizeAssetUrl(
+            site.hero_image || ""
+          );
+          document.getElementById("about_text").value = site.about_text || "";
+          document.getElementById("about_image").value = canonicalizeAssetUrl(
+            site.about_image || ""
+          );
+          document.getElementById("contact_email").value =
+            site.contact_email || "";
+          document.getElementById("contact_phone").value =
+            site.contact_phone || "";
+          document.getElementById("whatsapp_number").value =
+            site.whatsapp_number || "";
+          document.getElementById("contact_address").value =
+            site.contact_address || "";
+          document.getElementById("facebook_url").value =
+            site.facebook_url || "";
+          document.getElementById("instagram_url").value =
+            site.instagram_url || "";
+          document.getElementById("tiktok_url").value = site.tiktok_url || "";
+          document.getElementById("primary_color").value =
+            site.primary_color || "#3B82F6";
+          document.getElementById("secondary_color").value =
+            site.secondary_color || "#8B5CF6";
+          document.getElementById("logo_url").value = canonicalizeAssetUrl(
+            site.logo_url || ""
+          );
+          document.getElementById("custom_domain").value =
+            site.custom_domain || "";
 
-			loadProductCards(site.products_json);
-			loadGalleryImages(site.gallery_images);
+          loadProductCards(site.products_json);
+          loadGalleryImages(site.gallery_images);
 
-			updateImagePreview('hero_image', 'heroImagePreview');
-			updateImagePreview('about_image', 'aboutImagePreview');
-			updateColorPreview('primary');
-			updateColorPreview('secondary');
-			hydrateEditorPalette(site.model_type);
-			hydrateEditorPalette(site.model_type);
+          updateImagePreview("hero_image", "heroImagePreview");
+          updateImagePreview("about_image", "aboutImagePreview");
+          updateColorPreview("primary");
+          updateColorPreview("secondary");
+          hydrateEditorPalette(site.model_type);
+          hydrateEditorPalette(site.model_type);
 
-			const syncStatus = document.getElementById('syncStatus');
-			if (site.is_published) {
-				syncStatus.classList.remove('hidden');
-			} else {
-				syncStatus.classList.add('hidden');
-			}
+          const syncStatus = document.getElementById("syncStatus");
+          if (site.is_published) {
+            syncStatus.classList.remove("hidden");
+          } else {
+            syncStatus.classList.add("hidden");
+          }
 
-			await loadStats(site);
-		} catch (error) {
-			console.error('Error loading site:', error);
-			showNotification('Error al cargar sitio', 'error');
-		}
-	}
+          await loadStats(site);
+        } catch (error) {
+          console.error("Error loading site:", error);
+          showNotification("Error al cargar sitio", "error");
+        }
+      }
 
-	async function saveSite() {
-		const formData = new FormData(document.getElementById('editorForm'));
-		const data = Object.fromEntries(formData);
-		data.products_json = JSON.stringify(window.productsData || []);
-		data.gallery_images = JSON.stringify(window.galleryData || []);
+      async function saveSite() {
+        const formData = new FormData(document.getElementById("editorForm"));
+        const data = Object.fromEntries(formData);
+        data.products_json = JSON.stringify(window.productsData || []);
+        data.gallery_images = JSON.stringify(window.galleryData || []);
 
-		try {
-			const response = await fetchAPI(`/api/sites/${currentSiteId}`, {
-				method: 'PUT',
-				body: JSON.stringify(data)
-			});
+        try {
+          const response = await fetchAPI(`/api/sites/${currentSiteId}`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+          });
 
-			if (response.ok) {
-				showNotification('Cambios guardados exitosamente', 'success');
+          if (response.ok) {
+            showNotification("Cambios guardados exitosamente", "success");
 
-				const siteResponse = await fetchAPI(`/api/sites/${currentSiteId}`);
-				const siteData = await siteResponse.json();
+            const siteResponse = await fetchAPI(`/api/sites/${currentSiteId}`);
+            const siteData = await siteResponse.json();
 
-				if (siteData.is_published) {
-					showNotification('Actualizando sitio en GitHub Pages...', 'info');
+            if (siteData.is_published) {
+              showNotification("Actualizando sitio en GitHub Pages...", "info");
 
-					try {
-						const publishResponse = await fetchAPI(`/api/sites/${currentSiteId}/publish`, {
-							method: 'POST'
-						});
-						const publishData = await publishResponse.json();
+              try {
+                const publishResponse = await fetchAPI(
+                  `/api/sites/${currentSiteId}/publish`,
+                  {
+                    method: "POST",
+                  }
+                );
+                const publishData = await publishResponse.json();
 
-						if (publishResponse.ok) {
-							setTimeout(() => {
-								showNotification('✅ Sitio actualizado en GitHub Pages', 'success');
-							}, 1500);
+                if (publishResponse.ok) {
+                  setTimeout(() => {
+                    showNotification(
+                      "✅ Sitio actualizado en GitHub Pages",
+                      "success"
+                    );
+                  }, 1500);
 
-							if (publishData.info) {
-								setTimeout(() => {
-									showNotification('⏳ Los cambios pueden tardar 1-2 minutos en verse reflejados', 'info');
-								}, 3000);
-							}
-						} else {
-							setTimeout(() => {
-								showNotification('⚠️ Error al actualizar en GitHub Pages', 'warning');
-							}, 1500);
-						}
-					} catch (error) {
-						console.error('Error republishing:', error);
-						setTimeout(() => {
-							showNotification('⚠️ Error al actualizar en GitHub Pages', 'warning');
-						}, 1500);
-					}
-				}
-			} else {
-				showNotification('Error al guardar', 'error');
-			}
-		} catch (error) {
-			console.error('Error saving:', error);
-			showNotification('Error al guardar', 'error');
-		}
-	}
+                  if (publishData.info) {
+                    setTimeout(() => {
+                      showNotification(
+                        "⏳ Los cambios pueden tardar 1-2 minutos en verse reflejados",
+                        "info"
+                      );
+                    }, 3000);
+                  }
+                } else {
+                  setTimeout(() => {
+                    showNotification(
+                      "⚠️ Error al actualizar en GitHub Pages",
+                      "warning"
+                    );
+                  }, 1500);
+                }
+              } catch (error) {
+                console.error("Error republishing:", error);
+                setTimeout(() => {
+                  showNotification(
+                    "⚠️ Error al actualizar en GitHub Pages",
+                    "warning"
+                  );
+                }, 1500);
+              }
+            }
+          } else {
+            showNotification("Error al guardar", "error");
+          }
+        } catch (error) {
+          console.error("Error saving:", error);
+          showNotification("Error al guardar", "error");
+        }
+      }
 
-	async function publishSite() {
-		if (!confirm('¿Deseas publicar este sitio en GitHub Pages?')) return;
+      async function publishSite() {
+        const confirmed = await confirmAction(
+          "¿Deseas publicar este sitio en GitHub Pages?",
+          {
+            title: "Publicar sitio",
+            icon: "info",
+            confirmText: "Sí, publicar",
+          }
+        );
+        if (!confirmed) return;
 
-		showNotification('Publicando sitio...', 'info');
+        showNotification("Publicando sitio...", "info");
 
-		try {
-			const response = await fetchAPI(`/api/sites/${currentSiteId}/publish`, {
-				method: 'POST'
-			});
+        try {
+          const response = await fetchAPI(
+            `/api/sites/${currentSiteId}/publish`,
+            {
+              method: "POST",
+            }
+          );
 
-			const data = await response.json();
+          const data = await response.json();
 
-			if (response.ok) {
-				showNotification('Sitio publicado exitosamente', 'success');
-				const syncStatus = document.getElementById('syncStatus');
-				syncStatus.classList.remove('hidden');
+          if (response.ok) {
+            showNotification("Sitio publicado exitosamente", "success");
+            const syncStatus = document.getElementById("syncStatus");
+            syncStatus.classList.remove("hidden");
 
-				if (data.info) {
-					setTimeout(() => showNotification(data.info, 'info'), 1500);
-				}
+            if (data.info) {
+              setTimeout(() => showNotification(data.info, "info"), 1500);
+            }
 
-				if (data.warning) {
-					setTimeout(() => showNotification(data.warning, 'warning'), 3000);
-				}
+            if (data.warning) {
+              setTimeout(() => showNotification(data.warning, "warning"), 3000);
+            }
 
-				if (data.url) {
-					setTimeout(() => window.open(data.url, '_blank'), 4000);
-				}
-			} else {
-				showNotification(data.detail || 'Error al publicar', 'error');
-			}
-		} catch (error) {
-			console.error('Error publishing:', error);
-			showNotification('Error al publicar', 'error');
-		}
-	}
+            if (data.url) {
+              setTimeout(() => window.open(data.url, "_blank"), 4000);
+            }
+          } else {
+            showNotification(data.detail || "Error al publicar", "error");
+          }
+        } catch (error) {
+          console.error("Error publishing:", error);
+          showNotification("Error al publicar", "error");
+        }
+      }
 
-	async function loadStats(siteData = null) {
-		try {
-			const response = await fetchAPI(`/api/stats/${currentSiteId}`);
-			const data = await response.json();
+      async function loadStats(siteData = null) {
+        try {
+          const response = await fetchAPI(`/api/stats/${currentSiteId}`);
+          const data = await response.json();
 
-			document.getElementById('totalVisits').textContent = formatNumber(data.total_visits);
+          document.getElementById("totalVisits").textContent = formatNumber(
+            data.total_visits
+          );
 
-			const ctx = document.getElementById('visitsChart');
-			if (chart) chart.destroy();
-			chart = new Chart(ctx, {
-				type: 'line',
-				data: {
-					labels: data.visits_by_day.map(v => new Date(v.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })),
-					datasets: [{
-						label: 'Visitas',
-						data: data.visits_by_day.map(v => v.visits),
-						borderColor: '#3B82F6',
-						backgroundColor: 'rgba(59, 130, 246, 0.15)',
-						tension: 0.4,
-						fill: true
-					}]
-				},
-				options: {
-					responsive: true,
-					plugins: {
-						legend: { display: false }
-					},
-					scales: {
-						y: { beginAtZero: true, ticks: { stepSize: 1 } }
-					}
-				}
-			});
+          const ctx = document.getElementById("visitsChart");
+          if (chart) chart.destroy();
+          chart = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: data.visits_by_day.map((v) =>
+                new Date(v.date).toLocaleDateString("es-ES", {
+                  month: "short",
+                  day: "numeric",
+                })
+              ),
+              datasets: [
+                {
+                  label: "Visitas",
+                  data: data.visits_by_day.map((v) => v.visits),
+                  borderColor: "#3B82F6",
+                  backgroundColor: "rgba(59, 130, 246, 0.15)",
+                  tension: 0.4,
+                  fill: true,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+              },
+              scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } },
+              },
+            },
+          });
 
-			const siteResponse = siteData ? { json: async () => siteData } : await fetchAPI(`/api/sites/${currentSiteId}`);
-			const site = siteData || await siteResponse.json();
+          const siteResponse = siteData
+            ? { json: async () => siteData }
+            : await fetchAPI(`/api/sites/${currentSiteId}`);
+          const site = siteData || (await siteResponse.json());
 
-			document.getElementById('siteInfo').innerHTML = `
-				<p><strong>Modelo:</strong> ${getModelIcon(site.model_type)} ${getModelName(site.model_type)}</p>
-				<p><strong>Estado:</strong> ${site.is_published ? '<span class="badge badge-success">Publicado</span>' : '<span class="badge badge-warning">Borrador</span>'}</p>
-				${site.github_url ? `<p><strong>URL:</strong> <a href="${site.github_url}" target="_blank" class="text-blue-600">${site.github_url}</a></p>` : ''}
+          document.getElementById("siteInfo").innerHTML = `
+				<p><strong>Modelo:</strong> ${getModelIcon(site.model_type)} ${getModelName(
+            site.model_type
+          )}</p>
+				<p><strong>Estado:</strong> ${
+          site.is_published
+            ? '<span class="badge badge-success">Publicado</span>'
+            : '<span class="badge badge-warning">Borrador</span>'
+        }</p>
+				${
+          site.github_url
+            ? `<p><strong>URL:</strong> <a href="${site.github_url}" target="_blank" class="text-blue-600">${site.github_url}</a></p>`
+            : ""
+        }
 				<p><strong>Creado:</strong> ${formatDate(site.created_at)}</p>
 				<p><strong>Actualizado:</strong> ${formatDate(site.updated_at)}</p>
 			`;
 
-			document.getElementById('siteState').textContent = site.is_published ? 'Publicado' : 'Borrador';
-			document.getElementById('siteModel').textContent = getModelName(site.model_type);
-		} catch (error) {
-			console.error('Error loading stats:', error);
-		}
-	}
+          document.getElementById("siteState").textContent = site.is_published
+            ? "Publicado"
+            : "Borrador";
+          document.getElementById("siteModel").textContent = getModelName(
+            site.model_type
+          );
+        } catch (error) {
+          console.error("Error loading stats:", error);
+        }
+      }
 
-	function showTab(tab) {
-		const contentTab = document.getElementById('editorForm');
-		const statsTab = document.getElementById('statsTab');
-		const contentBtn = document.getElementById('tab-content');
-		const statsBtn = document.getElementById('tab-stats');
+      function showTab(tab) {
+        const contentTab = document.getElementById("editorForm");
+        const statsTab = document.getElementById("statsTab");
+        const contentBtn = document.getElementById("tab-content");
+        const statsBtn = document.getElementById("tab-stats");
 
-		if (tab === 'content') {
-			contentTab.classList.remove('hidden');
-			statsTab.classList.add('hidden');
-			contentBtn.classList.add('active');
-			statsBtn.classList.remove('active');
-		} else {
-			contentTab.classList.add('hidden');
-			statsTab.classList.remove('hidden');
-			statsBtn.classList.add('active');
-			contentBtn.classList.remove('active');
-			loadStats();
-		}
-	}
+        if (tab === "content") {
+          contentTab.classList.remove("hidden");
+          statsTab.classList.add("hidden");
+          contentBtn.classList.add("active");
+          statsBtn.classList.remove("active");
+        } else {
+          contentTab.classList.add("hidden");
+          statsTab.classList.remove("hidden");
+          statsBtn.classList.add("active");
+          contentBtn.classList.remove("active");
+          loadStats();
+        }
+      }
 
-	function updateImagePreview(inputId, previewId) {
-		const input = document.getElementById(inputId);
-		const preview = document.getElementById(previewId);
-		if (!input || !preview) {
-			return;
-		}
-		const canonical = canonicalizeAssetUrl(input.value || '');
-		if (input.value !== canonical) {
-			input.value = canonical;
-		}
-		const previewUrl = resolvePreviewAssetUrl(canonical);
+      function updateImagePreview(inputId, previewId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        if (!input || !preview) {
+          return;
+        }
+        const canonical = canonicalizeAssetUrl(input.value || "");
+        if (input.value !== canonical) {
+          input.value = canonical;
+        }
+        const previewUrl = resolvePreviewAssetUrl(canonical);
 
-		if (previewUrl) {
-			preview.style.backgroundImage = `url('${previewUrl}')`;
-			preview.classList.add('has-image');
-		} else {
-			preview.style.backgroundImage = '';
-			preview.classList.remove('has-image');
-		}
-	}
+        if (previewUrl) {
+          preview.style.backgroundImage = `url('${previewUrl}')`;
+          preview.classList.add("has-image");
+        } else {
+          preview.style.backgroundImage = "";
+          preview.classList.remove("has-image");
+        }
+      }
 
-	function updateColorPreview(type) {
-		const colorInput = document.getElementById(`${type}_color`);
-		const previewBox = document.getElementById(`${type}ColorPreview`);
-		const demoButton = document.getElementById(`demoButton${type.charAt(0).toUpperCase() + type.slice(1)}`);
-		const color = colorInput.value;
+      function updateColorPreview(type) {
+        const colorInput = document.getElementById(`${type}_color`);
+        const previewBox = document.getElementById(`${type}ColorPreview`);
+        const demoButton = document.getElementById(
+          `demoButton${type.charAt(0).toUpperCase() + type.slice(1)}`
+        );
+        const color = colorInput.value;
 
-		const swatch = previewBox.querySelector('.color-preview-swatch');
-		swatch.style.backgroundColor = color;
-		demoButton.style.backgroundColor = color;
-		demoButton.style.borderColor = color;
-		if (type === 'secondary') {
-			demoButton.style.color = '#111827';
-		}
-	}
+        const swatch = previewBox.querySelector(".color-preview-swatch");
+        swatch.style.backgroundColor = color;
+        demoButton.style.backgroundColor = color;
+        demoButton.style.borderColor = color;
+        if (type === "secondary") {
+          demoButton.style.color = "#111827";
+        }
+      }
 
-	function loadProductCards(productsJson) {
-		try {
-			const products = productsJson ? JSON.parse(productsJson) : [];
-			const parsedProducts = Array.isArray(products) ? products : [];
-			window.productsData = parsedProducts
-				.filter(product => product && typeof product === 'object')
-				.map(product => ({
-					...product,
-					image: canonicalizeAssetUrl(product.image || '')
-				}));
-			renderProducts();
-		} catch (e) {
-			console.error('Error parsing products:', e);
-			window.productsData = [];
-			renderProducts();
-		}
-	}
+      function loadProductCards(productsJson) {
+        try {
+          const products = productsJson ? JSON.parse(productsJson) : [];
+          const parsedProducts = Array.isArray(products) ? products : [];
+          window.productsData = parsedProducts
+            .filter((product) => product && typeof product === "object")
+            .map((product) => ({
+              ...product,
+              image: canonicalizeAssetUrl(product.image || ""),
+            }));
+          renderProducts();
+        } catch (e) {
+          console.error("Error parsing products:", e);
+          window.productsData = [];
+          renderProducts();
+        }
+      }
 
-	function renderProducts() {
-		const container = document.getElementById('productsContainer');
-		const emptyState = document.getElementById('noProductsMessage');
-        const productsTextarea = document.getElementById('products_json');
+      function renderProducts() {
+        const container = document.getElementById("productsContainer");
+        const emptyState = document.getElementById("noProductsMessage");
+        const productsTextarea = document.getElementById("products_json");
 
-		if (!window.productsData || window.productsData.length === 0) {
-			container.innerHTML = '';
-			emptyState.style.display = 'block';
-			if (productsTextarea) productsTextarea.value = '[]';
-			return;
-		}
+        if (!window.productsData || window.productsData.length === 0) {
+          container.innerHTML = "";
+          emptyState.style.display = "block";
+          if (productsTextarea) productsTextarea.value = "[]";
+          return;
+        }
 
-		emptyState.style.display = 'none';
-		container.innerHTML = window.productsData.map((product, index) => {
-			const sanitizedImage = canonicalizeAssetUrl(product.image || '');
-			if (product.image !== sanitizedImage) {
-				window.productsData[index].image = sanitizedImage;
-			}
-			const previewImage = sanitizedImage ? resolvePreviewAssetUrl(sanitizedImage) : '';
-			const backgroundImage = previewImage || 'https://via.placeholder.com/400x300?text=Sin+Imagen';
-			return `
+        emptyState.style.display = "none";
+        container.innerHTML = window.productsData
+          .map((product, index) => {
+            const sanitizedImage = canonicalizeAssetUrl(product.image || "");
+            if (product.image !== sanitizedImage) {
+              window.productsData[index].image = sanitizedImage;
+            }
+            const previewImage = sanitizedImage
+              ? resolvePreviewAssetUrl(sanitizedImage)
+              : "";
+            const backgroundImage =
+              previewImage ||
+              "https://via.placeholder.com/400x300?text=Sin+Imagen";
+            return `
 			<div class="border border-gray-100 rounded-2xl p-4 shadow-sm bg-white">
 				<div class="relative rounded-xl overflow-hidden h-48 mb-4 bg-gray-100" style="background-image:url('${backgroundImage}'); background-size:cover; background-position:center;">
 					<button type="button" class="absolute top-3 right-3 bg-white/90 text-gray-700 px-3 py-1 text-xs font-semibold rounded-full" onclick="deleteProduct(${index})">
 						<i class="fas fa-trash mr-1"></i>Eliminar
 					</button>
 				</div>
-				<input type="text" class="form-input mb-3" value="${product.name || ''}" placeholder="Nombre del producto" onchange="updateProduct(${index}, 'name', this.value)">
-				<textarea class="form-textarea mb-3" placeholder="Descripción" onchange="updateProduct(${index}, 'description', this.value)">${product.description || ''}</textarea>
-				<input type="text" class="form-input mb-3" value="${product.price || ''}" placeholder="Precio" onchange="updateProduct(${index}, 'price', this.value)">
+				<input type="text" class="form-input mb-3" value="${
+          product.name || ""
+        }" placeholder="Nombre del producto" onchange="updateProduct(${index}, 'name', this.value)">
+				<textarea class="form-textarea mb-3" placeholder="Descripción" onchange="updateProduct(${index}, 'description', this.value)">${
+              product.description || ""
+            }</textarea>
+				<input type="text" class="form-input mb-3" value="${
+          product.price || ""
+        }" placeholder="Precio" onchange="updateProduct(${index}, 'price', this.value)">
 				<div class="flex gap-2">
 					<button type="button" onclick="document.getElementById('product_image_${index}').click()" class="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-semibold rounded-lg bg-gray-100 text-gray-700">
 						<i class="fas fa-upload mr-2"></i>Subir
@@ -1059,76 +1363,88 @@
 				<input type="file" id="product_image_${index}" accept="image/*" class="hidden" onchange="uploadProductImage(this, ${index})">
 				<input type="url" id="product_url_${index}" class="form-input mt-3" value="${sanitizedImage}" placeholder="https://imagen.com" onchange="updateProduct(${index}, 'image', this.value)" style="display:none;">
 			</div>
-		`; }).join('');
+		`;
+          })
+          .join("");
 
-		if (productsTextarea) {
-			productsTextarea.value = JSON.stringify(window.productsData);
-		}
-	}
+        if (productsTextarea) {
+          productsTextarea.value = JSON.stringify(window.productsData);
+        }
+      }
 
-	function addNewProduct() {
-		window.productsData.push({
-			name: 'Nuevo Producto',
-			description: 'Describe tu producto aquí',
-			price: '0',
-			image: 'https://via.placeholder.com/400x300?text=Agregar+Imagen'
-		});
-		renderProducts();
-		showNotification('Producto agregado', 'success');
-	}
+      function addNewProduct() {
+        window.productsData.push({
+          name: "Nuevo Producto",
+          description: "Describe tu producto aquí",
+          price: "0",
+          image: "https://via.placeholder.com/400x300?text=Agregar+Imagen",
+        });
+        renderProducts();
+        showNotification("Producto agregado", "success");
+      }
 
-	function updateProduct(index, field, value) {
-		if (window.productsData[index]) {
-			if (field === 'image') {
-				window.productsData[index][field] = canonicalizeAssetUrl(value);
-				renderProducts();
-			} else {
-				window.productsData[index][field] = value;
-			}
-		}
-	}
+      function updateProduct(index, field, value) {
+        if (window.productsData[index]) {
+          if (field === "image") {
+            window.productsData[index][field] = canonicalizeAssetUrl(value);
+            renderProducts();
+          } else {
+            window.productsData[index][field] = value;
+          }
+        }
+      }
 
-	function deleteProduct(index) {
-		if (confirm('¿Eliminar este producto?')) {
-			window.productsData.splice(index, 1);
-			renderProducts();
-			showNotification('Producto eliminado', 'success');
-		}
-	}
+      function deleteProduct(index) {
+        confirmAction("¿Eliminar este producto?", {
+          title: "Eliminar producto",
+          icon: "warning",
+          confirmText: "Sí, eliminar",
+        }).then((confirmed) => {
+          if (!confirmed) return;
+          window.productsData.splice(index, 1);
+          renderProducts();
+          showNotification("Producto eliminado", "success");
+        });
+      }
 
-	function loadGalleryImages(galleryJson) {
-		try {
-			const images = galleryJson ? JSON.parse(galleryJson) : [];
-			window.galleryData = (Array.isArray(images) ? images : [])
-				.map(imageUrl => canonicalizeAssetUrl(typeof imageUrl === 'string' ? imageUrl : ''));
-			renderGallery();
-		} catch (e) {
-			console.error('Error parsing gallery:', e);
-			window.galleryData = [];
-			renderGallery();
-		}
-	}
+      function loadGalleryImages(galleryJson) {
+        try {
+          const images = galleryJson ? JSON.parse(galleryJson) : [];
+          window.galleryData = (Array.isArray(images) ? images : []).map(
+            (imageUrl) =>
+              canonicalizeAssetUrl(typeof imageUrl === "string" ? imageUrl : "")
+          );
+          renderGallery();
+        } catch (e) {
+          console.error("Error parsing gallery:", e);
+          window.galleryData = [];
+          renderGallery();
+        }
+      }
 
-	function renderGallery() {
-		const container = document.getElementById('galleryContainer');
-		const emptyState = document.getElementById('noGalleryMessage');
-        const galleryTextarea = document.getElementById('gallery_images_input');
+      function renderGallery() {
+        const container = document.getElementById("galleryContainer");
+        const emptyState = document.getElementById("noGalleryMessage");
+        const galleryTextarea = document.getElementById("gallery_images_input");
 
-		if (!window.galleryData || window.galleryData.length === 0) {
-			container.innerHTML = '';
-			emptyState.style.display = 'block';
-			if (galleryTextarea) galleryTextarea.value = '[]';
-			return;
-		}
+        if (!window.galleryData || window.galleryData.length === 0) {
+          container.innerHTML = "";
+          emptyState.style.display = "block";
+          if (galleryTextarea) galleryTextarea.value = "[]";
+          return;
+        }
 
-		emptyState.style.display = 'none';
-		container.innerHTML = window.galleryData.map((imageUrl, index) => {
-			const sanitizedUrl = canonicalizeAssetUrl(imageUrl || '');
-			if (window.galleryData[index] !== sanitizedUrl) {
-				window.galleryData[index] = sanitizedUrl;
-			}
-			const previewUrl = resolvePreviewAssetUrl(sanitizedUrl) || 'https://via.placeholder.com/400x300?text=Sin+imagen';
-			return `
+        emptyState.style.display = "none";
+        container.innerHTML = window.galleryData
+          .map((imageUrl, index) => {
+            const sanitizedUrl = canonicalizeAssetUrl(imageUrl || "");
+            if (window.galleryData[index] !== sanitizedUrl) {
+              window.galleryData[index] = sanitizedUrl;
+            }
+            const previewUrl =
+              resolvePreviewAssetUrl(sanitizedUrl) ||
+              "https://via.placeholder.com/400x300?text=Sin+imagen";
+            return `
 			<div class="border border-gray-100 rounded-2xl p-4 shadow-sm bg-white">
 				<div class="relative rounded-xl overflow-hidden h-40 mb-3 bg-gray-100" style="background-image:url('${previewUrl}'); background-size:cover; background-position:center;">
 					<button type="button" class="absolute top-3 right-3 bg-white/90 text-gray-700 px-3 py-1 text-xs font-semibold rounded-full" onclick="deleteGalleryImage(${index})">
@@ -1137,204 +1453,224 @@
 				</div>
 				<input type="url" class="form-input" value="${sanitizedUrl}" placeholder="https://imagen.com" onchange="updateGalleryImage(${index}, this.value)">
 			</div>
-		`; }).join('');
+		`;
+          })
+          .join("");
 
-		if (galleryTextarea) {
-			galleryTextarea.value = JSON.stringify(window.galleryData);
-		}
-	}
+        if (galleryTextarea) {
+          galleryTextarea.value = JSON.stringify(window.galleryData);
+        }
+      }
 
-	function addNewGalleryImage() {
-		const choice = confirm('¿Deseas subir una imagen desde tu computadora?\n\nOK = Subir archivo\nCancelar = Usar URL');
+      async function addNewGalleryImage() {
+        const wantsUpload = await confirmAction(
+          "¿Deseas subir una imagen desde tu computadora?",
+          {
+            title: "Agregar imagen",
+            icon: "question",
+            confirmText: "Subir archivo",
+            cancelText: "Usar URL",
+          }
+        );
 
-		if (choice) {
-			const input = document.createElement('input');
-			input.type = 'file';
-			input.accept = 'image/*';
-			input.onchange = async (e) => {
-				const file = e.target.files[0];
-				if (file) await uploadGalleryImage(file);
-			};
-			input.click();
-		} else {
-			const url = prompt('Ingresa la URL de la imagen:', 'https://');
-			if (url && url.trim() !== 'https://') {
-				window.galleryData.push(canonicalizeAssetUrl(url.trim()));
-				renderGallery();
-				showNotification('Imagen agregada a la galería', 'success');
-			}
-		}
-	}
+        if (wantsUpload) {
+          const input = document.createElement("input");
+          input.type = "file";
+          input.accept = "image/*";
+          input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (file) await uploadGalleryImage(file);
+          };
+          input.click();
+        } else {
+          const url = await requestInput({
+            title: "Ingresa la URL de la imagen",
+            inputValue: "https://",
+            placeholder: "https://tusitio.com/imagen.jpg",
+          });
+          if (url && url.trim() !== "https://") {
+            window.galleryData.push(canonicalizeAssetUrl(url.trim()));
+            renderGallery();
+            showNotification("Imagen agregada a la galería", "success");
+          }
+        }
+      }
 
-	function updateGalleryImage(index, value) {
-		if (window.galleryData[index] !== undefined) {
-			window.galleryData[index] = canonicalizeAssetUrl(value);
-			renderGallery();
-		}
-	}
+      function updateGalleryImage(index, value) {
+        if (window.galleryData[index] !== undefined) {
+          window.galleryData[index] = canonicalizeAssetUrl(value);
+          renderGallery();
+        }
+      }
 
-	function deleteGalleryImage(index) {
-		if (confirm('¿Eliminar esta imagen de la galería?')) {
-			window.galleryData.splice(index, 1);
-			renderGallery();
-			showNotification('Imagen eliminada', 'success');
-		}
-	}
+      function deleteGalleryImage(index) {
+        confirmAction("¿Eliminar esta imagen de la galería?", {
+          title: "Eliminar imagen",
+          icon: "warning",
+          confirmText: "Sí, eliminar",
+        }).then((confirmed) => {
+          if (!confirmed) return;
+          window.galleryData.splice(index, 1);
+          renderGallery();
+          showNotification("Imagen eliminada", "success");
+        });
+      }
 
-	function addProductTemplate() {
-		window.productsData = window.productsData || [];
-		window.productsData.push({
-			name: 'Producto Ejemplo',
-			description: 'Descripción del producto',
-			price: '50000',
-			image: 'https://via.placeholder.com/400x300'
-		});
+      function addProductTemplate() {
+        window.productsData = window.productsData || [];
+        window.productsData.push({
+          name: "Producto Ejemplo",
+          description: "Descripción del producto",
+          price: "50000",
+          image: "https://via.placeholder.com/400x300",
+        });
 
-		renderProducts();
-		showNotification('Producto de ejemplo agregado', 'success');
-	}
+        renderProducts();
+        showNotification("Producto de ejemplo agregado", "success");
+      }
 
-	async function uploadImage(fileInput, targetInputId, previewId) {
-		const file = fileInput.files[0];
-		if (!file) return;
+      async function uploadImage(fileInput, targetInputId, previewId) {
+        const file = fileInput.files[0];
+        if (!file) return;
 
-		if (!file.type.startsWith('image/')) {
-			showNotification('Por favor selecciona una imagen válida', 'error');
-			return;
-		}
+        if (!file.type.startsWith("image/")) {
+          showNotification("Por favor selecciona una imagen válida", "error");
+          return;
+        }
 
-		if (file.size > 5 * 1024 * 1024) {
-			showNotification('La imagen es muy grande. Máximo 5MB', 'error');
-			return;
-		}
+        if (file.size > 5 * 1024 * 1024) {
+          showNotification("La imagen es muy grande. Máximo 5MB", "error");
+          return;
+        }
 
-		const formData = new FormData();
-		formData.append('file', file);
-		formData.append('site_id', currentSiteId);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("site_id", currentSiteId);
 
-		try {
-			showNotification('Subiendo imagen...', 'info');
-			const response = await fetchAPI('/api/upload-image', {
-				method: 'POST',
-				body: formData,
-				headers: {}
-			});
+        try {
+          showNotification("Subiendo imagen...", "info");
+          const response = await fetchAPI("/api/upload-image", {
+            method: "POST",
+            body: formData,
+            headers: {},
+          });
 
-			const data = await response.json();
+          const data = await response.json();
 
-			if (data.success) {
-				const urlInput = document.getElementById(targetInputId);
-				const canonicalUrl = canonicalizeAssetUrl(data.url);
-				urlInput.value = canonicalUrl;
-				updateImagePreview(targetInputId, previewId);
-				showNotification('✅ Imagen subida exitosamente', 'success');
-			} else {
-				showNotification('Error al subir imagen', 'error');
-			}
-		} catch (error) {
-			console.error('Error:', error);
-			showNotification('Error al subir imagen', 'error');
-		}
-	}
+          if (data.success) {
+            const urlInput = document.getElementById(targetInputId);
+            const canonicalUrl = canonicalizeAssetUrl(data.url);
+            urlInput.value = canonicalUrl;
+            updateImagePreview(targetInputId, previewId);
+            showNotification("✅ Imagen subida exitosamente", "success");
+          } else {
+            showNotification("Error al subir imagen", "error");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          showNotification("Error al subir imagen", "error");
+        }
+      }
 
-	async function uploadProductImage(fileInput, productIndex) {
-		const file = fileInput.files[0];
-		if (!file) return;
+      async function uploadProductImage(fileInput, productIndex) {
+        const file = fileInput.files[0];
+        if (!file) return;
 
-		if (!file.type.startsWith('image/')) {
-			showNotification('Por favor selecciona una imagen válida', 'error');
-			return;
-		}
+        if (!file.type.startsWith("image/")) {
+          showNotification("Por favor selecciona una imagen válida", "error");
+          return;
+        }
 
-		if (file.size > 5 * 1024 * 1024) {
-			showNotification('La imagen es muy grande. Máximo 5MB', 'error');
-			return;
-		}
+        if (file.size > 5 * 1024 * 1024) {
+          showNotification("La imagen es muy grande. Máximo 5MB", "error");
+          return;
+        }
 
-		const formData = new FormData();
-		formData.append('file', file);
-		formData.append('site_id', currentSiteId);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("site_id", currentSiteId);
 
-		try {
-			showNotification('Subiendo imagen...', 'info');
-			const response = await fetchAPI('/api/upload-image', {
-				method: 'POST',
-				body: formData,
-				headers: {}
-			});
+        try {
+          showNotification("Subiendo imagen...", "info");
+          const response = await fetchAPI("/api/upload-image", {
+            method: "POST",
+            body: formData,
+            headers: {},
+          });
 
-			const data = await response.json();
+          const data = await response.json();
 
-			if (data.success) {
-				const canonicalUrl = canonicalizeAssetUrl(data.url);
-				updateProduct(productIndex, 'image', canonicalUrl);
-				renderProducts();
-				showNotification('✅ Imagen subida exitosamente', 'success');
-			} else {
-				showNotification('Error al subir imagen', 'error');
-			}
-		} catch (error) {
-			console.error('Error:', error);
-			showNotification('Error al subir imagen', 'error');
-		}
-	}
+          if (data.success) {
+            const canonicalUrl = canonicalizeAssetUrl(data.url);
+            updateProduct(productIndex, "image", canonicalUrl);
+            renderProducts();
+            showNotification("✅ Imagen subida exitosamente", "success");
+          } else {
+            showNotification("Error al subir imagen", "error");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          showNotification("Error al subir imagen", "error");
+        }
+      }
 
-	async function uploadGalleryImage(file) {
-		if (!file) return;
+      async function uploadGalleryImage(file) {
+        if (!file) return;
 
-		if (!file.type.startsWith('image/')) {
-			showNotification('Por favor selecciona una imagen válida', 'error');
-			return;
-		}
+        if (!file.type.startsWith("image/")) {
+          showNotification("Por favor selecciona una imagen válida", "error");
+          return;
+        }
 
-		if (file.size > 5 * 1024 * 1024) {
-			showNotification('La imagen es muy grande. Máximo 5MB', 'error');
-			return;
-		}
+        if (file.size > 5 * 1024 * 1024) {
+          showNotification("La imagen es muy grande. Máximo 5MB", "error");
+          return;
+        }
 
-		const formData = new FormData();
-		formData.append('file', file);
-		formData.append('site_id', currentSiteId);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("site_id", currentSiteId);
 
-		try {
-			showNotification('Subiendo imagen...', 'info');
-			const response = await fetchAPI('/api/upload-image', {
-				method: 'POST',
-				body: formData,
-				headers: {}
-			});
+        try {
+          showNotification("Subiendo imagen...", "info");
+          const response = await fetchAPI("/api/upload-image", {
+            method: "POST",
+            body: formData,
+            headers: {},
+          });
 
-			const data = await response.json();
+          const data = await response.json();
 
-			if (data.success) {
-				const canonicalUrl = canonicalizeAssetUrl(data.url);
-				window.galleryData.push(canonicalUrl);
-				renderGallery();
-				showNotification('✅ Imagen subida exitosamente', 'success');
-			} else {
-				showNotification('Error al subir imagen', 'error');
-			}
-		} catch (error) {
-			console.error('Error:', error);
-			showNotification('Error al subir imagen', 'error');
-		}
-	}
+          if (data.success) {
+            const canonicalUrl = canonicalizeAssetUrl(data.url);
+            window.galleryData.push(canonicalUrl);
+            renderGallery();
+            showNotification("✅ Imagen subida exitosamente", "success");
+          } else {
+            showNotification("Error al subir imagen", "error");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          showNotification("Error al subir imagen", "error");
+        }
+      }
 
-	function toggleUrlInput(type) {
-		const urlGroup = document.getElementById(`${type}ImageUrlGroup`);
-		if (!urlGroup) return;
-		urlGroup.style.display = urlGroup.style.display === 'none' ? 'block' : 'none';
-	}
+      function toggleUrlInput(type) {
+        const urlGroup = document.getElementById(`${type}ImageUrlGroup`);
+        if (!urlGroup) return;
+        urlGroup.style.display =
+          urlGroup.style.display === "none" ? "block" : "none";
+      }
 
-	function toggleProductUrlInput(index) {
-		const urlInput = document.getElementById(`product_url_${index}`);
-		if (!urlInput) return;
-		urlInput.style.display = urlInput.style.display === 'none' ? 'block' : 'none';
-		if (urlInput.style.display === 'block') {
-			urlInput.focus();
-		}
-	}
-</script>
-
-</body>
+      function toggleProductUrlInput(index) {
+        const urlInput = document.getElementById(`product_url_${index}`);
+        if (!urlInput) return;
+        urlInput.style.display =
+          urlInput.style.display === "none" ? "block" : "none";
+        if (urlInput.style.display === "block") {
+          urlInput.focus();
+        }
+      }
+    </script>
+  </body>
 </html>
