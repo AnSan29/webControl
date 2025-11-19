@@ -49,6 +49,7 @@ class Site(Base):
     model_type = Column(String(50), nullable=False)  # artesanias, cocina, etc.
     description = Column(Text)
     custom_domain = Column(String(200), nullable=True)
+    cname_record = Column(String(200), nullable=True)
     github_repo = Column(String(200), nullable=True)
     github_url = Column(String(500), nullable=True)
     is_published = Column(Boolean, default=False)
@@ -134,6 +135,7 @@ def init_db():
 
     Base.metadata.create_all(bind=engine)
     ensure_user_audit_columns()
+    ensure_site_dns_columns()
 
     db = SessionLocal()
     try:
@@ -219,6 +221,23 @@ def ensure_user_audit_columns():
             statements.append("ALTER TABLE users ADD COLUMN activated_at DATETIME")
         if "expires_at" not in existing:
             statements.append("ALTER TABLE users ADD COLUMN expires_at DATETIME")
+        for statement in statements:
+            conn.execute(text(statement))
+        if statements:
+            conn.commit()
+
+
+def ensure_site_dns_columns():
+    """Garantiza que la tabla sites tenga los campos necesarios para DNS personalizado."""
+    if engine.dialect.name != "sqlite":
+        return
+
+    with engine.connect() as conn:
+        result = conn.execute(text("PRAGMA table_info(sites)"))
+        existing = {row[1] for row in result}
+        statements = []
+        if "cname_record" not in existing:
+            statements.append("ALTER TABLE sites ADD COLUMN cname_record VARCHAR(200)")
         for statement in statements:
             conn.execute(text(statement))
         if statements:

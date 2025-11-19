@@ -90,6 +90,10 @@ with open(Path(__file__).parent / "seed_data.json", 'r', encoding='utf-8') as f:
 
 
 OWNER_EMAIL_DOMAIN = os.getenv("OWNER_EMAIL_DOMAIN", "owners.webcontrol.local")
+DEFAULT_CNAME_TARGET = os.getenv(
+    "DEFAULT_CNAME_TARGET",
+    "reconvencionlaboralguajira.github.io",
+)
 
 
 def _slugify_identifier(value: str, fallback: str = "owner") -> str:
@@ -432,6 +436,7 @@ async def get_sites(
             "hero_image": _canonicalize_asset_value(site.hero_image),
             "preview_image": _get_preview_image(site),
             "custom_domain": site.custom_domain,
+            "cname_record": site.cname_record or DEFAULT_CNAME_TARGET,
             "github_url": site.github_url,
             "facebook_url": site.facebook_url or "",
             "instagram_url": site.instagram_url or "",
@@ -478,6 +483,7 @@ async def get_site(
         "model_type": site.model_type,
         "description": site.description,
         "custom_domain": site.custom_domain,
+    "cname_record": site.cname_record or DEFAULT_CNAME_TARGET,
         "github_repo": site.github_repo,
         "github_url": site.github_url,
         "is_published": site.is_published,
@@ -535,6 +541,7 @@ async def create_site(
         model_type=model_type,
         description=data.get("description", seed_data.get("site_description", "")),
         custom_domain=data.get("custom_domain"),
+    cname_record=data.get("cname_record") or DEFAULT_CNAME_TARGET,
         hero_title=data.get("hero_title", seed_data.get("hero_title", data.get("name", ""))),
         hero_subtitle=data.get("hero_subtitle", seed_data.get("hero_subtitle", "")),
         hero_image=_canonicalize_asset_value(data.get("hero_image", seed_data.get("hero_image", ""))),
@@ -567,6 +574,7 @@ async def create_site(
         "id": site.id,
         "name": site.name,
         "message": "Sitio creado exitosamente con datos de ejemplo",
+        "cname_record": site.cname_record,
         "owner": owner_data,
     }
 

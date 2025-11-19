@@ -5,6 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Sitio - Control de Sitios</title>
     <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        .cname-assist {
+            border: 1px solid #E2E8F0;
+            border-radius: 1rem;
+            background: #F8FAFC;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .cname-assist__grid {
+            display: flex;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+        .cname-assist__details {
+            flex: 1 1 240px;
+            color: #475569;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .cname-assist__details ul {
+            margin: 0.35rem 0 0;
+            padding-left: 1.25rem;
+        }
+        .cname-assist code {
+            background: rgba(15, 23, 42, 0.06);
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.4rem;
+            font-weight: 600;
+            color: #0F172A;
+        }
+        .cname-assist__actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 220px;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -78,6 +118,26 @@
                         <small style="color: #6B7280;">Necesitarás configurar los DNS de tu dominio</small>
                     </div>
 
+                    <div class="form-group">
+                        <label class="form-label">Configuración de CNAME</label>
+                        <div class="cname-assist">
+                            <div class="cname-assist__grid">
+                                <div class="cname-assist__details">
+                                    <p>Para que tu dominio personalizado funcione debes crear un registro CNAME en tu proveedor DNS apuntando a GitHub Pages.</p>
+                                    <ul>
+                                        <li><strong>Host / Alias:</strong> usa el subdominio que quieras (ej. <code>www</code>).</li>
+                                        <li><strong>Destino:</strong> <code id="cnameTargetValue">ReconvencionLaboralGuajira.github.io</code></li>
+                                    </ul>
+                                    <small style="color: #94A3B8;">Los cambios pueden tardar hasta 30 minutos en propagarse.</small>
+                                </div>
+                                <div class="cname-assist__actions">
+                                    <button type="button" class="btn btn-outline" id="copyCnameTarget">Copiar destino</button>
+                                    <button type="button" class="btn btn-primary" id="confirmCnameButton">Confirmar configuración</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div style="display: flex; gap: 1rem;">
                         <button type="submit" class="btn btn-primary">Crear Sitio</button>
                         <a href="/dashboard" class="btn btn-outline">Cancelar</a>
@@ -111,6 +171,30 @@
                 select.value = modelParam;
             }
         }
+        const CNAME_TARGET = 'reconvencionlaboralguajira.github.io';
+        const customDomainInput = document.getElementById('custom_domain');
+        const confirmCnameButton = document.getElementById('confirmCnameButton');
+        const copyCnameButton = document.getElementById('copyCnameTarget');
+
+        confirmCnameButton?.addEventListener('click', () => {
+            const domain = customDomainInput.value.trim();
+            if (!domain) {
+                showNotification('Primero ingresa un dominio personalizado para configurar el CNAME.', 'warning');
+                customDomainInput.focus();
+                return;
+            }
+            showNotification(`Configura un registro CNAME para ${domain} apuntando a ${CNAME_TARGET}. ¡Te avisaremos cuando se propague!`, 'success');
+        });
+
+        copyCnameButton?.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(CNAME_TARGET);
+                showNotification('Destino CNAME copiado al portapapeles', 'success');
+            } catch (error) {
+                console.error(error);
+                showNotification('No pudimos copiar el destino, cópialo manualmente.', 'error');
+            }
+        });
 
         document.getElementById('createSiteForm').addEventListener('submit', async (e) => {
             e.preventDefault();

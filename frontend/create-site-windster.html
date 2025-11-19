@@ -270,6 +270,60 @@
                           class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
                           placeholder="www.minegocio.com"
                         />
+                        <p class="mt-2 text-xs text-gray-500">
+                          Apunta tu subdominio (ej. <span class="font-semibold">www</span>) hacia GitHub Pages con un registro CNAME.
+                        </p>
+                        <div class="mt-4 rounded-xl border border-gray-100 bg-white/70 p-3 text-xs text-gray-600 shadow-sm">
+                          <div class="flex items-center justify-between gap-2">
+                            <p class="font-semibold tracking-[0.2em] text-blue-500">CNAME</p>
+                            <button
+                              type="button"
+                              id="resetCnameTarget"
+                              class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1 text-[11px] font-semibold text-gray-600 hover:bg-gray-50"
+                            >
+                              <i class="fas fa-rotate-left"></i>
+                              Reset
+                            </button>
+                          </div>
+                          <div class="mt-3 space-y-1">
+                            <label for="cname_record_input" class="text-[11px] uppercase text-gray-500">Destino</label>
+                            <input
+                              type="text"
+                              id="cname_record_input"
+                              name="cname_record"
+                              class="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
+                              placeholder="reconvencionlaboralguajira.github.io"
+                            />
+                            <code
+                              id="cnameTargetValue"
+                              class="block max-w-full truncate rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-900"
+                            >
+                              —
+                            </code>
+                          </div>
+                          <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-gray-500">
+                            <span class="flex items-center gap-1"><span class="font-semibold text-gray-700">Host</span><code class="rounded bg-gray-100 px-2 py-0.5 text-gray-900">www</code></span>
+                            <span>+ CNAME → GitHub Pages (≈30 min)</span>
+                          </div>
+                          <div class="mt-3 flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              id="copyCnameTarget"
+                              class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-gray-700 hover:bg-gray-50"
+                            >
+                              <i class="fas fa-copy"></i>
+                              Copiar
+                            </button>
+                            <button
+                              type="button"
+                              id="confirmCnameButton"
+                              class="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-blue-700"
+                            >
+                              <i class="fas fa-check-circle"></i>
+                              Guardar
+                            </button>
+                          </div>
+                        </div>
                       </div>
                       <div class="md:col-span-2">
                         <label class="text-sm font-medium text-gray-700"
@@ -656,7 +710,13 @@
         "palettePreviewSwatches"
       );
       const hiddenPrimaryColor = document.getElementById("primary_color");
-      const hiddenSecondaryColor = document.getElementById("secondary_color");
+    const hiddenSecondaryColor = document.getElementById("secondary_color");
+    const customDomainInput = document.getElementById("custom_domain");
+    const confirmCnameButton = document.getElementById("confirmCnameButton");
+    const copyCnameButton = document.getElementById("copyCnameTarget");
+    const resetCnameTargetButton = document.getElementById("resetCnameTarget");
+    const cnameRecordInput = document.getElementById("cname_record_input");
+    const cnameTargetValue = document.getElementById("cnameTargetValue");
       const createButton = document.getElementById("createButton");
       const createButtonSpinner = document.getElementById(
         "createButtonSpinner"
@@ -680,6 +740,86 @@
       const ownerEditorButton = document.getElementById("ownerEditorButton");
       let modelsCache = [];
       let previewPaletteOverride = null;
+      const PENDING_CNAME_STORAGE_KEY = "webcontrol:cnameDraft";
+
+      const CNAME_TARGET = "reconvencionlaboralguajira.github.io";
+      
+      function getCnameInputValue() {
+        return cnameRecordInput?.value?.trim() || "";
+      }
+
+      function updateCnameDisplay(value) {
+        if (cnameTargetValue) {
+          cnameTargetValue.textContent = value || "—";
+        }
+      }
+
+      function clearStoredCnameDraft() {
+        localStorage.removeItem(PENDING_CNAME_STORAGE_KEY);
+      }
+
+      async function persistCnameDraft(domain, recordValue) {
+        if (!domain) {
+          throw new Error(
+            "Primero ingresa el dominio personalizado que vas a apuntar."
+          );
+        }
+        if (!recordValue) {
+          throw new Error("Escribe el destino CNAME que quieres registrar.");
+        }
+        const payload = {
+          domain,
+          recordValue,
+          savedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(
+          PENDING_CNAME_STORAGE_KEY,
+          JSON.stringify(payload)
+        );
+        return payload;
+      }
+
+      function hydrateCnameDraft() {
+        if (!cnameRecordInput) {
+          updateCnameDisplay(CNAME_TARGET);
+          return;
+        }
+        const storedValue = localStorage.getItem(PENDING_CNAME_STORAGE_KEY);
+        if (storedValue) {
+          try {
+            const parsed = JSON.parse(storedValue);
+            if (parsed?.recordValue) {
+              cnameRecordInput.value = parsed.recordValue;
+            }
+            if (parsed?.domain && customDomainInput && !customDomainInput.value) {
+              customDomainInput.value = parsed.domain;
+            }
+          } catch (error) {
+            console.warn("No se pudo hidratar el borrador de CNAME", error);
+          }
+        }
+        if (!cnameRecordInput.value) {
+          cnameRecordInput.value = CNAME_TARGET;
+        }
+        updateCnameDisplay(getCnameInputValue() || CNAME_TARGET);
+      }
+
+      hydrateCnameDraft();
+
+      cnameRecordInput?.addEventListener("input", () => {
+        updateCnameDisplay(getCnameInputValue());
+      });
+
+      resetCnameTargetButton?.addEventListener("click", () => {
+        if (!cnameRecordInput) return;
+        cnameRecordInput.value = CNAME_TARGET;
+        updateCnameDisplay(CNAME_TARGET);
+        clearStoredCnameDraft();
+        showNotification(
+          "Se restauró el destino CNAME predeterminado.",
+          "info"
+        );
+      });
 
       if (currentUserRole === "owner") {
         applyRoleVisibility();
@@ -703,6 +843,54 @@
           !userMenuButton.contains(e.target)
         ) {
           userMenu.classList.add("hidden");
+        }
+      });
+
+      confirmCnameButton?.addEventListener("click", async () => {
+        const domain = customDomainInput?.value.trim();
+        const cnameValue = getCnameInputValue() || CNAME_TARGET;
+        if (!domain) {
+          showNotification(
+            "Primero ingresa un dominio personalizado para validar el CNAME.",
+            "warning"
+          );
+          customDomainInput?.focus();
+          return;
+        }
+        if (!cnameValue) {
+          showNotification(
+            "Agrega el destino CNAME que quieres asociar.",
+            "warning"
+          );
+          cnameRecordInput?.focus();
+          return;
+        }
+        try {
+          await persistCnameDraft(domain, cnameValue);
+          showNotification(
+            `Guardamos el registro CNAME de ${domain} apuntando a ${cnameValue}. Lo enviaremos al backend al crear el sitio.`,
+            "success"
+          );
+        } catch (error) {
+          console.error(error);
+          showNotification(
+            error?.message || "No pudimos guardar el CNAME. Inténtalo de nuevo.",
+            "error"
+          );
+        }
+      });
+
+      copyCnameButton?.addEventListener("click", async () => {
+        const valueToCopy = getCnameInputValue() || CNAME_TARGET;
+        try {
+          await navigator.clipboard.writeText(valueToCopy);
+          showNotification("Destino CNAME copiado", "success");
+        } catch (error) {
+          console.error(error);
+          showNotification(
+            "No pudimos copiar el destino automáticamente, copia el texto manualmente.",
+            "error"
+          );
         }
       });
 
@@ -899,7 +1087,14 @@
       createForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         const formData = new FormData(createForm);
+        if (cnameRecordInput) {
+          const cnameValue = getCnameInputValue() || CNAME_TARGET;
+          formData.set("cname_record", cnameValue);
+        }
         const payload = Object.fromEntries(formData.entries());
+        if (cnameRecordInput) {
+          payload.cname_record = getCnameInputValue() || CNAME_TARGET;
+        }
         if (!payload.model_type) {
           showNotification(
             "Selecciona un modelo antes de continuar",
@@ -919,6 +1114,7 @@
               "Sitio creado y owner generado automáticamente.",
               "success"
             );
+            clearStoredCnameDraft();
             renderOwnerCredentials(result);
           } else {
             showNotification(

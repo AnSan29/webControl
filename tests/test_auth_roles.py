@@ -14,7 +14,7 @@ if str(PROJECT_ROOT) not in sys.path:
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.main import app
+from backend.main import app, DEFAULT_CNAME_TARGET
 from backend.database import (
     Base,
     engine,
@@ -22,6 +22,7 @@ from backend.database import (
     SessionLocal,
     Role,
     User,
+    Site,
     get_db,
 )
 from backend.auth import hash_password
@@ -228,3 +229,74 @@ def test_superadmin_can_replace_site_owner_during_user_creation(client):
     session.close()
     assert len(owners) == 1
     assert owners[0].email == new_owner_payload["email"]
+
+
+def test_custom_cname_is_persisted_and_visible(client):
+    creds = create_superadmin()
+    token, _ = login(client, creds["email"], creds["password"])
+
+    custom_domain = "tienda.example.com"
+    custom_cname = "custom-pages.github.test"
+    response = client.post(
+        "/api/sites",
+        headers=auth_header(token),
+        json={
+            "name": "Sitio con CNAME",
+            "model_type": "cocina",
+            "custom_domain": custom_domain,
+            "cname_record": custom_cname,
+        },
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["cname_record"] == custom_cname
+
+    session = SessionLocal()
+    site_in_db = session.query(Site).filter(Site.id == payload["id"]).first()
+    session.close()
+    assert site_in_db is not None
+    assert site_in_db.custom_domain == custom_domain
+    assert site_in_db.cname_record == custom_cname
+
+    owner_token, _ = login(
+        client,
+        payload["owner"]["email"],
+        payload["owner"]["temporary_password"],
+    )
+    site_response = client.get(
+        f"/api/sites/{payload['id']}",
+        headers=auth_header(owner_token),
+    )
+    assert site_response.status_code == 200, site_response.text
+    site_payload = site_response.json()
+    assert site_payload["custom_domain"] == custom_domain
+    assert site_payload["cname_record"] == custom_cname
+
+
+def test_cname_defaults_when_not_provided(client):
+    creds = create_superadmin()
+    token, _ = login(client, creds["email"], creds["password"])
+
+    response = client.post(
+        "/api/sites",
+        headers=auth_header(token),
+        json={
+            "name": "Sitio sin CNAME",
+            "model_type": "cocina",
+        },
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["cname_record"] == DEFAULT_CNAME_TARGET
+
+    owner_token, _ = login(
+        client,
+        payload["owner"]["email"],
+        payload["owner"]["temporary_password"],
+    )
+    site_response = client.get(
+        f"/api/sites/{payload['id']}",
+        headers=auth_header(owner_token),
+    )
+    assert site_response.status_code == 200
+    assert site_response.json()["cname_record"] == DEFAULT_CNAME_TARGET
