@@ -1131,6 +1131,13 @@
             ? site.custom_domain
             : `https://${site.custom_domain}`;
         }
+        if (site.github_url) {
+          const normalized = site.github_url.trim();
+          if (!normalized) return "";
+          return /^https?:\/\//i.test(normalized)
+            ? normalized
+            : `https://${normalized.replace(/^\/+/, "")}`;
+        }
         return "";
       }
 
