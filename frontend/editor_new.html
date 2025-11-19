@@ -207,25 +207,19 @@
         });
         if (response.ok) {
           showNotification("Cambios guardados", "success");
-          const siteResponse = await fetchAPI(`/api/sites/${currentSiteId}`);
-          const siteData = await siteResponse.json();
-          if (siteData.is_published) {
-            showNotification("Actualizando sitio en GitHub Pages...", "info");
-            try {
-              const publishResponse = await fetchAPI(`/api/sites/${currentSiteId}/publish`, { method: "POST" });
-              const publishData = await publishResponse.json();
-              if (publishResponse.ok) {
-                setTimeout(() => showNotification("✅ Sitio actualizado", "success"), 1500);
-                if (publishData.info) {
-                  setTimeout(() => showNotification(publishData.info, "info"), 3000);
-                }
-              } else {
-                setTimeout(() => showNotification("⚠️ Error al actualizar", "warning"), 1500);
+          try {
+            const siteResponse = await fetchAPI(`/api/sites/${currentSiteId}`);
+            if (siteResponse?.ok) {
+              const siteData = await siteResponse.json();
+              if (siteData.is_published) {
+                showNotification(
+                  "Los cambios se guardaron. Publica nuevamente para actualizar GitHub Pages.",
+                  "info"
+                );
               }
-            } catch (error) {
-              console.error("Error republishing:", error);
-              setTimeout(() => showNotification("⚠️ Error al actualizar", "warning"), 1500);
             }
+          } catch (error) {
+            console.warn("No se pudo verificar estado de publicación", error);
           }
         } else {
           showNotification("Error al guardar", "error");

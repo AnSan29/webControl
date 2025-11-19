@@ -1053,54 +1053,19 @@
           if (response.ok) {
             showNotification("Cambios guardados exitosamente", "success");
 
-            const siteResponse = await fetchAPI(`/api/sites/${currentSiteId}`);
-            const siteData = await siteResponse.json();
-
-            if (siteData.is_published) {
-              showNotification("Actualizando sitio en GitHub Pages...", "info");
-
-              try {
-                const publishResponse = await fetchAPI(
-                  `/api/sites/${currentSiteId}/publish`,
-                  {
-                    method: "POST",
-                  }
-                );
-                const publishData = await publishResponse.json();
-
-                if (publishResponse.ok) {
-                  setTimeout(() => {
-                    showNotification(
-                      "✅ Sitio actualizado en GitHub Pages",
-                      "success"
-                    );
-                  }, 1500);
-
-                  if (publishData.info) {
-                    setTimeout(() => {
-                      showNotification(
-                        "⏳ Los cambios pueden tardar 1-2 minutos en verse reflejados",
-                        "info"
-                      );
-                    }, 3000);
-                  }
-                } else {
-                  setTimeout(() => {
-                    showNotification(
-                      "⚠️ Error al actualizar en GitHub Pages",
-                      "warning"
-                    );
-                  }, 1500);
-                }
-              } catch (error) {
-                console.error("Error republishing:", error);
-                setTimeout(() => {
+            try {
+              const siteResponse = await fetchAPI(`/api/sites/${currentSiteId}`);
+              if (siteResponse?.ok) {
+                const siteData = await siteResponse.json();
+                if (siteData.is_published) {
                   showNotification(
-                    "⚠️ Error al actualizar en GitHub Pages",
-                    "warning"
+                    "Los cambios están guardados. Publica de nuevo para reflejarlos en GitHub Pages.",
+                    "info"
                   );
-                }, 1500);
+                }
               }
+            } catch (error) {
+              console.warn("No se pudo verificar el estado de publicación", error);
             }
           } else {
             showNotification("Error al guardar", "error");

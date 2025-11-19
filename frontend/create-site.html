@@ -1,230 +1,519 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crear Sitio - Control de Sitios</title>
-    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/main.css" />
     <style>
-        .cname-assist {
-            border: 1px solid #E2E8F0;
-            border-radius: 1rem;
-            background: #F8FAFC;
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
+      .multistep-progress {
+        margin-bottom: 1.5rem;
+      }
+      .multistep-progress-track {
+        position: relative;
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .multistep-progress-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background: linear-gradient(90deg, #2563eb, #10b981);
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+      .multistep-progress-dots {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.75rem;
+      }
+      .progress-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.35rem;
+        color: #94a3b8;
+        font-size: 0.85rem;
+        text-align: center;
+      }
+      .progress-step::before {
+        content: attr(data-step);
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        border: 2px solid #cbd5f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        background: #fff;
+      }
+      .progress-step.active {
+        color: #1e3a8a;
+        font-weight: 600;
+      }
+      .progress-step.active::before {
+        background: #2563eb;
+        color: #fff;
+        border-color: #1d4ed8;
+      }
+      .form-step {
+        display: none;
+        animation: fadeIn 0.35s ease;
+      }
+      .form-step.active {
+        display: block;
+      }
+      .multistep-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1.5rem;
+        gap: 1rem;
+      }
+      .multistep-nav button[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .final-actions {
+        display: none;
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+      .final-actions.visible {
+        display: flex;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
         }
-        .cname-assist__grid {
-            display: flex;
-            gap: 1.25rem;
-            flex-wrap: wrap;
-            align-items: flex-start;
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-        .cname-assist__details {
-            flex: 1 1 240px;
-            color: #475569;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-        .cname-assist__details ul {
-            margin: 0.35rem 0 0;
-            padding-left: 1.25rem;
-        }
-        .cname-assist code {
-            background: rgba(15, 23, 42, 0.06);
-            padding: 0.15rem 0.4rem;
-            border-radius: 0.4rem;
-            font-weight: 600;
-            color: #0F172A;
-        }
-        .cname-assist__actions {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            min-width: 220px;
-        }
+      }
+      .cname-assist {
+        border: 1px solid #e2e8f0;
+        border-radius: 1rem;
+        background: #f8fafc;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .cname-assist__grid {
+        display: flex;
+        gap: 1.25rem;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .cname-assist__details {
+        flex: 1 1 240px;
+        color: #475569;
+        font-size: 0.95rem;
+        line-height: 1.5;
+      }
+      .cname-assist__details ul {
+        margin: 0.35rem 0 0;
+        padding-left: 1.25rem;
+      }
+      .cname-assist code {
+        background: rgba(15, 23, 42, 0.06);
+        padding: 0.15rem 0.4rem;
+        border-radius: 0.4rem;
+        font-weight: 600;
+        color: #0f172a;
+      }
+      .cname-assist__actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        min-width: 220px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <nav class="navbar">
-        <div class="container flex items-center justify-between">
-            <a href="/dashboard" class="navbar-brand">🎨 Control de Sitios</a>
-            <ul class="navbar-nav">
-                <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
-                <li><a href="/models" class="nav-link">Modelos</a></li>
-                <li><a href="/create-site" class="nav-link active">Crear Sitio</a></li>
-                <li><a href="#" onclick="logout()" class="nav-link">Cerrar Sesión</a></li>
-            </ul>
-        </div>
+      <div class="container flex items-center justify-between">
+        <a href="/dashboard" class="navbar-brand">🎨 Control de Sitios</a>
+        <ul class="navbar-nav">
+          <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
+          <li><a href="/models" class="nav-link">Modelos</a></li>
+          <li>
+            <a href="/create-site" class="nav-link active">Crear Sitio</a>
+          </li>
+          <li>
+            <a href="#" onclick="logout()" class="nav-link">Cerrar Sesión</a>
+          </li>
+        </ul>
+      </div>
     </nav>
 
-    <main style="padding: 2rem 0;">
-        <div class="container" style="max-width: 800px;">
-            <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 2rem;">Crear Nuevo Sitio</h1>
-            
-            <div class="card">
-                <form id="createSiteForm">
-                    <div class="form-group">
-                        <label class="form-label">Modelo de Negocio</label>
-                        <select id="model_type" name="model_type" class="form-select" required>
-                            <option value="">Selecciona un modelo...</option>
-                        </select>
-                    </div>
+    <main style="padding: 2rem 0">
+      <div class="container" style="max-width: 800px">
+        <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 2rem">
+          Crear Nuevo Sitio
+        </h1>
 
-                    <div class="form-group">
-                        <label class="form-label">Nombre del Negocio</label>
-                        <input type="text" id="name" name="name" class="form-input" placeholder="Ej: Artesanías La Tradición" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Descripción</label>
-                        <textarea id="description" name="description" class="form-textarea" placeholder="Describe tu negocio..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Título Principal</label>
-                        <input type="text" id="hero_title" name="hero_title" class="form-input" placeholder="Ej: Bienvenido a mi negocio">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Subtítulo</label>
-                        <input type="text" id="hero_subtitle" name="hero_subtitle" class="form-input" placeholder="Ej: Productos de calidad">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Sobre Nosotros</label>
-                        <textarea id="about_text" name="about_text" class="form-textarea" placeholder="Cuéntanos sobre tu negocio..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Email de Contacto</label>
-                        <input type="email" id="contact_email" name="contact_email" class="form-input" placeholder="contacto@example.com">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Teléfono</label>
-                        <input type="tel" id="contact_phone" name="contact_phone" class="form-input" placeholder="+1 234 567 8900">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Dirección</label>
-                        <input type="text" id="contact_address" name="contact_address" class="form-input" placeholder="Calle Principal #123">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Dominio Personalizado (Opcional)</label>
-                        <input type="text" id="custom_domain" name="custom_domain" class="form-input" placeholder="www.minegocio.com">
-                        <small style="color: #6B7280;">Necesitarás configurar los DNS de tu dominio</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Configuración de CNAME</label>
-                        <div class="cname-assist">
-                            <div class="cname-assist__grid">
-                                <div class="cname-assist__details">
-                                    <p>Para que tu dominio personalizado funcione debes crear un registro CNAME en tu proveedor DNS apuntando a GitHub Pages.</p>
-                                    <ul>
-                                        <li><strong>Host / Alias:</strong> usa el subdominio que quieras (ej. <code>www</code>).</li>
-                                        <li><strong>Destino:</strong> <code id="cnameTargetValue">ReconvencionLaboralGuajira.github.io</code></li>
-                                    </ul>
-                                    <small style="color: #94A3B8;">Los cambios pueden tardar hasta 30 minutos en propagarse.</small>
-                                </div>
-                                <div class="cname-assist__actions">
-                                    <button type="button" class="btn btn-outline" id="copyCnameTarget">Copiar destino</button>
-                                    <button type="button" class="btn btn-primary" id="confirmCnameButton">Confirmar configuración</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; gap: 1rem;">
-                        <button type="submit" class="btn btn-primary">Crear Sitio</button>
-                        <a href="/dashboard" class="btn btn-outline">Cancelar</a>
-                    </div>
-                </form>
+        <div class="card">
+          <form id="createSiteForm">
+            <div class="multistep-progress">
+              <div class="multistep-progress-track">
+                <div class="multistep-progress-bar" id="progressBar"></div>
+              </div>
+              <div class="multistep-progress-dots">
+                <span class="progress-step active" data-step="1">Modelo</span>
+                <span class="progress-step" data-step="2">Contenido</span>
+                <span class="progress-step" data-step="3">Contacto</span>
+                <span class="progress-step" data-step="4">Dominio</span>
+              </div>
             </div>
+
+            <div class="form-steps">
+              <section class="form-step active" data-step="1">
+                <div class="form-group">
+                  <label class="form-label">Modelo de Negocio</label>
+                  <select
+                    id="model_type"
+                    name="model_type"
+                    class="form-select"
+                    required
+                  >
+                    <option value="">Selecciona un modelo...</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Nombre del Negocio</label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    class="form-input"
+                    placeholder="Ej: Artesanías La Tradición"
+                    required
+                  />
+                </div>
+              </section>
+
+              <section class="form-step" data-step="2">
+                <div class="form-group">
+                  <label class="form-label">Descripción</label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    class="form-textarea"
+                    placeholder="Describe tu negocio..."
+                  ></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Título Principal</label>
+                  <input
+                    type="text"
+                    id="hero_title"
+                    name="hero_title"
+                    class="form-input"
+                    placeholder="Ej: Bienvenido a mi negocio"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Subtítulo</label>
+                  <input
+                    type="text"
+                    id="hero_subtitle"
+                    name="hero_subtitle"
+                    class="form-input"
+                    placeholder="Ej: Productos de calidad"
+                  />
+                </div>
+              </section>
+
+              <section class="form-step" data-step="3">
+                <div class="form-group">
+                  <label class="form-label">Sobre Nosotros</label>
+                  <textarea
+                    id="about_text"
+                    name="about_text"
+                    class="form-textarea"
+                    placeholder="Cuéntanos sobre tu negocio..."
+                  ></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Email de Contacto</label>
+                  <input
+                    type="email"
+                    id="contact_email"
+                    name="contact_email"
+                    class="form-input"
+                    placeholder="contacto@example.com"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Teléfono</label>
+                  <input
+                    type="tel"
+                    id="contact_phone"
+                    name="contact_phone"
+                    class="form-input"
+                    placeholder="+1 234 567 8900"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Dirección</label>
+                  <input
+                    type="text"
+                    id="contact_address"
+                    name="contact_address"
+                    class="form-input"
+                    placeholder="Calle Principal #123"
+                  />
+                </div>
+              </section>
+
+              <section class="form-step" data-step="4">
+                <div class="form-group">
+                  <label class="form-label"
+                    >Dominio Personalizado (Opcional)</label
+                  >
+                  <input
+                    type="text"
+                    id="custom_domain"
+                    name="custom_domain"
+                    class="form-input"
+                    placeholder="www.minegocio.com"
+                  />
+                  <small style="color: #6b7280"
+                    >Necesitarás configurar los DNS de tu dominio</small
+                  >
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Configuración de CNAME</label>
+                  <div class="cname-assist">
+                    <div class="cname-assist__grid">
+                      <div class="cname-assist__details">
+                        <p>
+                          Para que tu dominio personalizado funcione debes crear
+                          un registro CNAME en tu proveedor DNS apuntando a
+                          GitHub Pages.
+                        </p>
+                        <ul>
+                          <li>
+                            <strong>Host / Alias:</strong> usa el subdominio que
+                            quieras (ej. <code>www</code>).
+                          </li>
+                          <li>
+                            <strong>Destino:</strong>
+                            <code id="cnameTargetValue"
+                              >ReconvencionLaboralGuajira.github.io</code
+                            >
+                          </li>
+                        </ul>
+                        <small style="color: #94a3b8"
+                          >Los cambios pueden tardar hasta 30 minutos en
+                          propagarse.</small
+                        >
+                      </div>
+                      <div class="cname-assist__actions">
+                        <button
+                          type="button"
+                          class="btn btn-outline"
+                          id="copyCnameTarget"
+                        >
+                          Copiar destino
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-primary"
+                          id="confirmCnameButton"
+                        >
+                          Confirmar configuración
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div class="multistep-nav">
+              <button type="button" class="btn btn-outline" id="prevStep">
+                Anterior
+              </button>
+              <button type="button" class="btn btn-primary" id="nextStep">
+                Siguiente
+              </button>
+            </div>
+
+            <div class="final-actions" id="finalActions">
+              <button type="submit" class="btn btn-primary">Crear Sitio</button>
+              <a href="/dashboard" class="btn btn-outline">Cancelar</a>
+            </div>
+          </form>
         </div>
+      </div>
     </main>
 
     <script src="/static/js/main.js"></script>
     <script>
-        async function init() {
-            const isAuth = await checkAuth();
-            if (!isAuth) return;
+      async function init() {
+        const isAuth = await checkAuth();
+        if (!isAuth) return;
 
-            // Cargar modelos en el select
-            const models = await loadBusinessModels();
-            const select = document.getElementById('model_type');
-            
-            models.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model.id;
-                option.textContent = `${model.icon} ${model.name}`;
-                select.appendChild(option);
+        // Cargar modelos en el select
+        const models = await loadBusinessModels();
+        const select = document.getElementById("model_type");
+
+        models.forEach((model) => {
+          const option = document.createElement("option");
+          option.value = model.id;
+          option.textContent = `${model.icon} ${model.name}`;
+          select.appendChild(option);
+        });
+
+        // Si viene modelo en URL, pre-seleccionarlo
+        const urlParams = new URLSearchParams(window.location.search);
+        const modelParam = urlParams.get("model");
+        if (modelParam) {
+          select.value = modelParam;
+        }
+      }
+      const CNAME_TARGET = "reconvencionlaboralguajira.github.io";
+      const customDomainInput = document.getElementById("custom_domain");
+      const confirmCnameButton = document.getElementById("confirmCnameButton");
+      const copyCnameButton = document.getElementById("copyCnameTarget");
+      const formSteps = Array.from(document.querySelectorAll(".form-step"));
+      const progressSteps = Array.from(
+        document.querySelectorAll(".progress-step")
+      );
+      const progressBar = document.getElementById("progressBar");
+      const nextStepButton = document.getElementById("nextStep");
+      const prevStepButton = document.getElementById("prevStep");
+      const finalActions = document.getElementById("finalActions");
+      let currentStepIndex = 0;
+
+      const totalSteps = formSteps.length || 1;
+
+      function updateStepUI() {
+        formSteps.forEach((step, index) => {
+          step.classList.toggle("active", index === currentStepIndex);
+        });
+
+        progressSteps.forEach((dot, index) => {
+          dot.classList.toggle("active", index <= currentStepIndex);
+        });
+
+        if (progressBar && totalSteps > 1) {
+          const width = (currentStepIndex / (totalSteps - 1)) * 100;
+          progressBar.style.width = `${width}%`;
+        } else if (progressBar) {
+          progressBar.style.width = "100%";
+        }
+
+        if (prevStepButton) {
+          prevStepButton.disabled = currentStepIndex === 0;
+        }
+
+        if (nextStepButton) {
+          nextStepButton.style.display =
+            currentStepIndex === totalSteps - 1 ? "none" : "inline-flex";
+        }
+
+        if (finalActions) {
+          finalActions.classList.toggle(
+            "visible",
+            currentStepIndex === totalSteps - 1
+          );
+        }
+      }
+
+      nextStepButton?.addEventListener("click", () => {
+        if (currentStepIndex < totalSteps - 1) {
+          currentStepIndex += 1;
+          updateStepUI();
+        }
+      });
+
+      prevStepButton?.addEventListener("click", () => {
+        if (currentStepIndex > 0) {
+          currentStepIndex -= 1;
+          updateStepUI();
+        }
+      });
+
+      confirmCnameButton?.addEventListener("click", () => {
+        const domain = customDomainInput.value.trim();
+        if (!domain) {
+          showNotification(
+            "Primero ingresa un dominio personalizado para configurar el CNAME.",
+            "warning"
+          );
+          customDomainInput.focus();
+          return;
+        }
+        showNotification(
+          `Configura un registro CNAME para ${domain} apuntando a ${CNAME_TARGET}. ¡Te avisaremos cuando se propague!`,
+          "success"
+        );
+      });
+
+      copyCnameButton?.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(CNAME_TARGET);
+          showNotification("Destino CNAME copiado al portapapeles", "success");
+        } catch (error) {
+          console.error(error);
+          showNotification(
+            "No pudimos copiar el destino, cópialo manualmente.",
+            "error"
+          );
+        }
+      });
+
+      document
+        .getElementById("createSiteForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const formData = new FormData(e.target);
+          const data = Object.fromEntries(formData);
+
+          try {
+            const response = await fetchAPI("/api/sites", {
+              method: "POST",
+              body: JSON.stringify(data),
             });
 
-            // Si viene modelo en URL, pre-seleccionarlo
-            const urlParams = new URLSearchParams(window.location.search);
-            const modelParam = urlParams.get('model');
-            if (modelParam) {
-                select.value = modelParam;
-            }
-        }
-        const CNAME_TARGET = 'reconvencionlaboralguajira.github.io';
-        const customDomainInput = document.getElementById('custom_domain');
-        const confirmCnameButton = document.getElementById('confirmCnameButton');
-        const copyCnameButton = document.getElementById('copyCnameTarget');
+            const result = await response.json();
 
-        confirmCnameButton?.addEventListener('click', () => {
-            const domain = customDomainInput.value.trim();
-            if (!domain) {
-                showNotification('Primero ingresa un dominio personalizado para configurar el CNAME.', 'warning');
-                customDomainInput.focus();
-                return;
+            if (response.ok) {
+              showNotification("Sitio creado exitosamente", "success");
+              setTimeout(() => {
+                window.location.href = `/editor/${result.id}`;
+              }, 1000);
+            } else {
+              showNotification(
+                result.detail || "Error al crear sitio",
+                "error"
+              );
             }
-            showNotification(`Configura un registro CNAME para ${domain} apuntando a ${CNAME_TARGET}. ¡Te avisaremos cuando se propague!`, 'success');
+          } catch (error) {
+            console.error("Error:", error);
+            showNotification("Error al crear sitio", "error");
+          }
         });
 
-        copyCnameButton?.addEventListener('click', async () => {
-            try {
-                await navigator.clipboard.writeText(CNAME_TARGET);
-                showNotification('Destino CNAME copiado al portapapeles', 'success');
-            } catch (error) {
-                console.error(error);
-                showNotification('No pudimos copiar el destino, cópialo manualmente.', 'error');
-            }
-        });
-
-        document.getElementById('createSiteForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData);
-
-            try {
-                const response = await fetchAPI('/api/sites', {
-                    method: 'POST',
-                    body: JSON.stringify(data)
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    showNotification('Sitio creado exitosamente', 'success');
-                    setTimeout(() => {
-                        window.location.href = `/editor/${result.id}`;
-                    }, 1000);
-                } else {
-                    showNotification(result.detail || 'Error al crear sitio', 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showNotification('Error al crear sitio', 'error');
-            }
-        });
-
-        init();
+      updateStepUI();
+      init();
     </script>
-</body>
+  </body>
 </html>

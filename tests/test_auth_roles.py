@@ -300,3 +300,17 @@ def test_cname_defaults_when_not_provided(client):
     )
     assert site_response.status_code == 200
     assert site_response.json()["cname_record"] == DEFAULT_CNAME_TARGET
+
+
+def test_site_creation_requires_valid_model_type(client):
+    creds = create_superadmin()
+    token, _ = login(client, creds["email"], creds["password"])
+
+    response = client.post(
+        "/api/sites",
+        headers=auth_header(token),
+        json={"name": "Sitio sin modelo"},
+    )
+
+    assert response.status_code == 400
+    assert "modelo" in response.json().get("detail", "")

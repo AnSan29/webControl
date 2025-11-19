@@ -12,6 +12,68 @@
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
+    <style>
+      .wizard-progress {
+        margin-bottom: 1.5rem;
+      }
+      .wizard-progress-track {
+        position: relative;
+        height: 6px;
+        border-radius: 999px;
+        background: #e2e8f0;
+        overflow: hidden;
+      }
+      .wizard-progress-fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 0;
+        background: linear-gradient(90deg, #2563eb, #14b8a6);
+        transition: width 0.3s ease;
+      }
+      .wizard-progress-steps {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+      }
+      .wizard-progress-step {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        align-items: flex-start;
+        font-size: 0.85rem;
+        color: #94a3b8;
+      }
+      .wizard-progress-step span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 999px;
+        border: 2px solid #cbd5f5;
+        font-weight: 600;
+        background: #fff;
+      }
+      .wizard-progress-step.active {
+        color: #1d4ed8;
+        font-weight: 600;
+      }
+      .wizard-progress-step.active span {
+        background: #2563eb;
+        color: #fff;
+        border-color: #1d4ed8;
+      }
+      .wizard-progress-step.completed span {
+        background: #10b981;
+        border-color: #059669;
+        color: #fff;
+      }
+      .wizard-nav button[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    </style>
   </head>
   <body class="bg-gray-50">
     <!-- Navbar -->
@@ -195,298 +257,370 @@
                   id="createSiteForm"
                   class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 space-y-8"
                 >
-                  <section>
-                    <h2
-                      class="text-xl font-semibold text-gray-900 flex items-center gap-2"
-                    >
-                      <span
-                        class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-semibold"
-                        >1</span
-                      >
-                      Selecciona modelo y nombre
-                    </h2>
-                    <div class="mt-4 grid gap-4 md:grid-cols-2">
-                      <div class="col-span-2">
-                        <label class="text-sm font-medium text-gray-700"
-                          >Modelo de negocio</label
-                        >
-                        <select
-                          id="model_type"
-                          name="model_type"
-                          required
-                          class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4 focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
-                        >
-                          <option value="">Selecciona un modelo...</option>
-                        </select>
+                  <div class="wizard-progress">
+                    <div class="wizard-progress-track">
+                      <div
+                        class="wizard-progress-fill"
+                        id="wizardProgressFill"
+                      ></div>
+                    </div>
+                    <div class="wizard-progress-steps text-xs uppercase tracking-wide">
+                      <div class="wizard-progress-step active" data-progress-step="0">
+                        <span>1</span>
+                        <p>Modelo</p>
                       </div>
-                      <div class="col-span-2" id="paletteSelectContainer">
-                        <div
-                          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                      <div class="wizard-progress-step" data-progress-step="1">
+                        <span>2</span>
+                        <p>Contenido</p>
+                      </div>
+                      <div class="wizard-progress-step" data-progress-step="2">
+                        <span>3</span>
+                        <p>Contacto</p>
+                      </div>
+                      <div class="wizard-progress-step" data-progress-step="3">
+                        <span>4</span>
+                        <p>Dominio</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="space-y-10">
+                    <section class="wizard-step" data-step="0">
+                      <h2
+                        class="text-xl font-semibold text-gray-900 flex items-center gap-2"
+                      >
+                        <span
+                          class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-semibold"
+                          >1</span
                         >
-                          <div>
-                            <label class="text-sm font-medium text-gray-700"
-                              >Paleta recomendada</label
-                            >
-                            <p class="text-xs text-gray-500">
-                              Basadas en el manual cromático del modelo elegido.
-                            </p>
-                          </div>
-                          <select
-                            id="palette_choice"
-                            class="rounded-xl border border-gray-200 py-2.5 px-3 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 min-w-[220px]"
-                            disabled
+                        Selecciona modelo y nombre
+                      </h2>
+                      <div class="mt-4 grid gap-4 md:grid-cols-2">
+                        <div class="col-span-2">
+                          <label class="text-sm font-medium text-gray-700"
+                            >Modelo de negocio</label
                           >
-                            <option value="">
-                              Selecciona un modelo primero
-                            </option>
+                          <select
+                            id="model_type"
+                            name="model_type"
+                            required
+                            class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4 focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+                          >
+                            <option value="">Selecciona un modelo...</option>
                           </select>
                         </div>
-                        <div
-                          id="palettePreviewSwatches"
-                          class="mt-4 grid grid-cols-4 gap-3"
-                        ></div>
+                        <div class="col-span-2" id="paletteSelectContainer">
+                          <div
+                            class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                          >
+                            <div>
+                              <label class="text-sm font-medium text-gray-700"
+                                >Paleta recomendada</label
+                              >
+                              <p class="text-xs text-gray-500">
+                                Basadas en el manual cromático del modelo elegido.
+                              </p>
+                            </div>
+                            <select
+                              id="palette_choice"
+                              class="rounded-xl border border-gray-200 py-2.5 px-3 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-500 min-w-[220px]"
+                              disabled
+                            >
+                              <option value="">
+                                Selecciona un modelo primero
+                              </option>
+                            </select>
+                          </div>
+                          <div
+                            id="palettePreviewSwatches"
+                            class="mt-4 grid grid-cols-4 gap-3"
+                          ></div>
+                        </div>
+                        <div>
+                          <label class="text-sm font-medium text-gray-700"
+                            >Nombre del negocio</label
+                          >
+                          <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            required
+                            class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
+                            placeholder="Ej: Artesanías La Tradición"
+                          />
+                        </div>
+                        <div class="col-span-2 flex gap-4">
+                          <input
+                            type="hidden"
+                            id="primary_color"
+                            name="primary_color"
+                          />
+                          <input
+                            type="hidden"
+                            id="secondary_color"
+                            name="secondary_color"
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <label class="text-sm font-medium text-gray-700"
-                          >Nombre del negocio</label
+                    </section>
+
+                    <section class="wizard-step hidden" data-step="1">
+                      <h2
+                        class="text-xl font-semibold text-gray-900 flex items-center gap-2"
+                      >
+                        <span
+                          class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-semibold"
+                          >2</span
                         >
-                        <input
-                          type="text"
-                          id="name"
-                          name="name"
-                          required
-                          class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
-                          placeholder="Ej: Artesanías La Tradición"
-                        />
+                        Contenido principal
+                      </h2>
+                      <div class="mt-4 grid gap-4 md:grid-cols-2">
+                        <div class="md:col-span-2">
+                          <label class="text-sm font-medium text-gray-700"
+                            >Descripción</label
+                          >
+                          <textarea
+                            id="description"
+                            name="description"
+                            rows="3"
+                            class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
+                            placeholder="Describe tu negocio"
+                          ></textarea>
+                        </div>
+                        <div>
+                          <label class="text-sm font-medium text-gray-700"
+                            >Título principal</label
+                          >
+                          <input
+                            type="text"
+                            id="hero_title"
+                            name="hero_title"
+                            class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
+                            placeholder="Creamos experiencias artesanales"
+                          />
+                        </div>
+                        <div>
+                          <label class="text-sm font-medium text-gray-700"
+                            >Subtítulo</label
+                          >
+                          <input
+                            type="text"
+                            id="hero_subtitle"
+                            name="hero_subtitle"
+                            class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
+                            placeholder="Productos hechos a mano con amor"
+                          />
+                        </div>
+                        <div class="md:col-span-2">
+                          <label class="text-sm font-medium text-gray-700"
+                            >Historia / Sobre nosotros</label
+                          >
+                          <textarea
+                            id="about_text"
+                            name="about_text"
+                            rows="4"
+                            class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
+                            placeholder="Comparte brevemente la historia o propuesta de valor"
+                          ></textarea>
+                        </div>
                       </div>
-                      <div>
-                        <label class="text-sm font-medium text-gray-700"
-                          >Dominio personalizado (opcional)</label
+                    </section>
+
+                    <section class="wizard-step hidden" data-step="2">
+                      <h2
+                        class="text-xl font-semibold text-gray-900 flex items-center gap-2"
+                      >
+                        <span
+                          class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-semibold"
+                          >3</span
                         >
-                        <input
-                          type="text"
-                          id="custom_domain"
-                          name="custom_domain"
-                          class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
-                          placeholder="www.minegocio.com"
-                        />
-                        <p class="mt-2 text-xs text-gray-500">
-                          Apunta tu subdominio (ej. <span class="font-semibold">www</span>) hacia GitHub Pages con un registro CNAME.
-                        </p>
-                        <div class="mt-4 rounded-xl border border-gray-100 bg-white/70 p-3 text-xs text-gray-600 shadow-sm">
-                          <div class="flex items-center justify-between gap-2">
-                            <p class="font-semibold tracking-[0.2em] text-blue-500">CNAME</p>
-                            <button
-                              type="button"
-                              id="resetCnameTarget"
-                              class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1 text-[11px] font-semibold text-gray-600 hover:bg-gray-50"
-                            >
-                              <i class="fas fa-rotate-left"></i>
-                              Reset
-                            </button>
-                          </div>
-                          <div class="mt-3 space-y-1">
-                            <label for="cname_record_input" class="text-[11px] uppercase text-gray-500">Destino</label>
-                            <input
-                              type="text"
-                              id="cname_record_input"
-                              name="cname_record"
-                              class="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
-                              placeholder="reconvencionlaboralguajira.github.io"
-                            />
-                            <code
-                              id="cnameTargetValue"
-                              class="block max-w-full truncate rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-900"
-                            >
-                              —
-                            </code>
-                          </div>
-                          <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-gray-500">
-                            <span class="flex items-center gap-1"><span class="font-semibold text-gray-700">Host</span><code class="rounded bg-gray-100 px-2 py-0.5 text-gray-900">www</code></span>
-                            <span>+ CNAME → GitHub Pages (≈30 min)</span>
-                          </div>
-                          <div class="mt-3 flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              id="copyCnameTarget"
-                              class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-gray-700 hover:bg-gray-50"
-                            >
-                              <i class="fas fa-copy"></i>
-                              Copiar
-                            </button>
-                            <button
-                              type="button"
-                              id="confirmCnameButton"
-                              class="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-blue-700"
-                            >
-                              <i class="fas fa-check-circle"></i>
-                              Guardar
-                            </button>
+                        Contacto y redes
+                      </h2>
+                      <div class="mt-4 grid gap-4 md:grid-cols-2">
+                        <div>
+                          <label class="text-sm font-medium text-gray-700"
+                            >Email</label
+                          >
+                          <input
+                            type="email"
+                            id="contact_email"
+                            name="contact_email"
+                            class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
+                            placeholder="contacto@example.com"
+                          />
+                        </div>
+                        <div>
+                          <label class="text-sm font-medium text-gray-700"
+                            >Teléfono</label
+                          >
+                          <input
+                            type="tel"
+                            id="contact_phone"
+                            name="contact_phone"
+                            class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
+                            placeholder="+57 300 123 4567"
+                          />
+                        </div>
+                        <div>
+                          <label class="text-sm font-medium text-gray-700"
+                            >Dirección</label
+                          >
+                          <input
+                            type="text"
+                            id="contact_address"
+                            name="contact_address"
+                            class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
+                            placeholder="Calle Principal #123"
+                          />
+                        </div>
+                        <div>
+                          <label class="text-sm font-medium text-gray-700"
+                            >WhatsApp</label
+                          >
+                          <input
+                            type="tel"
+                            id="whatsapp_number"
+                            name="whatsapp_number"
+                            class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
+                            placeholder="+573001234567"
+                          />
+                        </div>
+                        <div>
+                          <label class="text-sm font-medium text-gray-700"
+                            >Facebook</label
+                          >
+                          <input
+                            type="url"
+                            id="facebook_url"
+                            name="facebook_url"
+                            class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
+                            placeholder="https://facebook.com/tunegocio"
+                          />
+                        </div>
+                        <div>
+                          <label class="text-sm font-medium text-gray-700"
+                            >Instagram</label
+                          >
+                          <input
+                            type="url"
+                            id="instagram_url"
+                            name="instagram_url"
+                            class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
+                            placeholder="https://instagram.com/tunegocio"
+                          />
+                        </div>
+                      </div>
+                    </section>
+
+                    <section class="wizard-step hidden" data-step="3">
+                      <h2
+                        class="text-xl font-semibold text-gray-900 flex items-center gap-2"
+                      >
+                        <span
+                          class="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center font-semibold"
+                          >4</span
+                        >
+                        Dominio y DNS
+                      </h2>
+                      <div class="mt-4 space-y-6">
+                        <div>
+                          <label class="text-sm font-medium text-gray-700"
+                            >Dominio personalizado (opcional)</label
+                          >
+                          <input
+                            type="text"
+                            id="custom_domain"
+                            name="custom_domain"
+                            class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
+                            placeholder="www.minegocio.com"
+                          />
+                          <p class="mt-2 text-xs text-gray-500">
+                            Apunta tu subdominio (ej. <span class="font-semibold">www</span>) hacia GitHub Pages con un registro CNAME.
+                          </p>
+                        </div>
+                        <div class="form-group">
+                          <label class="text-sm font-medium text-gray-700"
+                            >Configuración de CNAME</label
+                          >
+                          <div class="cname-assist mt-3 rounded-xl border border-gray-100 bg-white/70 p-3 text-xs text-gray-600 shadow-sm">
+                            <div class="flex items-center justify-between gap-2">
+                              <p class="font-semibold tracking-[0.2em] text-blue-500">CNAME</p>
+                              <button
+                                type="button"
+                                id="resetCnameTarget"
+                                class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2 py-1 text-[11px] font-semibold text-gray-600 hover:bg-gray-50"
+                              >
+                                <i class="fas fa-rotate-left"></i>
+                                Reset
+                              </button>
+                            </div>
+                            <div class="mt-3 space-y-1">
+                              <label for="cname_record_input" class="text-[11px] uppercase text-gray-500">Destino</label>
+                              <input
+                                type="text"
+                                id="cname_record_input"
+                                name="cname_record"
+                                class="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-100"
+                                placeholder="reconvencionlaboralguajira.github.io"
+                              />
+                              <code
+                                id="cnameTargetValue"
+                                class="block max-w-full truncate rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-900"
+                              >
+                                —
+                              </code>
+                            </div>
+                            <div class="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-gray-500">
+                              <span class="flex items-center gap-1"><span class="font-semibold text-gray-700">Host</span><code class="rounded bg-gray-100 px-2 py-0.5 text-gray-900">www</code></span>
+                              <span>+ CNAME → GitHub Pages (≈30 min)</span>
+                            </div>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                id="copyCnameTarget"
+                                class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-gray-700 hover:bg-gray-50"
+                              >
+                                <i class="fas fa-copy"></i>
+                                Copiar
+                              </button>
+                              <button
+                                type="button"
+                                id="confirmCnameButton"
+                                class="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm hover:bg-blue-700"
+                              >
+                                <i class="fas fa-check-circle"></i>
+                                Guardar
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div class="md:col-span-2">
-                        <label class="text-sm font-medium text-gray-700"
-                          >Descripción</label
-                        >
-                        <textarea
-                          id="description"
-                          name="description"
-                          rows="3"
-                          class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
-                          placeholder="Describe tu negocio"
-                        ></textarea>
-                      </div>
-                      <input
-                        type="hidden"
-                        id="primary_color"
-                        name="primary_color"
-                      />
-                      <input
-                        type="hidden"
-                        id="secondary_color"
-                        name="secondary_color"
-                      />
-                    </div>
-                  </section>
+                    </section>
+                  </div>
 
-                  <section>
-                    <h2
-                      class="text-xl font-semibold text-gray-900 flex items-center gap-2"
+                  <div class="wizard-nav flex flex-col sm:flex-row gap-3">
+                    <button
+                      type="button"
+                      id="prevStep"
+                      class="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-700 font-semibold py-3"
                     >
-                      <span
-                        class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-semibold"
-                        >2</span
-                      >
-                      Mensaje principal
-                    </h2>
-                    <div class="mt-4 grid gap-4 md:grid-cols-2">
-                      <div>
-                        <label class="text-sm font-medium text-gray-700"
-                          >Título principal</label
-                        >
-                        <input
-                          type="text"
-                          id="hero_title"
-                          name="hero_title"
-                          class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
-                          placeholder="Creamos experiencias artesanales"
-                        />
-                      </div>
-                      <div>
-                        <label class="text-sm font-medium text-gray-700"
-                          >Subtítulo</label
-                        >
-                        <input
-                          type="text"
-                          id="hero_subtitle"
-                          name="hero_subtitle"
-                          class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
-                          placeholder="Productos hechos a mano con amor"
-                        />
-                      </div>
-                      <div class="md:col-span-2">
-                        <label class="text-sm font-medium text-gray-700"
-                          >Historia / Sobre nosotros</label
-                        >
-                        <textarea
-                          id="about_text"
-                          name="about_text"
-                          rows="4"
-                          class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
-                          placeholder="Comparte brevemente la historia o propuesta de valor"
-                        ></textarea>
-                      </div>
-                    </div>
-                  </section>
-
-                  <section>
-                    <h2
-                      class="text-xl font-semibold text-gray-900 flex items-center gap-2"
+                      <i class="fas fa-arrow-left mr-2"></i>
+                      Anterior
+                    </button>
+                    <button
+                      type="button"
+                      id="nextStep"
+                      class="inline-flex items-center justify-center rounded-xl bg-blue-600 text-white font-semibold py-3 shadow-lg shadow-blue-600/30 hover:bg-blue-700"
                     >
-                      <span
-                        class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-semibold"
-                        >3</span
-                      >
-                      Contacto y redes
-                    </h2>
-                    <div class="mt-4 grid gap-4 md:grid-cols-2">
-                      <div>
-                        <label class="text-sm font-medium text-gray-700"
-                          >Email</label
-                        >
-                        <input
-                          type="email"
-                          id="contact_email"
-                          name="contact_email"
-                          class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
-                          placeholder="contacto@example.com"
-                        />
-                      </div>
-                      <div>
-                        <label class="text-sm font-medium text-gray-700"
-                          >Teléfono</label
-                        >
-                        <input
-                          type="tel"
-                          id="contact_phone"
-                          name="contact_phone"
-                          class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
-                          placeholder="+57 300 123 4567"
-                        />
-                      </div>
-                      <div>
-                        <label class="text-sm font-medium text-gray-700"
-                          >Dirección</label
-                        >
-                        <input
-                          type="text"
-                          id="contact_address"
-                          name="contact_address"
-                          class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
-                          placeholder="Calle Principal #123"
-                        />
-                      </div>
-                      <div>
-                        <label class="text-sm font-medium text-gray-700"
-                          >WhatsApp</label
-                        >
-                        <input
-                          type="tel"
-                          id="whatsapp_number"
-                          name="whatsapp_number"
-                          class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
-                          placeholder="+573001234567"
-                        />
-                      </div>
-                      <div>
-                        <label class="text-sm font-medium text-gray-700"
-                          >Facebook</label
-                        >
-                        <input
-                          type="url"
-                          id="facebook_url"
-                          name="facebook_url"
-                          class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
-                          placeholder="https://facebook.com/tunegocio"
-                        />
-                      </div>
-                      <div>
-                        <label class="text-sm font-medium text-gray-700"
-                          >Instagram</label
-                        >
-                        <input
-                          type="url"
-                          id="instagram_url"
-                          name="instagram_url"
-                          class="mt-2 w-full rounded-xl border border-gray-200 py-3 px-4"
-                          placeholder="https://instagram.com/tunegocio"
-                        />
-                      </div>
-                    </div>
-                  </section>
+                      Siguiente
+                      <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                  </div>
 
-                  <div class="flex flex-col sm:flex-row gap-4">
+                  <div
+                    id="finalActions"
+                    class="wizard-final-actions flex flex-col sm:flex-row gap-4 hidden"
+                  >
                     <button
                       id="createButton"
                       type="submit"
@@ -717,6 +851,16 @@
     const resetCnameTargetButton = document.getElementById("resetCnameTarget");
     const cnameRecordInput = document.getElementById("cname_record_input");
     const cnameTargetValue = document.getElementById("cnameTargetValue");
+      const wizardSteps = Array.from(document.querySelectorAll(".wizard-step"));
+      const wizardProgressFill = document.getElementById("wizardProgressFill");
+      const wizardProgressSteps = Array.from(
+        document.querySelectorAll("[data-progress-step]")
+      );
+      const nextStepButton = document.getElementById("nextStep");
+      const prevStepButton = document.getElementById("prevStep");
+      const finalActions = document.getElementById("finalActions");
+      let currentWizardStep = 0;
+      const totalWizardSteps = wizardSteps.length || 1;
       const createButton = document.getElementById("createButton");
       const createButtonSpinner = document.getElementById(
         "createButtonSpinner"
@@ -819,6 +963,53 @@
           "Se restauró el destino CNAME predeterminado.",
           "info"
         );
+      });
+
+      function updateWizardUI() {
+        wizardSteps.forEach((step, index) => {
+          step.classList.toggle("hidden", index !== currentWizardStep);
+        });
+        wizardProgressSteps.forEach((indicator, index) => {
+          indicator.classList.toggle("active", index === currentWizardStep);
+          indicator.classList.toggle("completed", index < currentWizardStep);
+        });
+        if (wizardProgressFill && totalWizardSteps > 1) {
+          const progressPercent = (currentWizardStep / (totalWizardSteps - 1)) * 100;
+          wizardProgressFill.style.width = `${progressPercent}%`;
+        } else if (wizardProgressFill) {
+          wizardProgressFill.style.width = "100%";
+        }
+        if (prevStepButton) {
+          prevStepButton.disabled = currentWizardStep === 0;
+        }
+        if (nextStepButton) {
+          nextStepButton.classList.toggle(
+            "hidden",
+            currentWizardStep === totalWizardSteps - 1
+          );
+        }
+        if (finalActions) {
+          finalActions.classList.toggle(
+            "hidden",
+            currentWizardStep !== totalWizardSteps - 1
+          );
+        }
+      }
+
+      nextStepButton?.addEventListener("click", () => {
+        if (currentWizardStep < totalWizardSteps - 1) {
+          currentWizardStep += 1;
+          updateWizardUI();
+          createForm.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+
+      prevStepButton?.addEventListener("click", () => {
+        if (currentWizardStep > 0) {
+          currentWizardStep -= 1;
+          updateWizardUI();
+          createForm.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       });
 
       if (currentUserRole === "owner") {
@@ -1193,6 +1384,7 @@
         }
       }
 
+      updateWizardUI();
       init();
 
       function logout() {

@@ -242,11 +242,10 @@
                                 <a href="/editor/${
                                   site.id
                                 }" class="btn btn-sm btn-primary">Editar</a>
-                                ${
-                                  !site.is_published
-                                    ? `<button onclick="publishSite(${site.id})" class="btn btn-sm btn-success">Publicar</button>`
-                                    : ""
-                                }
+                                ${(() => {
+                                  const label = site.is_published ? "Replicar" : "Publicar";
+                                  return `<button data-publish-button="${site.id}" onclick="publishSite(${site.id})" class="btn btn-sm btn-success">${label}</button>`;
+                                })()}
                                 <button onclick="deleteSite(${
                                   site.id
                                 })" class="btn btn-sm btn-danger">Eliminar</button>
@@ -276,6 +275,20 @@
         }
       }
 
+      function setPublishLoading(siteId, isLoading) {
+        document
+          .querySelectorAll(`[data-publish-button="${siteId}"]`)
+          .forEach((button) => {
+            if (isLoading) {
+              button.setAttribute("disabled", "disabled");
+              button.classList.add("opacity-60", "cursor-wait");
+            } else {
+              button.removeAttribute("disabled");
+              button.classList.remove("opacity-60", "cursor-wait");
+            }
+          });
+      }
+
       // Publicar sitio
       async function publishSite(siteId) {
         const confirmed = await confirmAction(
@@ -292,6 +305,7 @@
         }
 
         showNotification("Publicando sitio...", "info");
+        setPublishLoading(siteId, true);
 
         try {
           const response = await fetchAPI(`/api/sites/${siteId}/publish`, {
@@ -309,6 +323,8 @@
         } catch (error) {
           console.error("Error publishing site:", error);
           showNotification("Error al publicar sitio", "error");
+        } finally {
+          setPublishLoading(siteId, false);
         }
       }
 

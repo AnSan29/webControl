@@ -84,9 +84,18 @@ template_engine = TemplateEngine()
 with open(Path(__file__).parent / "models.json", 'r', encoding='utf-8') as f:
     BUSINESS_MODELS = json.load(f)
 
+MODEL_REGISTRY = {
+    model["id"]: model for model in BUSINESS_MODELS.get("models", []) if model.get("id")
+}
+
+# Conjunto de modelos válidos detectados en el catálogo o en los datos semilla
+AVAILABLE_MODEL_IDS = set(MODEL_REGISTRY.keys()) or set(SEED_DATA.keys())
+
 # Cargar datos semilla
 with open(Path(__file__).parent / "seed_data.json", 'r', encoding='utf-8') as f:
     SEED_DATA = json.load(f)
+
+AVAILABLE_MODEL_IDS = set(MODEL_REGISTRY.keys()) or set(SEED_DATA.keys())
 
 
 OWNER_EMAIL_DOMAIN = os.getenv("OWNER_EMAIL_DOMAIN", "owners.webcontrol.local")
@@ -516,9 +525,22 @@ async def create_site(
     _superadmin: User = Depends(require_superadmin)
 ):
     """Crear nuevo sitio"""
-    data = await request.json()
-    
-    model_type = data.get("model_type")
+    try:
+        data = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="El cuerpo de la solicitud no es JSON válido")
+
+    name = str(data.get("name", "")).strip()
+    model_type = str(data.get("model_type", "")).strip()
+
+    if not model_type:
+        raise HTTPException(status_code=400, detail="Selecciona un modelo de negocio antes de crear el sitio")
+
+    if AVAILABLE_MODEL_IDS and model_type not in AVAILABLE_MODEL_IDS:
+        raise HTTPException(status_code=400, detail="El modelo seleccionado no es válido")
+
+    if not name:
+        raise HTTPException(status_code=400, detail="Ingresa el nombre del negocio")
     
     # Cargar datos semilla si existen para este tipo de modelo
     seed_data = SEED_DATA.get(model_type, {})
@@ -537,12 +559,12 @@ async def create_site(
 
     # Crear sitio en BD usando datos semilla como valores por defecto
     site = Site(
-        name=data.get("name", seed_data.get("site_name", "Nuevo Sitio")),
+        name=name or seed_data.get("site_name", "Nuevo Sitio"),
         model_type=model_type,
         description=data.get("description", seed_data.get("site_description", "")),
         custom_domain=data.get("custom_domain"),
     cname_record=data.get("cname_record") or DEFAULT_CNAME_TARGET,
-        hero_title=data.get("hero_title", seed_data.get("hero_title", data.get("name", ""))),
+    hero_title=data.get("hero_title", seed_data.get("hero_title", name)),
         hero_subtitle=data.get("hero_subtitle", seed_data.get("hero_subtitle", "")),
         hero_image=_canonicalize_asset_value(data.get("hero_image", seed_data.get("hero_image", ""))),
         about_text=data.get("about_text", seed_data.get("about_text", "")),
@@ -685,10 +707,16 @@ async def publish_site(
     
     if not site:
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
+
+    try:
+        publisher = GitHubPublisher()
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
     
     try:
         # Inicializar publisher
-        publisher = GitHubPublisher()
         
         # Nombre del repositorio (normalizar caracteres especiales)
         import unicodedata
@@ -805,6 +833,8 @@ async def publish_site(
             "warning": publish_result.get("warning", None)
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
