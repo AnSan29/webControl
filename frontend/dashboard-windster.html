@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard - WebControl Studio</title>
-              <a
-                data-owner-hidden
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="stylesheet" href="/static/css/ui-kit.css" />
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -17,6 +17,7 @@
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="/static/js/main.js"></script>
 
     <style>
       @keyframes fadeIn {
@@ -87,9 +88,203 @@
       .mosaic-card {
         box-shadow: 0 1px 2px rgb(15 23 42 / 0.05);
       }
+
+      #usersManagementView {
+        --um-surface: rgba(255, 255, 255, 0.92);
+      }
+
+      #usersManagementView [data-hover-lift] {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+      }
+
+      #usersManagementView [data-hover-lift]:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 25px 60px -30px rgba(15, 23, 42, 0.45);
+      }
+
+      #usersManagementView .wc-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      #usersManagementView .wc-toolbar__filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      #usersManagementView .wc-filter-chip {
+        border-radius: 9999px;
+        padding: 0.35rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: rgba(255, 255, 255, 0.6);
+        color: rgba(71, 85, 105, 0.95);
+        transition: all 0.2s ease;
+      }
+
+      #usersManagementView .wc-filter-chip:hover,
+      #usersManagementView .wc-filter-chip.active {
+        border-color: rgba(59, 130, 246, 0.45);
+        color: #1d4ed8;
+        background: rgba(59, 130, 246, 0.12);
+        box-shadow: 0 15px 40px -25px rgba(37, 99, 235, 0.7);
+      }
+
+      #usersManagementView .table-action {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: white;
+        color: #0f172a;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      #usersManagementView .table-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 35px -25px rgba(15, 23, 42, 0.6);
+        color: #2563eb;
+      }
+
+      #usersManagementView .table-action--danger:hover {
+        color: #dc2626;
+      }
+
+      #usersManagementView .drawer-backdrop {
+        backdrop-filter: blur(6px);
+      }
+
+      #usersManagementView .modal-panel {
+        animation: usersModuleEnter 0.3s ease-out;
+        box-shadow: 0 45px 80px -40px rgba(15, 23, 42, 0.45);
+        max-height: calc(100vh - 3rem);
+        width: min(100%, 680px);
+        display: flex;
+        flex-direction: column;
+        background: var(--um-surface);
+      }
+
+      #usersManagementView .metric-value {
+        transition: transform 0.35s ease;
+      }
+
+      #usersManagementView .metric-bump {
+        animation: umMetricPulse 0.45s ease;
+      }
+
+      @keyframes umMetricPulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      #usersManagementView .wc-chip--muted {
+        background: rgba(148, 163, 184, 0.12);
+        color: rgba(71, 85, 105, 0.9);
+      }
+
+      #usersManagementView .wc-chip--danger {
+        background: rgba(239, 68, 68, 0.15);
+        color: #dc2626;
+      }
+
+      #usersManagementView .wc-chip--warning {
+        background: rgba(251, 191, 36, 0.15);
+        color: #b45309;
+      }
+
+      #usersManagementView .wc-chip--success {
+        background: rgba(16, 185, 129, 0.15);
+        color: #047857;
+      }
+
+      #usersManagementView .wc-page-heading {
+        position: relative;
+        overflow: hidden;
+        border-radius: 36px;
+        padding: 2.75rem;
+        background: radial-gradient(
+            circle at 15% 20%,
+            rgba(59, 130, 246, 0.35),
+            transparent 55%
+          ),
+          linear-gradient(135deg, #0f172a, #1e1b4b);
+        box-shadow: 0 40px 120px -45px rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+      }
+
+      #usersManagementView .wc-page-heading::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at 80% 20%,
+          rgba(14, 165, 233, 0.4),
+          transparent 45%
+        );
+        mix-blend-mode: screen;
+        pointer-events: none;
+      }
+
+      #usersManagementView .wc-page-heading > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      #usersManagementView .wc-page-heading__eyebrow {
+        color: rgba(241, 245, 249, 0.85);
+        letter-spacing: 0.35em;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+
+      #usersManagementView .wc-page-heading__title {
+        color: #f8fafc;
+        font-size: 2.5rem;
+        font-weight: 700;
+      }
+
+      #usersManagementView .wc-page-heading__subtitle {
+        color: rgba(226, 232, 240, 0.92);
+        max-width: 640px;
+      }
+
+      #usersManagementView .wc-page-heading__actions {
+        margin-top: 1.35rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.85rem;
+      }
+
+      @keyframes usersModuleEnter {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
     </style>
   </head>
-  <body class="bg-gray-50">
+  <body class="bg-gray-50" data-initial-view="{{ initial_view or 'dashboard' }}">
     <!-- Navbar -->
     <nav class="bg-white border-b border-gray-200 fixed z-30 w-full">
       <div class="px-3 py-3 lg:px-5 lg:pl-3">
@@ -182,6 +377,8 @@
               <li>
                 <a
                   href="/dashboard"
+                  data-inline-module="dashboard"
+                  data-nav-route="dashboard"
                   class="text-base text-gray-900 font-normal rounded-lg flex items-center p-2 bg-gray-100 group"
                 >
                   <i
@@ -215,6 +412,8 @@
               <li data-superadmin-only class="hidden">
                 <a
                   href="/users-management"
+                  data-inline-module="users"
+                  data-nav-route="users"
                   class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2 group"
                 >
                   <i
@@ -255,14 +454,13 @@
       id="sidebarBackdrop"
     ></div>
 
-    <!-- Main Content -->
     <div class="flex overflow-hidden bg-white pt-16">
       <div
         id="main-content"
         class="h-full w-full bg-gray-50 relative overflow-y-auto lg:ml-64"
       >
         <main>
-          <div class="pt-6 px-4 space-y-6">
+          <div id="dashboardView" class="pt-6 px-4 space-y-6">
             <div>
               <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
               <p class="mt-2 text-sm text-gray-600">
@@ -588,12 +786,445 @@
               <canvas id="topSitesChart" style="max-height: 320px"></canvas>
             </section>
           </div>
+
+          <div
+            id="usersManagementView"
+            class="pt-6 px-4 space-y-10 hidden"
+          >
+            <div class="max-w-6xl mx-auto space-y-10">
+              <section class="wc-page-heading" data-hover-lift>
+                <span class="wc-page-heading__eyebrow">Control granular</span>
+                <h1 class="wc-page-heading__title">Usuarios y roles</h1>
+                <p class="wc-page-heading__subtitle">
+                  Administra permisos, estados y asignación de sitios desde un
+                  panel diseñado para equipos de operaciones con grandes volúmenes de datos.
+                </p>
+                <div class="wc-page-heading__actions">
+                  <button
+                    type="button"
+                    id="umBackButton"
+                    class="wc-button wc-button--ghost"
+                    data-inline-module="dashboard"
+                  >
+                    <i class="fa-solid fa-arrow-left-long"></i>
+                    Volver al dashboard
+                  </button>
+                </div>
+              </section>
+
+              <section class="wc-stats-grid">
+                <article class="wc-stat-card" data-hover-lift>
+                  <p class="wc-stat-card__label">Usuarios totales</p>
+                  <p class="wc-stat-card__value metric-value" id="umMetricTotal">
+                    0
+                  </p>
+                  <span class="wc-chip">En plataforma</span>
+                </article>
+                <article class="wc-stat-card" data-hover-lift>
+                  <p class="wc-stat-card__label">Activos</p>
+                  <p class="wc-stat-card__value metric-value" id="umMetricActive">
+                    0
+                  </p>
+                  <span class="wc-chip wc-chip--success">Con acceso</span>
+                </article>
+                <article class="wc-stat-card" data-hover-lift>
+                  <p class="wc-stat-card__label">Owners</p>
+                  <p class="wc-stat-card__value metric-value" id="umMetricOwners">
+                    0
+                  </p>
+                  <span class="wc-chip wc-chip--warning">Propietarios</span>
+                </article>
+              </section>
+
+              <section class="wc-card" data-hover-lift>
+                <div class="p-6 space-y-6">
+                  <div class="wc-toolbar">
+                    <div class="flex-1 max-w-lg relative">
+                      <span
+                        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"
+                        ><i class="fa-solid fa-magnifying-glass"></i
+                      ></span>
+                      <input
+                        type="text"
+                        id="umSearch"
+                        class="wc-form-control pl-11"
+                        placeholder="Buscar por nombre, correo o rol"
+                      />
+                    </div>
+                    <div class="wc-toolbar__filters">
+                      <span class="text-xs uppercase tracking-[0.3em] text-slate-500"
+                        >Filtros</span
+                      >
+                      <button
+                        class="wc-filter-chip active"
+                        type="button"
+                        data-filter="all"
+                      >
+                        Todos
+                      </button>
+                      <button
+                        class="wc-filter-chip"
+                        type="button"
+                        data-filter="owners"
+                      >
+                        Owners
+                      </button>
+                      <button
+                        class="wc-filter-chip"
+                        type="button"
+                        data-filter="admins"
+                      >
+                        Admins
+                      </button>
+                      <button
+                        class="wc-filter-chip"
+                        type="button"
+                        data-filter="suspended"
+                      >
+                        Suspendidos
+                      </button>
+                    </div>
+                    <div>
+                      <button
+                        type="button"
+                        id="umNewUserBtn"
+                        class="wc-button wc-button--primary"
+                      >
+                        <i class="fas fa-user-plus"></i>
+                        Nuevo usuario
+                      </button>
+                    </div>
+                  </div>
+                  <div class="overflow-x-auto">
+                    <table class="wc-table">
+                      <thead>
+                        <tr>
+                          <th>Usuario</th>
+                          <th>Rol / Grupo</th>
+                          <th>Estado</th>
+                          <th>Activación</th>
+                          <th>Expiración</th>
+                          <th>Último acceso</th>
+                          <th>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody id="umUsersTableBody">
+                        <tr>
+                          <td colspan="7">
+                            <div class="wc-empty-state">
+                              <h4>Sin usuarios aún</h4>
+                              <p>
+                                Cuando los registres aparecerán aquí con sus métricas.
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div
+                    class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+                  >
+                    <div class="flex items-center gap-2 text-sm text-slate-600">
+                      <span>Ítems por página</span>
+                      <select id="umPageSize" class="wc-form-control w-24">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                      </select>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <span id="umPageInfo" class="text-sm text-slate-600"
+                        >Mostrando 0 de 0 usuarios</span
+                      >
+                      <div class="flex gap-2">
+                        <button id="umPrevPageBtn" class="table-action" disabled>
+                          <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <button id="umNextPageBtn" class="table-action" disabled>
+                          <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div id="umDrawer" class="fixed inset-0 z-40 hidden">
+              <div class="drawer-backdrop absolute inset-0 bg-slate-900/60"></div>
+              <div
+                class="relative flex min-h-full items-start sm:items-center justify-center px-3 sm:px-6 py-6 sm:py-10"
+              >
+                <section class="modal-panel rounded-3xl">
+                  <header
+                    class="flex items-start justify-between border-b border-slate-100 px-6 py-5"
+                  >
+                    <div>
+                      <p class="text-xs uppercase tracking-[0.3em] text-blue-500">
+                        Gestión de usuarios
+                      </p>
+                      <h2 id="umDrawerTitle" class="mt-1 text-2xl font-semibold text-slate-900">
+                        Nuevo Usuario
+                      </h2>
+                      <p class="mt-1 text-sm text-slate-500">
+                        Completa la información para crear o actualizar la cuenta.
+                      </p>
+                    </div>
+                    <button
+                      id="umCloseDrawerBtn"
+                      class="rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                      aria-label="Cerrar"
+                    >
+                      <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                  </header>
+
+                  <div class="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+                    <div
+                      class="rounded-2xl border border-blue-100 bg-blue-50/80 p-4 text-sm text-blue-900 flex gap-3"
+                      data-hover-lift
+                    >
+                      <i class="fa-solid fa-circle-info text-blue-500 text-xl"></i>
+                      <div>
+                        <p class="font-semibold">Consejo rápido</p>
+                        <p class="text-blue-900/80">
+                          Los Owners requieren un sitio asignado y tienen acceso completo a su espacio; los Administradores pueden gestionar múltiples sitios.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div
+                      id="umUserMetaSection"
+                      class="hidden rounded-2xl border border-slate-100 bg-slate-50/70 p-4 text-sm text-slate-600 space-y-4"
+                    >
+                      <div class="grid gap-4 md:grid-cols-3">
+                        <div>
+                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                            ID interno
+                          </p>
+                          <p id="umMetaId" class="mt-1 text-slate-900 font-semibold">—</p>
+                        </div>
+                        <div>
+                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                            Rol asignado
+                          </p>
+                          <p id="umMetaRole" class="mt-1 text-slate-900 font-semibold">
+                            —
+                          </p>
+                        </div>
+                        <div>
+                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                            Sitio
+                          </p>
+                          <p id="umMetaSite" class="mt-1 text-slate-900 font-semibold">
+                            —
+                          </p>
+                        </div>
+                      </div>
+                      <div class="grid gap-4 md:grid-cols-3">
+                        <div>
+                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                            Estado
+                          </p>
+                          <p id="umMetaStatus" class="mt-1 text-slate-900 font-semibold">
+                            —
+                          </p>
+                        </div>
+                        <div>
+                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                            Último acceso
+                          </p>
+                          <p id="umMetaLastLogin" class="mt-1 text-slate-900 font-semibold">
+                            —
+                          </p>
+                        </div>
+                        <div>
+                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                            Expira
+                          </p>
+                          <p id="umMetaExpires" class="mt-1 text-slate-900 font-semibold">
+                            —
+                          </p>
+                        </div>
+                      </div>
+                      <div class="grid gap-4 md:grid-cols-2">
+                        <div>
+                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                            Creado
+                          </p>
+                          <p id="umMetaCreated" class="mt-1 text-slate-900 font-semibold">
+                            —
+                          </p>
+                        </div>
+                        <div>
+                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                            Actualizado
+                          </p>
+                          <p id="umMetaUpdated" class="mt-1 text-slate-900 font-semibold">
+                            —
+                          </p>
+                        </div>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <p class="text-xs uppercase tracking-widest text-slate-400">
+                          Contraseña visible
+                        </p>
+                        <div class="flex flex-wrap items-center gap-2">
+                          <code
+                            id="umMetaPassword"
+                            class="rounded-lg bg-white px-3 py-1 text-base font-semibold text-slate-800"
+                            >—</code
+                          >
+                          <button
+                            type="button"
+                            id="umCopyPasswordBtn"
+                            class="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-white transition disabled:opacity-40"
+                          >
+                            <i class="fa-solid fa-copy"></i>
+                            Copiar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <form id="umForm" class="space-y-6">
+                      <div class="grid gap-4 md:grid-cols-2">
+                        <div>
+                          <label for="umUsername" class="text-sm font-medium text-slate-700"
+                            >Nombre de usuario</label
+                          >
+                          <input
+                            type="text"
+                            id="umUsername"
+                            name="username"
+                            required
+                            class="wc-form-control mt-1"
+                            placeholder="ej. maria.campos"
+                          />
+                        </div>
+                        <div>
+                          <label for="umEmail" class="text-sm font-medium text-slate-700"
+                            >Correo electrónico</label
+                          >
+                          <input
+                            type="email"
+                            id="umEmail"
+                            name="email"
+                            required
+                            class="wc-form-control mt-1"
+                            placeholder="usuario@webcontrol.com"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="grid gap-4 md:grid-cols-2">
+                        <div>
+                          <label for="umPassword" class="text-sm font-medium text-slate-700"
+                            >Contraseña</label
+                          >
+                          <input
+                            type="password"
+                            id="umPassword"
+                            name="password"
+                            required
+                            class="wc-form-control mt-1"
+                            placeholder="Mínimo 8 caracteres"
+                          />
+                          <p class="mt-1 text-xs text-slate-500">
+                            Déjalo vacío para mantener la contraseña actual.
+                          </p>
+                        </div>
+                        <div>
+                          <label for="umRole" class="text-sm font-medium text-slate-700"
+                            >Rol</label
+                          >
+                          <select
+                            id="umRole"
+                            name="role"
+                            required
+                            class="wc-form-control mt-1"
+                          >
+                            <option value="">Seleccionar rol</option>
+                            <option value="owner">Owner</option>
+                            <option value="admin">Administrador</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div id="umSiteField" class="hidden">
+                        <label for="umSiteId" class="text-sm font-medium text-slate-700"
+                          >Sitio asignado</label
+                        >
+                        <select id="umSiteId" name="site_id" class="wc-form-control mt-1">
+                          <option value="">Seleccionar sitio</option>
+                        </select>
+                      </div>
+
+                      <div class="grid gap-4 md:grid-cols-2">
+                        <div>
+                          <label for="umExpiresAt" class="text-sm font-medium text-slate-700"
+                            >Fecha de expiración (opcional)</label
+                          >
+                          <input
+                            type="datetime-local"
+                            id="umExpiresAt"
+                            name="expires_at"
+                            class="wc-form-control mt-1"
+                          />
+                        </div>
+                        <div
+                          class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 mt-6 md:mt-8"
+                        >
+                          <input
+                            type="checkbox"
+                            id="umIsActive"
+                            name="is_active"
+                            checked
+                            class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <div>
+                            <label for="umIsActive" class="text-sm font-medium text-slate-800"
+                              >Usuario activo</label
+                            >
+                            <p class="text-xs text-slate-500">
+                              Desactiva el acceso temporalmente sin eliminar la cuenta.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+
+                  <footer
+                    class="flex flex-col gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end"
+                  >
+                    <button
+                      id="umCancelBtn"
+                      type="button"
+                      class="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-white sm:w-auto"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      id="umSaveBtn"
+                      type="button"
+                      class="w-full rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 sm:w-auto"
+                    >
+                      Guardar
+                    </button>
+                  </footer>
+                </section>
+              </div>
+            </div>
+          </div>
         </main>
       </div>
     </div>
 
+    <script src="/static/js/users-module.js"></script>
     <script>
-      const API_URL = "http://localhost:8000/api";
+      const API_URL = `${window.location.origin}/api`;
       let token = localStorage.getItem("token");
       let chart = null;
 
@@ -633,7 +1264,26 @@
         ownerOnly: document.querySelectorAll("[data-owner-only]"),
       };
 
+      const viewSections = {
+        dashboard: document.getElementById("dashboardView"),
+        users: document.getElementById("usersManagementView"),
+      };
+
+      const navLinks = {
+        dashboard: document.querySelector('[data-nav-route="dashboard"]'),
+        users: document.querySelector('[data-nav-route="users"]'),
+      };
+
+      const inlineNavLinks = document.querySelectorAll("[data-inline-module]");
+
+      const initialView =
+        document.body.dataset.initialView ||
+        (window.location.pathname === "/users-management" ? "users" : "dashboard");
+
       let currentUserRole = localStorage.getItem("role") || null;
+      let userInfoPromise = null;
+      const usersModule = window.UsersModule || { activate: async () => {} };
+      const viewController = createViewController(usersModule);
 
       if (!token) {
         window.location.href = "/";
@@ -642,7 +1292,10 @@
       initializeLayout();
       bindInteractions();
       applyRoleVisibility();
-      loadUserInfo();
+      setupInlineNavigation(viewController);
+
+      userInfoPromise = loadUserInfo();
+      viewController.show(initialView, { replaceHistory: true });
       refreshDashboard();
 
       function initializeLayout() {
@@ -1259,6 +1912,76 @@
           console.error("Error deleting site:", error);
           showNotification("Error al eliminar el sitio", "error");
         }
+      }
+
+      function setupInlineNavigation(controller) {
+        inlineNavLinks.forEach((link) => {
+          link.addEventListener("click", async (event) => {
+            event.preventDefault();
+            const target = link.dataset.inlineModule;
+            if (!target) return;
+            await controller.show(target);
+          });
+        });
+      }
+
+      function createViewController(usersModuleInstance) {
+        const routes = {
+          dashboard: "/dashboard",
+          users: "/users-management",
+        };
+
+        async function show(target, options = {}) {
+          let nextView = routes[target] ? target : "dashboard";
+
+          if (nextView === "users") {
+            await userInfoPromise;
+            if ((currentUserRole || "").toLowerCase() !== "superadmin") {
+              showNotification(
+                "Solo los superadministradores pueden acceder a Gestión de usuarios.",
+                "warning"
+              );
+              nextView = "dashboard";
+            } else {
+              await usersModuleInstance.activate();
+            }
+          }
+
+          Object.entries(viewSections).forEach(([key, element]) => {
+            if (!element) return;
+            element.classList.toggle("hidden", key !== nextView);
+          });
+
+          Object.entries(navLinks).forEach(([key, link]) => {
+            if (!link) return;
+            const isActive = key === nextView;
+            link.classList.toggle("bg-gray-100", isActive);
+            link.classList.toggle("text-gray-900", isActive);
+          });
+
+          if (!options.skipHistory) {
+            const path = routes[nextView];
+            const state = { view: nextView };
+            if (options.replaceHistory) {
+              window.history.replaceState(state, "", path);
+            } else {
+              window.history.pushState(state, "", path);
+            }
+          }
+
+          window.scrollTo({ top: 0, behavior: "auto" });
+        }
+
+        window.addEventListener("popstate", (event) => {
+          const desired =
+            (event.state && event.state.view) ||
+            (window.location.pathname === "/users-management"
+              ? "users"
+              : "dashboard");
+          show(desired, { skipHistory: true, replaceHistory: true });
+        });
+
+        return { show };
       }
 
       function exportSitesToCsv() {

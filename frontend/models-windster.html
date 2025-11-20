@@ -4,13 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Modelos de negocio | WebControl Studio</title>
+    <link rel="stylesheet" href="/static/css/main.css" />
+    <link rel="stylesheet" href="/static/css/ui-kit.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      integrity="sha512-p1CmS7C1LlN0JFDaRao7IhiHBpjz2uVH54camzato3trENcGukdxbYlR5Blt3F4iAfDdc0AGJi/7w3W7C04+4A=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
     />
     <style>
       @keyframes float {
@@ -46,7 +45,7 @@
       }
     </style>
   </head>
-  <body class="bg-gray-50">
+  <body class="bg-gray-50" data-active-route="models">
     <!-- Navbar -->
     <nav class="bg-white border-b border-gray-200 fixed z-30 w-full">
       <div class="px-3 py-3 lg:px-5 lg:pl-3">
@@ -134,61 +133,73 @@
               <li>
                 <a
                   href="/dashboard"
-                  class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2 group"
+                  data-inline-module="dashboard"
+                  data-nav-route="dashboard"
+                  class="flex items-center p-2 rounded-lg text-base text-gray-600 font-medium hover:bg-gray-100 transition group"
                 >
                   <i
-                    class="fa-solid fa-gauge w-6 h-6 text-gray-500 group-hover:text-gray-900"
+                    class="fas fa-th-large w-6 h-6 text-gray-400 group-hover:text-gray-900 transition"
                   ></i>
                   <span class="ml-3">Dashboard</span>
                 </a>
               </li>
-              <li>
+              <li data-owner-hidden>
                 <a
                   href="/create-site"
-                  class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2 group"
+                  data-nav-route="create"
+                  class="flex items-center p-2 rounded-lg text-base text-gray-600 font-medium hover:bg-gray-100 transition group"
                 >
                   <i
-                    class="fa-solid fa-circle-plus w-6 h-6 text-gray-500 group-hover:text-gray-900"
+                    class="fas fa-plus-circle w-6 h-6 text-gray-400 group-hover:text-gray-900 transition"
                   ></i>
                   <span class="ml-3">Crear Sitio</span>
                 </a>
               </li>
-              <li>
+              <li data-owner-hidden>
                 <a
                   href="/models"
-                  class="text-base text-blue-700 font-semibold rounded-lg flex items-center p-2 bg-blue-50 border border-blue-100"
+                  data-nav-route="models"
+                  class="flex items-center p-2 rounded-lg text-base text-gray-600 font-medium hover:bg-gray-100 transition group"
                 >
-                  <i class="fa-solid fa-layer-group w-6 h-6 text-blue-500"></i>
+                  <i
+                    class="fas fa-layer-group w-6 h-6 text-gray-400 group-hover:text-gray-900 transition"
+                  ></i>
                   <span class="ml-3">Modelos</span>
                 </a>
               </li>
-              <li data-requires-admin="true">
+              <li data-superadmin-only class="hidden">
                 <a
                   href="/users-management"
-                  class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2 group"
+                  data-inline-module="users"
+                  data-nav-route="users"
+                  class="flex items-center p-2 rounded-lg text-base text-gray-600 font-medium hover:bg-gray-100 transition group"
                 >
                   <i
-                    class="fa-solid fa-users w-6 h-6 text-gray-500 group-hover:text-gray-900"
+                    class="fas fa-users-gear w-6 h-6 text-gray-400 group-hover:text-gray-900 transition"
                   ></i>
-                  <span class="ml-3">Usuarios y Roles</span>
+                  <span class="ml-3">Gestión de Usuarios</span>
                 </a>
               </li>
             </ul>
-            <div class="space-y-2 pt-2">
+            <div class="space-y-2 pt-2" data-owner-hidden>
               <a
                 href="https://github.com/AnSan29/webControl"
                 target="_blank"
-                class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2"
+                class="flex items-center p-2 rounded-lg text-base text-gray-600 font-medium hover:bg-gray-100 transition group"
               >
-                <i class="fab fa-github w-6 h-6 text-gray-500"></i>
-                <span class="ml-3">Repositorio</span>
+                <i
+                  class="fab fa-github w-6 h-6 text-gray-400 group-hover:text-gray-900 transition"
+                ></i>
+                <span class="ml-3">GitHub</span>
               </a>
               <a
-                href="/dashboard"
-                class="text-base text-gray-900 font-normal rounded-lg hover:bg-gray-100 flex items-center p-2"
+                href="#"
+                class="flex items-center p-2 rounded-lg text-base text-gray-600 font-medium hover:bg-gray-100 transition group"
               >
-                <i class="fas fa-book-open w-6 h-6 text-gray-500"></i>
-                <span class="ml-3">Guías rápidas</span>
+                <i
+                  class="fas fa-book w-6 h-6 text-gray-400 group-hover:text-gray-900 transition"
+                ></i>
+                <span class="ml-3">Documentación</span>
               </a>
             </div>
           </div>
@@ -360,6 +371,12 @@
       const sidebarBackdrop = document.getElementById("sidebarBackdrop");
       const userMenuButton = document.getElementById("userMenuButton");
       const userMenu = document.getElementById("userMenu");
+      const navLinks = document.querySelectorAll("[data-nav-route]");
+      const roleVisibility = {
+        ownerHidden: document.querySelectorAll("[data-owner-hidden]"),
+        ownerOnly: document.querySelectorAll("[data-owner-only]"),
+        superadminOnly: document.querySelectorAll("[data-superadmin-only]"),
+      };
       const modelsGrid = document.getElementById("modelsGrid");
       const emptyState = document.getElementById("emptyState");
       const searchInput = document.getElementById("searchInput");
@@ -368,6 +385,34 @@
       let modelsData = [];
       let currentFilter = "all";
       let sortDesc = true;
+      let currentUserRole = localStorage.getItem("role") || null;
+
+      setActiveNavLink();
+      applyRoleVisibility();
+
+      function setActiveNavLink() {
+        const activeRoute = document.body.dataset.activeRoute;
+        navLinks.forEach((link) => {
+          const isActive = link.dataset.navRoute === activeRoute;
+          link.classList.toggle("bg-gray-100", isActive);
+          link.classList.toggle("text-gray-900", isActive);
+          link.classList.toggle("text-gray-600", !isActive);
+          link.classList.toggle("font-semibold", isActive);
+        });
+      }
+
+      function applyRoleVisibility() {
+        const normalized = (currentUserRole || "").toLowerCase();
+        roleVisibility.ownerHidden.forEach((el) => {
+          el.classList.toggle("hidden", normalized === "owner");
+        });
+        roleVisibility.ownerOnly.forEach((el) => {
+          el.classList.toggle("hidden", normalized !== "owner");
+        });
+        roleVisibility.superadminOnly.forEach((el) => {
+          el.classList.toggle("hidden", normalized !== "superadmin");
+        });
+      }
 
       toggleSidebarMobile.addEventListener("click", () => {
         sidebar.classList.toggle("hidden");
@@ -394,11 +439,23 @@
       async function loadUserProfile() {
         try {
           const response = await fetchAPI("/api/me");
-          if (!response) return;
+          if (!response || !response.ok) return;
           const data = await response.json();
-          document.getElementById("userName").textContent =
-            data.email.split("@")[0];
-          document.getElementById("userEmail").textContent = data.email;
+          const email = data.email || "admin@webcontrol.com";
+          const username =
+            data.username || (email.includes("@") ? email.split("@")[0] : email);
+          document.getElementById("userName").textContent = username;
+          document.getElementById("userEmail").textContent = email;
+          currentUserRole = data.role || data.role_name || currentUserRole;
+          if (currentUserRole) {
+            localStorage.setItem("role", currentUserRole);
+            applyRoleVisibility();
+          }
+          if (data.site_id) {
+            localStorage.setItem("site_id", data.site_id);
+          } else {
+            localStorage.removeItem("site_id");
+          }
         } catch (error) {
           console.error("Error loading profile", error);
         }

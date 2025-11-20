@@ -321,7 +321,8 @@ async def root(request: Request):
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
     """Panel principal - Windster version"""
-    return templates.TemplateResponse("dashboard-windster.html", {"request": request})
+    context = {"request": request, "initial_view": "dashboard"}
+    return templates.TemplateResponse("dashboard-windster.html", context)
 
 
 @app.get("/dashboard-old", response_class=HTMLResponse)
@@ -337,9 +338,9 @@ async def models_page(request: Request):
 
 @app.get("/users-management", response_class=HTMLResponse)
 async def users_management_page(request: Request):
-    """Vista placeholder para la gestión de usuarios y roles."""
-    context = {"request": request}
-    return templates.TemplateResponse("users-management.html", context)
+    """Vista integrada para la gestión de usuarios y roles."""
+    context = {"request": request, "initial_view": "users"}
+    return templates.TemplateResponse("dashboard-windster.html", context)
 
 @app.get("/create-site", response_class=HTMLResponse)
 async def create_site_page(request: Request):

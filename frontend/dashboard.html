@@ -243,7 +243,9 @@
                                   site.id
                                 }" class="btn btn-sm btn-primary">Editar</a>
                                 ${(() => {
-                                  const label = site.is_published ? "Replicar" : "Publicar";
+                                  const label = site.is_published
+                                    ? "Replicar"
+                                    : "Publicar";
                                   return `<button data-publish-button="${site.id}" onclick="publishSite(${site.id})" class="btn btn-sm btn-success">${label}</button>`;
                                 })()}
                                 <button onclick="deleteSite(${
