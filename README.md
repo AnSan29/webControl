@@ -1,247 +1,111 @@
-# 🎨 WebControl Studio
+# WebControl Studio
 
-Sistema profesional de gestión y creación de sitios web estáticos con publicación automática en GitHub Pages. Diseñado para usuarios no técnicos con una interfaz visual intuitiva.
+Plataforma ligera para crear sitios estáticos de negocios locales, gestionarlos desde un dashboard Windster y publicarlos directo en GitHub Pages. Tras la limpieza del repositorio solo permanecen los componentes indispensables para ejecutar la aplicación.
 
-## ✨ Características Destacadas
+## Características clave
 
-### 🎯 **Editor Visual Profesional**
-- **Tarjetas editables** para productos/servicios con preview de imágenes
-- **Galería visual** de imágenes con gestión drag-and-drop style
-- **Selectores de color** con vista previa en tiempo real
-- **Preview de imágenes** para Hero y About sections
-- **Interface intuitiva** sin necesidad de conocimientos técnicos
+- Editor visual con soporte para bloques de contenido, galerías y carga de imágenes.
+- Plantillas base para cinco verticales (artesanías, cocina, adecuaciones, belleza y chivos).
+- Gestión de usuarios con roles (superadmin, admin, owner) y avatars.
+- Estadísticas por sitio, registro de últimas sesiones y vista consolidada en el dashboard.
+- Publicación automática mediante integración con la API de GitHub.
 
-### 🏪 **5 Modelos de Negocio Predefinidos**
-- 🧶 Artesanías y tejidos
-- 🍳 Cocina doméstica y gastronomía
-- 🔧 Adecuaciones e instalaciones
-- 💇 Belleza y estética
-- 🐐 Cría y comercialización de chivos
+## Requisitos previos
 
-### 🎨 **Personalización Total**
-- Colores primarios y secundarios personalizables
-- Productos/servicios con imágenes y precios
-- Galería de imágenes ilimitada
-- Logo y dominio personalizado
-- Redes sociales (Facebook, Instagram, TikTok)
-- Botón flotante de WhatsApp
+- Python 3.11 o superior.
+- pip y virtualenv disponibles en la terminal.
+- Cuenta de GitHub con un token clásico que tenga scopes `repo` y `workflow`.
+- Sistema operativo Linux/macOS/WSL2 (Windows funciona usando PowerShell para los scripts `.bat`).
 
-### 📊 **Analytics & Gestión**
-- Estadísticas de visitas con gráficas
-- Dashboard intuitivo
-- Auto-sincronización con GitHub Pages
-- Historial de cambios
-
-### 🚀 **Publicación Automática**
-- Integración directa con GitHub Pages
-- Configuración automática de repositorio
-- HTTPS por defecto
-- Propagación automática (1-2 minutos)
-
-## 🏗️ Estructura del Proyecto
-
-```
-webcontrol_studio/
-├── backend/
-│   ├── main.py              # FastAPI application
-│   ├── database.py          # SQLite models
-│   ├── auth.py              # JWT Authentication
-│   ├── models.json          # Business models config
-│   └── utils/
-│       ├── github_api.py    # GitHub Pages integration
-│       └── template_engine.py # Dynamic HTML/CSS generation
-├── frontend/
-│   ├── login-windster.html  # Login moderno (por defecto)
-│   ├── dashboard-windster.html # Dashboard profesional con Windster
-│   ├── models-windster.html # Catálogo de plantillas
-│   ├── create-site-windster.html # Asistente guiado de creación
-│   ├── editor.html          # Editor visual ⭐ NUEVO (rediseñado)
-│   ├── login.html           # Versión clásica (legacy)
-│   ├── dashboard.html       # Dashboard original (legacy)
-│   └── static/
-│       ├── css/
-│       │   └── main.css     # Estilos profesionales
-│       └── js/
-│           └── main.js      # Lógica del cliente
-├── templates_base/
-│   ├── artesanias/          # Template artesanías
-│   ├── cocina/              # Template cocina
-│   ├── adecuaciones/        # Template adecuaciones
-│   ├── belleza/             # Template belleza
-│   └── chivos/              # Template chivos
-├── db.sqlite3               # Base de datos SQLite
-├── requirements.txt         # Dependencias Python
-└── Documentation/
-    ├── UI_UX_IMPROVEMENTS.md    # Mejoras de interfaz ⭐ NUEVO
-    ├── PRODUCTOS_Y_GALERIA.md   # Guía de productos
-    └── API_EXAMPLES.md          # Ejemplos de API
-```
-└── .env
-```
-
-## 📦 Instalación
-
-### 1. Clonar el repositorio
+## Instalación rápida
 
 ```bash
-git clone https://github.com/tu-usuario/control-sitios.git
-cd control-sitios
-```
-
-### 2. Crear entorno virtual
-
-```bash
-python -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
-```
-
-### 3. Instalar dependencias 
-
-```bash
+git clone https://github.com/AnSan29/webControl.git
+cd webControl
+python -m venv .venv
+source .venv/bin/activate  # En Windows usa .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Configurar variables de entorno
+### Variables de entorno
 
-Crea un archivo `.env` en la raíz del proyecto:
+Crea un archivo `.env` usando `.env.example` como referencia.
 
-```env
-SECRET_KEY=tu-clave-secreta-aqui
-GITHUB_TOKEN=ghp_tuTokenDeGitHub
-GITHUB_USERNAME=tu-usuario-github
-ADMIN_EMAIL=admin@webcontrol.com
-ADMIN_PASSWORD=admin123
-DATABASE_URL=sqlite:///./backend/db.sqlite3
-```
+| Clave | Descripción |
+| --- | --- |
+| `SECRET_KEY` | Clave para firmar JWT y CSRF tokens. |
+| `HOST` / `PORT` | Host y puerto que usará Uvicorn. |
+| `GITHUB_TOKEN` | Token personal para clonar/push y crear repositorios. |
+| `GITHUB_USERNAME` | Cuenta que alojará los sitios publicados. |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Credenciales del superadmin inicial. |
+| `DATABASE_URL` | Ruta SQLite, por defecto `sqlite:///./backend/db.sqlite3`. |
 
-### 5. Inicializar la base de datos
-
-```bash
-cd backend
-python -c "from database import init_db; init_db()"
-```
-
-## 🚀 Uso
-
-### Ejecutar el servidor
+### Inicializar la base de datos
 
 ```bash
-cd backend
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+source .venv/bin/activate
+python - <<'PY'
+from backend.database import init_db
+init_db()
+PY
 ```
 
-El panel estará disponible en: `http://localhost:8000`
+## Ejecutar el backend
 
-### Credenciales por defecto
-
-- **Email**: admin@webcontrol.com
-- **Password**: admin123
-
-⚠️ **Importante**: Cambia estas credenciales en producción.
-
-## 🖼️ Imágenes alojadas en Google Drive
-
-Puedes seguir usando enlaces de Google Drive para logos, galerías y aliados, pero asegúrate de cumplir estas reglas:
-
-1. **Comparte el archivo como “Cualquier persona con el enlace” (lector)** desde Google Drive para evitar respuestas 403.
-2. Copia el vínculo público (`https://drive.google.com/file/d/<ID>/view?...` o `...open?id=<ID>`). No es necesario editarlo manualmente.
-3. Pega el enlace en el panel. El backend llama al helper `normalize_drive_image` para convertirlo automáticamente a `https://drive.google.com/uc?export=view&id=<ID>` y así usarlo en `<img>`.
-
-> Si Google sigue bloqueando la carga (algunos tenants aplican políticas estrictas de cookies), habilitamos el helper `drive_preview_iframe` que genera un `<iframe src="https://drive.google.com/file/d/<ID>/preview">` como último recurso.
-
-```jinja2
-{# Ejemplo opcional dentro de una plantilla #}
-{{ drive_preview_iframe(logo_url, max_width="180px", height="180px") }}
+```bash
+source .venv/bin/activate
+uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ```
 
-Google recomienda hospedar recursos estáticos (logos, banners) en servicios especializados como Cloudinary, Azure Blob Storage, GitHub Releases o un bucket S3 cuando se necesite máxima disponibilidad.
+El dashboard queda disponible en `http://localhost:8000`. Las credenciales por defecto son `admin@webcontrol.com` / `admin123` (cámbialas inmediatamente en entornos productivos).
 
-## 🎨 Modelos de Negocio y Paletas
+Los scripts `start.sh` y `start.bat` ejecutan los comandos anteriores en Linux/macOS o Windows respectivamente.
 
-| Modelo | Colores | Concepto |
-|--------|---------|----------|
-| **Artesanías** | `#C46B29, #E7B77D, #F1E4C6, #D2A679` | Cálido, cultural, artesanal |
-| **Cocina/Alimentos** | `#D62828, #F77F00, #FCBF49, #EAE2B7` | Casero, apetitoso, hogareño |
-| **Adecuaciones** | `#264653, #2A9D8F, #E9C46A, #F4A261` | Técnico, práctico, confiable |
-| **Belleza/Barbería** | `#2E294E, #541388, #F1E9DA, #FFD400` | Elegante, moderno, sofisticado |
-| **Cría de Chivos** | `#8D5524, #C68642, #E0AC69, #F1C27D` | Natural, rústico, auténtico |
+## Pruebas automatizadas
 
-## 📝 Flujo de Trabajo
+```bash
+source .venv/bin/activate
+pytest tests
+```
 
-1. **Login** → Accede al panel con tus credenciales
-2. **Dashboard** → Visualiza métricas y sitios activos
-3. **Crear Sitio** → Selecciona modelo, ingresa datos básicos
-4. **Editar** → Personaliza contenido desde el editor visual
-5. **Publicar** → El sistema genera y sube automáticamente a GitHub Pages
-6. **Estadísticas** → Monitorea visitas y métricas
+Los tests cubren autenticación, roles y regresiones recientes de avatar/último acceso. SQLite de pruebas vive en `tests/test_db.sqlite3`.
 
-## 🔧 Configuración de GitHub Pages
+## Estructura mínima
 
-### 1. Crear Token de GitHub
+```
+backend/          # FastAPI, ORM y seeders
+frontend/         # HTML Windster + assets estáticos
+templates_base/   # Plantillas Jinja que reciben el contenido dinámico
+scripts/          # Utilidades para automatizar cargas o auditorías
+tests/            # Conjunto de pruebas Pytest
+uploads/          # Archivos cargados por usuarios (servidos desde /images)
+requirements.txt  # Dependencias del backend
+start.sh|.bat     # Scripts de arranque rápido
+verify.sh         # Health-check básico (opcional)
+```
 
-1. Ve a GitHub → Settings → Developer settings → Personal access tokens
-2. Generate new token (classic)
-3. Selecciona permisos: `repo`, `workflow`
-4. Copia el token y agrégalo a `.env`
+El resto del repositorio quedó libre de documentación histórica, plantillas duplicadas y archivos temporales para reducir el peso de `main`.
 
-### 2. Configurar Repositorio
+## Flujo funcional
 
-Cada sitio generado se puede:
-- Subir a un repositorio individual
-- O usar subcarpetas en un repo central
+1. Inicia sesión como superadmin.
+2. Crea un sitio seleccionando uno de los modelos base.
+3. Personaliza contenido, galerías y colores dentro del editor visual.
+4. Sube assets (logos, banners) mediante el uploader integrado; se guardan en `uploads/` y se sirven como `/images/<archivo>`.
+5. Publica desde el dashboard; el servicio clona el repositorio del cliente y hace push al branch `gh-pages`.
+6. Supervisa estadísticas y últimos accesos desde el dashboard Windster.
 
-El sistema configura automáticamente:
-- Branch `gh-pages`
-- Archivo `CNAME` (si se especifica dominio)
-- GitHub Pages habilitado
+## Despliegue y buenas prácticas
 
-## 📊 API Endpoints
+- Nunca compartas el `.env` con credenciales reales en un commit público.
+- Configura un token de GitHub con vigencia limitada y revísalo periódicamente.
+- Para entornos de producción usa un reverse proxy (Nginx/Caddy) que termine TLS y re-direccione hacia Uvicorn/Gunicorn.
+- Programa tareas de backup para `backend/db.sqlite3` y la carpeta `uploads/` si necesitas conservar los assets.
 
-### Autenticación
-- `POST /api/login` - Login de administrador
-- `POST /api/logout` - Cerrar sesión
+## Documentación en inglés
 
-### Sitios
-- `GET /api/sites` - Listar todos los sitios
-- `POST /api/sites` - Crear nuevo sitio
-- `GET /api/sites/{id}` - Obtener sitio específico
-- `PUT /api/sites/{id}` - Actualizar sitio
-- `DELETE /api/sites/{id}` - Eliminar sitio
-- `POST /api/sites/{id}/publish` - Publicar a GitHub Pages
+Se agregó `README_en.md` con la misma información para equipos bilingües.
 
-### Modelos
-- `GET /api/models` - Listar modelos de negocio
+## Licencia
 
-### Estadísticas
-- `GET /api/stats/{site_id}` - Estadísticas de un sitio
-- `POST /api/stats/{site_id}/visit` - Registrar visita
-
-## 🛠️ Tecnologías Utilizadas
-
-- **Backend**: FastAPI, SQLite, PyGithub
-- **Frontend**: HTML5, TailwindCSS, Chart.js, Vanilla JS
-- **Template Engine**: Jinja2
-- **Hosting**: GitHub Pages
-- **Analytics**: Sistema propio simple
-
-## 📄 Licencia
-
-MIT License
-
-## 🤝 Contribuir
-
-Las contribuciones son bienvenidas. Por favor:
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-## 📞 Soporte
-
-Para dudas o problemas, abre un issue en GitHub.
-
----
-
-**Desarrollado con ❤️ para emprendedores y pequeños negocios**
+Proyecto distribuido bajo licencia MIT. Se aceptan issues y pull requests a través de GitHub.
