@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="160" height="160" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="wc-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="28" fill="url(#wc-gradient)"/>
+  <path d="M40 106c10 11 23 18 40 18 18 0 33-8 44-20l-14-12c-7 8-16 13-30 13-13 0-23-5-31-13l-9 14z" fill="#bfdbfe"/>
+  <path d="M33 52c0-12 10-22 22-22 9 0 16 5 19 12 3-7 10-12 18-12 12 0 22 10 22 22 0 23-27 48-40 58-13-10-41-35-41-58z" fill="#fff"/>
+</svg>
