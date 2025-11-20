@@ -107,6 +107,7 @@ class User(Base):
     email = Column(String(255), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
     plain_password = Column(String(255), nullable=True)
+    avatar_url = Column(String(500), nullable=True)
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
     site_id = Column(Integer, ForeignKey("sites.id"), nullable=True, unique=True)
     is_active = Column(Boolean, default=True)
@@ -209,7 +210,7 @@ def seed_superadmin_user(db, bcrypt_module):
 
 
 def ensure_user_audit_columns():
-    """Garantiza que la tabla users tenga las columnas de activación/expiración."""
+    """Garantiza que la tabla users tenga las columnas de activación/expiración y avatar."""
     if engine.dialect.name != "sqlite":
         return
 
@@ -221,6 +222,8 @@ def ensure_user_audit_columns():
             statements.append("ALTER TABLE users ADD COLUMN activated_at DATETIME")
         if "expires_at" not in existing:
             statements.append("ALTER TABLE users ADD COLUMN expires_at DATETIME")
+        if "avatar_url" not in existing:
+            statements.append("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(500)")
         for statement in statements:
             conn.execute(text(statement))
         if statements:

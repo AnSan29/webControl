@@ -367,6 +367,12 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    # Registrar el último acceso para que aparezca en el panel de usuarios
+    user.last_login = datetime.utcnow()
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     claims = build_user_claims(user)
     access_token = create_access_token(data=claims, expires_delta=access_token_expires)

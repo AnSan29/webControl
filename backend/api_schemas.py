@@ -58,6 +58,7 @@ class UserBase(BaseModel):
     site_id: Optional[int] = None
     role_id: Optional[int] = None
     is_active: bool = True
+    avatar_url: Optional[str] = Field(default=None, max_length=500)
 
     @field_validator("email")
     @classmethod
@@ -80,6 +81,7 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     expires_at: Optional[datetime] = None
     password: Optional[str] = Field(default=None, min_length=8, max_length=128)
+    avatar_url: Optional[str] = Field(default=None, max_length=500)
 
     @field_validator("email")
     @classmethod

@@ -284,7 +284,10 @@
       }
     </style>
   </head>
-  <body class="bg-gray-50" data-initial-view="{{ initial_view or 'dashboard' }}">
+  <body
+    class="bg-gray-50"
+    data-initial-view="{{ initial_view or 'dashboard' }}"
+  >
     <!-- Navbar -->
     <nav class="bg-white border-b border-gray-200 fixed z-30 w-full">
       <div class="px-3 py-3 lg:px-5 lg:pl-3">
@@ -327,9 +330,17 @@
             >
               <span class="sr-only">Abrir menú de usuario</span>
               <div
-                class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white"
+                id="userAvatar"
+                class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center overflow-hidden border border-white/40"
               >
-                <i class="fas fa-user"></i>
+                <img
+                  id="userAvatarImage"
+                  alt="Avatar del usuario"
+                  class="hidden w-full h-full object-cover"
+                />
+                <span id="userAvatarInitials" class="text-sm font-semibold"
+                  >WC</span
+                >
               </div>
             </button>
             <div
@@ -787,17 +798,15 @@
             </section>
           </div>
 
-          <div
-            id="usersManagementView"
-            class="pt-6 px-4 space-y-10 hidden"
-          >
+          <div id="usersManagementView" class="pt-6 px-4 space-y-10 hidden">
             <div class="max-w-6xl mx-auto space-y-10">
               <section class="wc-page-heading" data-hover-lift>
                 <span class="wc-page-heading__eyebrow">Control granular</span>
                 <h1 class="wc-page-heading__title">Usuarios y roles</h1>
                 <p class="wc-page-heading__subtitle">
                   Administra permisos, estados y asignación de sitios desde un
-                  panel diseñado para equipos de operaciones con grandes volúmenes de datos.
+                  panel diseñado para equipos de operaciones con grandes
+                  volúmenes de datos.
                 </p>
                 <div class="wc-page-heading__actions">
                   <button
@@ -815,21 +824,30 @@
               <section class="wc-stats-grid">
                 <article class="wc-stat-card" data-hover-lift>
                   <p class="wc-stat-card__label">Usuarios totales</p>
-                  <p class="wc-stat-card__value metric-value" id="umMetricTotal">
+                  <p
+                    class="wc-stat-card__value metric-value"
+                    id="umMetricTotal"
+                  >
                     0
                   </p>
                   <span class="wc-chip">En plataforma</span>
                 </article>
                 <article class="wc-stat-card" data-hover-lift>
                   <p class="wc-stat-card__label">Activos</p>
-                  <p class="wc-stat-card__value metric-value" id="umMetricActive">
+                  <p
+                    class="wc-stat-card__value metric-value"
+                    id="umMetricActive"
+                  >
                     0
                   </p>
                   <span class="wc-chip wc-chip--success">Con acceso</span>
                 </article>
                 <article class="wc-stat-card" data-hover-lift>
                   <p class="wc-stat-card__label">Owners</p>
-                  <p class="wc-stat-card__value metric-value" id="umMetricOwners">
+                  <p
+                    class="wc-stat-card__value metric-value"
+                    id="umMetricOwners"
+                  >
                     0
                   </p>
                   <span class="wc-chip wc-chip--warning">Propietarios</span>
@@ -852,7 +870,8 @@
                       />
                     </div>
                     <div class="wc-toolbar__filters">
-                      <span class="text-xs uppercase tracking-[0.3em] text-slate-500"
+                      <span
+                        class="text-xs uppercase tracking-[0.3em] text-slate-500"
                         >Filtros</span
                       >
                       <button
@@ -914,7 +933,8 @@
                             <div class="wc-empty-state">
                               <h4>Sin usuarios aún</h4>
                               <p>
-                                Cuando los registres aparecerán aquí con sus métricas.
+                                Cuando los registres aparecerán aquí con sus
+                                métricas.
                               </p>
                             </div>
                           </td>
@@ -938,10 +958,18 @@
                         >Mostrando 0 de 0 usuarios</span
                       >
                       <div class="flex gap-2">
-                        <button id="umPrevPageBtn" class="table-action" disabled>
+                        <button
+                          id="umPrevPageBtn"
+                          class="table-action"
+                          disabled
+                        >
                           <i class="fa-solid fa-chevron-left"></i>
                         </button>
-                        <button id="umNextPageBtn" class="table-action" disabled>
+                        <button
+                          id="umNextPageBtn"
+                          class="table-action"
+                          disabled
+                        >
                           <i class="fa-solid fa-chevron-right"></i>
                         </button>
                       </div>
@@ -952,7 +980,9 @@
             </div>
 
             <div id="umDrawer" class="fixed inset-0 z-40 hidden">
-              <div class="drawer-backdrop absolute inset-0 bg-slate-900/60"></div>
+              <div
+                class="drawer-backdrop absolute inset-0 bg-slate-900/60"
+              ></div>
               <div
                 class="relative flex min-h-full items-start sm:items-center justify-center px-3 sm:px-6 py-6 sm:py-10"
               >
@@ -961,14 +991,20 @@
                     class="flex items-start justify-between border-b border-slate-100 px-6 py-5"
                   >
                     <div>
-                      <p class="text-xs uppercase tracking-[0.3em] text-blue-500">
+                      <p
+                        class="text-xs uppercase tracking-[0.3em] text-blue-500"
+                      >
                         Gestión de usuarios
                       </p>
-                      <h2 id="umDrawerTitle" class="mt-1 text-2xl font-semibold text-slate-900">
+                      <h2
+                        id="umDrawerTitle"
+                        class="mt-1 text-2xl font-semibold text-slate-900"
+                      >
                         Nuevo Usuario
                       </h2>
                       <p class="mt-1 text-sm text-slate-500">
-                        Completa la información para crear o actualizar la cuenta.
+                        Completa la información para crear o actualizar la
+                        cuenta.
                       </p>
                     </div>
                     <button
@@ -985,11 +1021,15 @@
                       class="rounded-2xl border border-blue-100 bg-blue-50/80 p-4 text-sm text-blue-900 flex gap-3"
                       data-hover-lift
                     >
-                      <i class="fa-solid fa-circle-info text-blue-500 text-xl"></i>
+                      <i
+                        class="fa-solid fa-circle-info text-blue-500 text-xl"
+                      ></i>
                       <div>
                         <p class="font-semibold">Consejo rápido</p>
                         <p class="text-blue-900/80">
-                          Los Owners requieren un sitio asignado y tienen acceso completo a su espacio; los Administradores pueden gestionar múltiples sitios.
+                          Los Owners requieren un sitio asignado y tienen acceso
+                          completo a su espacio; los Administradores pueden
+                          gestionar múltiples sitios.
                         </p>
                       </div>
                     </div>
@@ -1000,74 +1040,118 @@
                     >
                       <div class="grid gap-4 md:grid-cols-3">
                         <div>
-                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                          <p
+                            class="text-xs uppercase tracking-widest text-slate-400"
+                          >
                             ID interno
                           </p>
-                          <p id="umMetaId" class="mt-1 text-slate-900 font-semibold">—</p>
-                        </div>
-                        <div>
-                          <p class="text-xs uppercase tracking-widest text-slate-400">
-                            Rol asignado
-                          </p>
-                          <p id="umMetaRole" class="mt-1 text-slate-900 font-semibold">
+                          <p
+                            id="umMetaId"
+                            class="mt-1 text-slate-900 font-semibold"
+                          >
                             —
                           </p>
                         </div>
                         <div>
-                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                          <p
+                            class="text-xs uppercase tracking-widest text-slate-400"
+                          >
+                            Rol asignado
+                          </p>
+                          <p
+                            id="umMetaRole"
+                            class="mt-1 text-slate-900 font-semibold"
+                          >
+                            —
+                          </p>
+                        </div>
+                        <div>
+                          <p
+                            class="text-xs uppercase tracking-widest text-slate-400"
+                          >
                             Sitio
                           </p>
-                          <p id="umMetaSite" class="mt-1 text-slate-900 font-semibold">
+                          <p
+                            id="umMetaSite"
+                            class="mt-1 text-slate-900 font-semibold"
+                          >
                             —
                           </p>
                         </div>
                       </div>
                       <div class="grid gap-4 md:grid-cols-3">
                         <div>
-                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                          <p
+                            class="text-xs uppercase tracking-widest text-slate-400"
+                          >
                             Estado
                           </p>
-                          <p id="umMetaStatus" class="mt-1 text-slate-900 font-semibold">
+                          <p
+                            id="umMetaStatus"
+                            class="mt-1 text-slate-900 font-semibold"
+                          >
                             —
                           </p>
                         </div>
                         <div>
-                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                          <p
+                            class="text-xs uppercase tracking-widest text-slate-400"
+                          >
                             Último acceso
                           </p>
-                          <p id="umMetaLastLogin" class="mt-1 text-slate-900 font-semibold">
+                          <p
+                            id="umMetaLastLogin"
+                            class="mt-1 text-slate-900 font-semibold"
+                          >
                             —
                           </p>
                         </div>
                         <div>
-                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                          <p
+                            class="text-xs uppercase tracking-widest text-slate-400"
+                          >
                             Expira
                           </p>
-                          <p id="umMetaExpires" class="mt-1 text-slate-900 font-semibold">
+                          <p
+                            id="umMetaExpires"
+                            class="mt-1 text-slate-900 font-semibold"
+                          >
                             —
                           </p>
                         </div>
                       </div>
                       <div class="grid gap-4 md:grid-cols-2">
                         <div>
-                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                          <p
+                            class="text-xs uppercase tracking-widest text-slate-400"
+                          >
                             Creado
                           </p>
-                          <p id="umMetaCreated" class="mt-1 text-slate-900 font-semibold">
+                          <p
+                            id="umMetaCreated"
+                            class="mt-1 text-slate-900 font-semibold"
+                          >
                             —
                           </p>
                         </div>
                         <div>
-                          <p class="text-xs uppercase tracking-widest text-slate-400">
+                          <p
+                            class="text-xs uppercase tracking-widest text-slate-400"
+                          >
                             Actualizado
                           </p>
-                          <p id="umMetaUpdated" class="mt-1 text-slate-900 font-semibold">
+                          <p
+                            id="umMetaUpdated"
+                            class="mt-1 text-slate-900 font-semibold"
+                          >
                             —
                           </p>
                         </div>
                       </div>
                       <div class="flex flex-col gap-2">
-                        <p class="text-xs uppercase tracking-widest text-slate-400">
+                        <p
+                          class="text-xs uppercase tracking-widest text-slate-400"
+                        >
                           Contraseña visible
                         </p>
                         <div class="flex flex-wrap items-center gap-2">
@@ -1089,9 +1173,75 @@
                     </div>
 
                     <form id="umForm" class="space-y-6">
+                      <div
+                        class="rounded-2xl border border-slate-200 bg-white/70 p-4"
+                        data-hover-lift
+                      >
+                        <div class="flex items-center gap-4">
+                          <div
+                            id="umAvatarPreview"
+                            class="relative w-20 h-20 rounded-full bg-slate-200 text-slate-600 font-semibold text-lg flex items-center justify-center overflow-hidden ring-2 ring-white shadow-sm"
+                          >
+                            <img
+                              id="umAvatarImage"
+                              alt="Avatar de usuario"
+                              class="hidden absolute inset-0 w-full h-full object-cover"
+                            />
+                            <span id="umAvatarInitials">NC</span>
+                          </div>
+                          <div class="flex-1 space-y-2">
+                            <div>
+                              <p class="text-sm font-semibold text-slate-800">
+                                Foto de perfil
+                              </p>
+                              <p
+                                class="text-xs text-slate-500"
+                                id="umAvatarStatus"
+                                data-default-message="Se mostrará en la tabla y en el panel administrativo."
+                              >
+                                Se mostrará en la tabla y en el panel
+                                administrativo.
+                              </p>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                id="umAvatarUploadBtn"
+                                data-default-label="<i class='fa-solid fa-cloud-arrow-up'></i> Subir imagen"
+                                class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                              >
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                Subir imagen
+                              </button>
+                              <button
+                                type="button"
+                                id="umAvatarResetBtn"
+                                class="inline-flex items-center gap-2 rounded-lg border border-transparent px-3 py-1.5 text-sm font-medium text-slate-500 hover:text-slate-700"
+                              >
+                                <i class="fa-solid fa-rotate-left"></i>
+                                Quitar
+                              </button>
+                            </div>
+                            <input
+                              type="file"
+                              id="umAvatarInput"
+                              accept="image/*"
+                              class="hidden"
+                            />
+                            <input
+                              type="hidden"
+                              id="umAvatarUrl"
+                              name="avatar_url"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
                       <div class="grid gap-4 md:grid-cols-2">
                         <div>
-                          <label for="umUsername" class="text-sm font-medium text-slate-700"
+                          <label
+                            for="umUsername"
+                            class="text-sm font-medium text-slate-700"
                             >Nombre de usuario</label
                           >
                           <input
@@ -1104,7 +1254,9 @@
                           />
                         </div>
                         <div>
-                          <label for="umEmail" class="text-sm font-medium text-slate-700"
+                          <label
+                            for="umEmail"
+                            class="text-sm font-medium text-slate-700"
                             >Correo electrónico</label
                           >
                           <input
@@ -1120,7 +1272,9 @@
 
                       <div class="grid gap-4 md:grid-cols-2">
                         <div>
-                          <label for="umPassword" class="text-sm font-medium text-slate-700"
+                          <label
+                            for="umPassword"
+                            class="text-sm font-medium text-slate-700"
                             >Contraseña</label
                           >
                           <input
@@ -1136,7 +1290,9 @@
                           </p>
                         </div>
                         <div>
-                          <label for="umRole" class="text-sm font-medium text-slate-700"
+                          <label
+                            for="umRole"
+                            class="text-sm font-medium text-slate-700"
                             >Rol</label
                           >
                           <select
@@ -1153,17 +1309,25 @@
                       </div>
 
                       <div id="umSiteField" class="hidden">
-                        <label for="umSiteId" class="text-sm font-medium text-slate-700"
+                        <label
+                          for="umSiteId"
+                          class="text-sm font-medium text-slate-700"
                           >Sitio asignado</label
                         >
-                        <select id="umSiteId" name="site_id" class="wc-form-control mt-1">
+                        <select
+                          id="umSiteId"
+                          name="site_id"
+                          class="wc-form-control mt-1"
+                        >
                           <option value="">Seleccionar sitio</option>
                         </select>
                       </div>
 
                       <div class="grid gap-4 md:grid-cols-2">
                         <div>
-                          <label for="umExpiresAt" class="text-sm font-medium text-slate-700"
+                          <label
+                            for="umExpiresAt"
+                            class="text-sm font-medium text-slate-700"
                             >Fecha de expiración (opcional)</label
                           >
                           <input
@@ -1184,11 +1348,14 @@
                             class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                           />
                           <div>
-                            <label for="umIsActive" class="text-sm font-medium text-slate-800"
+                            <label
+                              for="umIsActive"
+                              class="text-sm font-medium text-slate-800"
                               >Usuario activo</label
                             >
                             <p class="text-xs text-slate-500">
-                              Desactiva el acceso temporalmente sin eliminar la cuenta.
+                              Desactiva el acceso temporalmente sin eliminar la
+                              cuenta.
                             </p>
                           </div>
                         </div>
@@ -1244,6 +1411,9 @@
         sidebarBackdrop: document.getElementById("sidebarBackdrop"),
         userMenuButton: document.getElementById("userMenuButton"),
         userMenu: document.getElementById("userMenu"),
+        userAvatar: document.getElementById("userAvatar"),
+        userAvatarImage: document.getElementById("userAvatarImage"),
+        userAvatarInitials: document.getElementById("userAvatarInitials"),
         sitesCard: document.getElementById("sitesCard"),
         emptyState: document.getElementById("emptyState"),
         searchInput: document.getElementById("searchInput"),
@@ -1278,7 +1448,9 @@
 
       const initialView =
         document.body.dataset.initialView ||
-        (window.location.pathname === "/users-management" ? "users" : "dashboard");
+        (window.location.pathname === "/users-management"
+          ? "users"
+          : "dashboard");
 
       let currentUserRole = localStorage.getItem("role") || null;
       let userInfoPromise = null;
@@ -1380,18 +1552,27 @@
             ? `Gestionando: ${site.name}`
             : `ID asignado: ${site.id}`;
           dom.ownerSiteShortcut.href = `/editor/${site.id}`;
-          dom.ownerSiteShortcut.classList.remove("pointer-events-none", "opacity-60");
+          dom.ownerSiteShortcut.classList.remove(
+            "pointer-events-none",
+            "opacity-60"
+          );
           return;
         }
 
         if (fallbackSiteId > 0) {
           dom.ownerSiteSummary.textContent = `ID asignado: ${fallbackSiteId}. Cargando detalles del sitio...`;
           dom.ownerSiteShortcut.href = `/editor/${fallbackSiteId}`;
-          dom.ownerSiteShortcut.classList.remove("pointer-events-none", "opacity-60");
+          dom.ownerSiteShortcut.classList.remove(
+            "pointer-events-none",
+            "opacity-60"
+          );
         } else {
           dom.ownerSiteSummary.textContent = "Sin sitio asignado todavía.";
           dom.ownerSiteShortcut.href = "#";
-          dom.ownerSiteShortcut.classList.add("pointer-events-none", "opacity-60");
+          dom.ownerSiteShortcut.classList.add(
+            "pointer-events-none",
+            "opacity-60"
+          );
         }
       }
 
@@ -1441,6 +1622,39 @@
         return `/${trimmed}`;
       }
 
+      function getInitials(name = "") {
+        const raw = name.trim();
+        if (!raw) return "WC";
+        return raw
+          .split(/\s+/)
+          .map((part) => part.charAt(0))
+          .join("")
+          .slice(0, 2)
+          .toUpperCase();
+      }
+
+      function updateCurrentUserAvatar(avatarUrl, username) {
+        const container = dom.userAvatar;
+        const img = dom.userAvatarImage;
+        const initials = dom.userAvatarInitials;
+        if (!container || !img || !initials) return;
+        const resolved = resolveAssetUrl(avatarUrl || "");
+        if (resolved) {
+          img.src = resolved;
+          img.classList.remove("hidden");
+          initials.classList.add("hidden");
+          container.classList.remove("bg-blue-600", "text-white");
+          container.classList.add("bg-transparent");
+        } else {
+          img.classList.add("hidden");
+          img.removeAttribute("src");
+          initials.textContent = getInitials(username);
+          initials.classList.remove("hidden");
+          container.classList.add("bg-blue-600", "text-white");
+          container.classList.remove("bg-transparent");
+        }
+      }
+
       function formatDate(dateString) {
         if (!dateString) return "-";
         const date = new Date(dateString);
@@ -1480,6 +1694,7 @@
           const username =
             data.username || (data.email ? data.email.split("@")[0] : "Admin");
           document.getElementById("userName").textContent = username;
+          updateCurrentUserAvatar(data.avatar_url || "", username);
           currentUserRole = data.role || null;
           if (currentUserRole) {
             localStorage.setItem("role", currentUserRole);
@@ -1645,13 +1860,15 @@
                             <i class="fas fa-edit"></i> Editar
                         </a>
                         ${liveButton}
-                        ${
-                          (() => {
-                            const label = site.is_published ? "Replicar cambios" : "Publicar";
-                            return `<button data-publish-button="${site.id}" onclick="publishSite(${site.id})" class="text-green-600 hover:text-green-900 flex items-center gap-1">` +
-                              `<i class="fas fa-upload"></i> ${label}</button>`;
-                          })()
-                        }
+                        ${(() => {
+                          const label = site.is_published
+                            ? "Replicar cambios"
+                            : "Publicar";
+                          return (
+                            `<button data-publish-button="${site.id}" onclick="publishSite(${site.id})" class="text-green-600 hover:text-green-900 flex items-center gap-1">` +
+                            `<i class="fas fa-upload"></i> ${label}</button>`
+                          );
+                        })()}
                         <button onclick="deleteSite(${
                           site.id
                         })" class="text-red-600 hover:text-red-900">
@@ -1744,9 +1961,9 @@
                     ? `<a href="${liveUrl}" target="_blank" class="px-3 py-2 rounded-lg border border-blue-200 text-blue-600">Ir al sitio</a>`
                     : `<span class="px-3 py-2 rounded-lg border border-blue-100 text-blue-200 cursor-not-allowed">Ir al sitio</span>`
                 }
-                <button data-publish-button="${
-                  site.id
-                }" onclick="publishSite(${site.id})" class="px-3 py-2 rounded-lg border border-green-200 text-green-600 flex items-center gap-2"><i class="fas fa-upload"></i>${publishLabel}</button>
+                <button data-publish-button="${site.id}" onclick="publishSite(${
+          site.id
+        })" class="px-3 py-2 rounded-lg border border-green-200 text-green-600 flex items-center gap-2"><i class="fas fa-upload"></i>${publishLabel}</button>
                 <button onclick="deleteSite(${
                   site.id
                 })" class="px-3 py-2 rounded-lg border border-red-200 text-red-600">Eliminar</button>

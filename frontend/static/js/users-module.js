@@ -10,7 +10,25 @@
     searchTerm: "",
     editingUserId: null,
     sites: [],
+    avatarUploading: false,
   };
+
+  const AVATAR_ACCEPTED_TYPES = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+    "image/svg+xml",
+  ];
+  const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
+  const AVATAR_STATUS_CLASSES = [
+    "text-slate-500",
+    "text-slate-600",
+    "text-emerald-600",
+    "text-amber-600",
+    "text-rose-600",
+  ];
 
   let dom = {};
 
@@ -54,6 +72,16 @@
         password: container.querySelector("#umMetaPassword"),
       },
       copyPasswordBtn: container.querySelector("#umCopyPasswordBtn"),
+      avatar: {
+        preview: container.querySelector("#umAvatarPreview"),
+        image: container.querySelector("#umAvatarImage"),
+        initials: container.querySelector("#umAvatarInitials"),
+        status: container.querySelector("#umAvatarStatus"),
+        uploadBtn: container.querySelector("#umAvatarUploadBtn"),
+        resetBtn: container.querySelector("#umAvatarResetBtn"),
+        input: container.querySelector("#umAvatarInput"),
+        urlInput: container.querySelector("#umAvatarUrl"),
+      },
       metrics: {
         total: container.querySelector("#umMetricTotal"),
         active: container.querySelector("#umMetricActive"),
@@ -108,13 +136,37 @@
     );
   }
 
+  function escapeHtml(value = "") {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function resolveAvatarUrl(value = "") {
+    const trimmed = (value || "").trim();
+    if (!trimmed) return "";
+    if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith("data:")) {
+      return trimmed;
+    }
+    if (trimmed.startsWith("/")) {
+      return trimmed;
+    }
+    return `/images/${trimmed}`;
+  }
+
   function getRoleBadge(role) {
     const badges = {
       superadmin: '<span class="wc-chip wc-chip--danger">Superadmin</span>',
       admin: '<span class="wc-chip wc-chip--warning">Administrador</span>',
       owner: '<span class="wc-chip wc-chip--success">Owner</span>',
     };
-    return badges[role] || `<span class="wc-chip wc-chip--muted">${role || "—"}</span>`;
+    return (
+      badges[role] ||
+      `<span class="wc-chip wc-chip--muted">${role || "—"}</span>`
+    );
   }
 
   function getStatusBadge(user) {
@@ -136,8 +188,26 @@
     return '<span class="wc-chip wc-chip--muted"><i class="fa-regular fa-circle mr-1"></i>Sin sitio asignado</span>';
   }
 
+  function getAvatarMarkup(user) {
+    const initials = getInitials(user.username);
+    if (user.avatar_url) {
+      const url = escapeHtml(resolveAvatarUrl(user.avatar_url));
+      const alt = escapeHtml(user.username || "Usuario WebControl");
+      return `
+        <div class="w-12 h-12 rounded-full ring-2 ring-slate-100 overflow-hidden bg-slate-100 flex items-center justify-center">
+          <img src="${url}" alt="${alt}" class="w-full h-full object-cover" />
+        </div>
+      `;
+    }
+    return `
+      <div class="w-12 h-12 rounded-full ring-2 ring-slate-100 bg-slate-100 flex items-center justify-center font-semibold text-slate-600">
+        ${initials}
+      </div>
+    `;
+  }
+
   function renderRow(user) {
-    const avatar = getInitials(user.username);
+    const avatarMarkup = getAvatarMarkup(user);
     const activationDate = formatDate(user.activated_at);
     const expirationDate = formatDate(user.expires_at);
     const lastLogin = formatDateTime(user.last_login);
@@ -151,11 +221,11 @@
       <tr>
         <td class="align-top">
           <div class="flex items-center gap-3">
-            <div class="wc-avatar-ring">
-              <span>${avatar}</span>
-            </div>
+            ${avatarMarkup}
             <div>
-              <div class="text-sm font-semibold text-slate-900">${user.username}</div>
+              <div class="text-sm font-semibold text-slate-900">${
+                user.username
+              }</div>
               <div class="text-xs text-slate-500">${user.email}</div>
               <div class="mt-2 flex flex-wrap gap-2 text-xs">${siteChip}${idChip}</div>
             </div>
@@ -163,7 +233,11 @@
         </td>
         <td class="align-top text-sm">
           ${roleBadge}
-          ${roleDescriptor ? `<p class="text-xs text-slate-500 mt-1">${roleDescriptor}</p>` : ""}
+          ${
+            roleDescriptor
+              ? `<p class="text-xs text-slate-500 mt-1">${roleDescriptor}</p>`
+              : ""
+          }
         </td>
         <td class="align-top text-sm">${statusBadge}</td>
         <td class="align-top text-sm text-slate-900">${activationDate}</td>
@@ -171,10 +245,14 @@
         <td class="align-top text-sm text-slate-900">${lastLogin}</td>
         <td class="align-top">
           <div class="flex gap-2">
-            <button class="table-action" type="button" data-action="edit" data-user-id="${user.id}">
+            <button class="table-action" type="button" data-action="edit" data-user-id="${
+              user.id
+            }">
               <i class="fa-solid fa-pen-to-square"></i>
             </button>
-            <button class="table-action table-action--danger" type="button" data-action="delete" data-user-id="${user.id}">
+            <button class="table-action table-action--danger" type="button" data-action="delete" data-user-id="${
+              user.id
+            }">
               <i class="fa-solid fa-trash"></i>
             </button>
           </div>
@@ -308,11 +386,161 @@
     });
   }
 
+  function setAvatarStatus(message, variant = "muted") {
+    const statusEl = dom.avatar?.status;
+    if (!statusEl) return;
+    const tones = {
+      muted: "text-slate-500",
+      info: "text-slate-600",
+      success: "text-emerald-600",
+      warning: "text-amber-600",
+      error: "text-rose-600",
+    };
+    AVATAR_STATUS_CLASSES.forEach((cls) => statusEl.classList.remove(cls));
+    statusEl.textContent = message || statusEl.dataset.defaultMessage || "";
+    statusEl.classList.add(tones[variant] || tones.muted);
+  }
+
+  function updateAvatarPreview(avatarUrl, username) {
+    if (!dom.avatar) return;
+    const imageEl = dom.avatar.image;
+    const initialsEl = dom.avatar.initials;
+    const resolved = resolveAvatarUrl(avatarUrl);
+    const hasImage = Boolean(resolved);
+    if (hasImage && imageEl) {
+      imageEl.classList.remove("hidden");
+      imageEl.src = resolved;
+      initialsEl?.classList.add("hidden");
+    } else {
+      if (imageEl) {
+        imageEl.classList.add("hidden");
+        imageEl.removeAttribute("src");
+      }
+      if (initialsEl) {
+        initialsEl.classList.remove("hidden");
+        initialsEl.textContent = getInitials(username);
+      }
+    }
+  }
+
+  function setAvatarUploading(isUploading) {
+    state.avatarUploading = Boolean(isUploading);
+    if (!dom.avatar) return;
+    const { uploadBtn, resetBtn } = dom.avatar;
+    const defaultLabel =
+      uploadBtn?.dataset.defaultLabel ||
+      "<i class='fa-solid fa-cloud-arrow-up'></i> Subir imagen";
+    if (uploadBtn) {
+      uploadBtn.disabled = state.avatarUploading;
+      uploadBtn.classList.toggle("opacity-60", state.avatarUploading);
+      uploadBtn.innerHTML = state.avatarUploading
+        ? "<i class='fa-solid fa-circle-notch fa-spin'></i> Subiendo..."
+        : defaultLabel;
+    }
+    if (resetBtn) {
+      resetBtn.disabled = state.avatarUploading;
+      resetBtn.classList.toggle("opacity-60", state.avatarUploading);
+    }
+  }
+
+  function resetAvatarPreview() {
+    if (!dom.avatar) return;
+    if (dom.avatar.input) dom.avatar.input.value = "";
+    if (dom.avatar.urlInput) dom.avatar.urlInput.value = "";
+    setAvatarUploading(false);
+    updateAvatarPreview("", dom.username?.value || "");
+    setAvatarStatus(dom.avatar.status?.dataset.defaultMessage || "");
+  }
+
+  function validateAvatarFile(file) {
+    if (!file) {
+      showNotification("Selecciona un archivo válido", "warning");
+      return false;
+    }
+    if (!file.type || !file.type.startsWith("image/")) {
+      showNotification("El archivo seleccionado no es una imagen", "error");
+      setAvatarStatus("El archivo seleccionado no es una imagen", "error");
+      return false;
+    }
+    if (!AVATAR_ACCEPTED_TYPES.includes(file.type)) {
+      showNotification(
+        "Formato no soportado. Usa JPG, PNG, GIF, WebP o SVG",
+        "error"
+      );
+      setAvatarStatus("Formato de imagen no soportado", "error");
+      return false;
+    }
+    if (file.size > AVATAR_MAX_BYTES) {
+      showNotification("La imagen supera los 5MB permitidos", "error");
+      setAvatarStatus("La imagen supera los 5MB permitidos", "error");
+      return false;
+    }
+    return true;
+  }
+
+  async function uploadAvatarFile(file) {
+    if (state.avatarUploading) {
+      showNotification("Ya hay una carga en progreso", "info");
+      if (dom.avatar?.input) dom.avatar.input.value = "";
+      return null;
+    }
+    if (!validateAvatarFile(file)) {
+      if (dom.avatar?.input) dom.avatar.input.value = "";
+      return null;
+    }
+    const formData = new FormData();
+    formData.append("file", file);
+    setAvatarUploading(true);
+    setAvatarStatus("Subiendo imagen...", "info");
+    try {
+      const response = await fetchAPI("/api/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+      if (!response) {
+        throw new Error("Sin respuesta del servidor");
+      }
+      const data = await response.json();
+      if (!response.ok || !data?.url) {
+        throw new Error(data?.detail || "No se pudo subir la imagen");
+      }
+      const url = data.url;
+      if (dom.avatar?.urlInput) {
+        dom.avatar.urlInput.value = url;
+      }
+      updateAvatarPreview(url, dom.username?.value || "");
+      setAvatarStatus("Imagen actualizada correctamente", "success");
+      showNotification("Foto de perfil actualizada", "success");
+      return url;
+    } catch (error) {
+      console.error("uploadAvatarFile", error);
+      setAvatarStatus("No se pudo subir la imagen", "error");
+      showNotification("No se pudo subir la imagen", "error");
+      return null;
+    } finally {
+      setAvatarUploading(false);
+      if (dom.avatar?.input) dom.avatar.input.value = "";
+    }
+  }
+
+  function handleAvatarFileChange(event) {
+    const file = event.target?.files?.[0];
+    if (!file) return;
+    uploadAvatarFile(file);
+  }
+
+  function handleAvatarReset() {
+    if (!dom.avatar) return;
+    resetAvatarPreview();
+    showNotification("Se quitó la foto de perfil", "info");
+  }
+
   function showDrawer(title, user = null) {
     if (!dom.drawer || !dom.form) return;
     dom.drawerTitle.textContent = title;
     dom.drawer.classList.remove("hidden");
     dom.form.reset();
+    resetAvatarPreview();
     state.editingUserId = user ? user.id : null;
     dom.password.required = !user;
     dom.password.value = "";
@@ -330,6 +558,19 @@
       dom.isActive.checked = Boolean(user.is_active);
       toggleSiteField(dom.role.value);
     }
+    if (dom.avatar?.urlInput) {
+      const avatarValue = user?.avatar_url || "";
+      dom.avatar.urlInput.value = avatarValue;
+      updateAvatarPreview(
+        avatarValue,
+        user?.username || dom.username?.value || ""
+      );
+      setAvatarStatus(
+        avatarValue
+          ? "Usando la foto almacenada para este usuario."
+          : dom.avatar.status?.dataset.defaultMessage || ""
+      );
+    }
     updateUserMeta(user);
   }
 
@@ -339,6 +580,7 @@
     dom.form.reset();
     dom.password.required = true;
     state.editingUserId = null;
+    resetAvatarPreview();
     updateUserMeta(null);
   }
 
@@ -388,6 +630,7 @@
     const isEditing = Boolean(state.editingUserId);
     const rawPassword = (formData.get("password") || "").trim();
     const siteIdValue = formData.get("site_id");
+    const avatarValue = (formData.get("avatar_url") || "").toString().trim();
     const payload = {
       username: (formData.get("username") || "").trim(),
       email: (formData.get("email") || "").trim(),
@@ -395,6 +638,7 @@
       site_id: siteIdValue ? Number(siteIdValue) : null,
       expires_at: inputDateToISOString(formData.get("expires_at")),
       is_active: Boolean(dom.isActive?.checked),
+      avatar_url: avatarValue || null,
     };
 
     if (!payload.username || !payload.email || !payload.role) {
@@ -507,17 +751,22 @@
     });
 
     dom.nextPage?.addEventListener("click", () => {
-      const totalPages = Math.ceil(state.filteredUsers.length / state.pageSize) || 1;
+      const totalPages =
+        Math.ceil(state.filteredUsers.length / state.pageSize) || 1;
       if (state.currentPage >= totalPages) return;
       state.currentPage += 1;
       updateTable();
     });
 
-    dom.newUserBtn?.addEventListener("click", () => showDrawer("Nuevo Usuario"));
+    dom.newUserBtn?.addEventListener("click", () =>
+      showDrawer("Nuevo Usuario")
+    );
     dom.saveBtn?.addEventListener("click", handleUserSubmit);
     dom.cancelBtn?.addEventListener("click", hideDrawer);
     dom.closeDrawer?.addEventListener("click", hideDrawer);
-    dom.role?.addEventListener("change", (event) => toggleSiteField(event.target.value));
+    dom.role?.addEventListener("change", (event) =>
+      toggleSiteField(event.target.value)
+    );
     dom.tableBody?.addEventListener("click", handleTableActionClick);
 
     dom.copyPasswordBtn?.addEventListener("click", async () => {
@@ -536,6 +785,16 @@
       if (event.target === dom.drawer) {
         hideDrawer();
       }
+    });
+
+    dom.avatar?.uploadBtn?.addEventListener("click", () => {
+      dom.avatar.input?.click();
+    });
+    dom.avatar?.input?.addEventListener("change", handleAvatarFileChange);
+    dom.avatar?.resetBtn?.addEventListener("click", handleAvatarReset);
+    dom.username?.addEventListener("input", () => {
+      const currentAvatar = dom.avatar?.urlInput?.value || "";
+      updateAvatarPreview(currentAvatar, dom.username.value || "");
     });
   }
 

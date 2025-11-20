@@ -37,6 +37,7 @@ def serialize_user(user: User, *, include_sensitive: bool = False) -> dict:
         "id": user.id,
         "username": user.username,
         "email": user.email,
+        "avatar_url": user.avatar_url,
         "role": role_name,
         "role_label": user.role.description if user.role else None,
         "role_display": ROLE_DISPLAY_NAMES.get(role_name, (role_name.title() if role_name else None)),

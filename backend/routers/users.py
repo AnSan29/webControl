@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -16,6 +17,13 @@ from backend.services.user_service import (
 
 
 router = APIRouter(prefix="/api/users", tags=["users"])
+
+
+def _normalize_avatar(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    cleaned = value.strip()
+    return cleaned or None
 
 
 @router.get("/")
@@ -76,12 +84,15 @@ def create_user(
     if _has_email_conflict():
         raise HTTPException(status_code=400, detail="El correo ya existe")
 
+    avatar_url = _normalize_avatar(payload.avatar_url)
+
     if existing_site_owner:
         user = existing_site_owner
         user.username = payload.username
         user.email = payload.email
         user.role_id = role.id
         user.is_active = payload.is_active
+        user.avatar_url = avatar_url
         if payload.is_active and not user.activated_at:
             user.activated_at = datetime.utcnow()
         user.expires_at = payload.expires_at
@@ -95,6 +106,7 @@ def create_user(
             is_active=payload.is_active,
             activated_at=datetime.utcnow() if payload.is_active else None,
             expires_at=payload.expires_at,
+            avatar_url=avatar_url,
         )
         apply_password(user, payload.password)
         db.add(user)
@@ -141,6 +153,9 @@ def update_user(
 
     if payload.password:
         apply_password(user, payload.password)
+
+    if "avatar_url" in fields_set:
+        user.avatar_url = _normalize_avatar(payload.avatar_url)
 
     db.commit()
     db.refresh(user)

@@ -314,3 +314,53 @@ def test_site_creation_requires_valid_model_type(client):
 
     assert response.status_code == 400
     assert "modelo" in response.json().get("detail", "")
+
+
+def test_login_updates_last_login_timestamp(client):
+    creds = create_superadmin()
+    _, user_payload = login(client, creds["email"], creds["password"])
+
+    assert user_payload["last_login"] is not None
+
+    session = SessionLocal()
+    try:
+        db_user = (
+            session.query(User)
+            .filter(User.email == creds["email"])
+            .first()
+        )
+        assert db_user is not None
+        assert db_user.last_login is not None
+    finally:
+        session.close()
+
+
+def test_admin_user_avatar_can_be_set_and_cleared(client):
+    creds = create_superadmin()
+    token, _ = login(client, creds["email"], creds["password"])
+
+    avatar_url = "/images/demo-avatar.png"
+    creation = client.post(
+        "/api/users",
+        headers=auth_header(token),
+        json={
+            "username": "avatar-admin",
+            "email": "avatar-admin@example.com",
+            "password": "AvatarPwd!1",
+            "role": "admin",
+            "is_active": True,
+            "avatar_url": avatar_url,
+        },
+    )
+    assert creation.status_code == 200, creation.text
+    created_user = creation.json()
+    assert created_user["avatar_url"] == avatar_url
+
+    update = client.put(
+        f"/api/users/{created_user['id']}",
+        headers=auth_header(token),
+        json={"avatar_url": None},
+    )
+    assert update.status_code == 200, update.text
+    updated_user = update.json()
+    assert updated_user["avatar_url"] is None
