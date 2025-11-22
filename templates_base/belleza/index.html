@@ -202,6 +202,23 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
+            {% set allies = supporter_logos or [] %}
+            {% if allies %}
+            <div class="footer-supporters">
+                <p class="footer-supporters__label">Con el respaldo de</p>
+                <div class="footer-supporters__logos">
+                    {% for supporter in allies %}
+                    <div class="footer-supporters__item">
+                        {% if supporter.optimized_url or supporter.url %}
+                        <img src="{{ supporter.optimized_url or supporter.url }}" alt="{{ supporter.name }}" loading="lazy" decoding="async">
+                        {% else %}
+                        <span>{{ supporter.initials }}</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
             <p>&copy; {{ current_year }} {{ site_name }}. Todos los derechos reservados.</p>
             <p>Hecho con 💖 para tu belleza</p>
         </div>

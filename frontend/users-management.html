@@ -11,11 +11,20 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
     <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/img/webcontrol-logo.png?v=3">
-    <link rel="icon" type="image/svg+xml" href="/static/img/webcontrol-logo.svg?v=3">
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico?v=3">
-    <link rel="shortcut icon" href="/static/favicon.ico?v=3">
-    <link rel="apple-touch-icon" href="/static/img/webcontrol-logo.png?v=3">
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/static/img/webcontrol-logo.png?v=3"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/static/img/webcontrol-logo.svg?v=3"
+    />
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico?v=3" />
+    <link rel="shortcut icon" href="/static/favicon.ico?v=3" />
+    <link rel="apple-touch-icon" href="/static/img/webcontrol-logo.png?v=3" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       :root {
@@ -125,55 +134,6 @@
           transform: translateY(0);
         }
       }
-      body.users-page .wc-page-heading {
-        position: relative;
-        overflow: hidden;
-        border-radius: 36px;
-        padding: 2.75rem;
-        max-width: 100%;
-        background: radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.35), transparent 55%),
-          linear-gradient(135deg, #0f172a, #1e1b4b);
-        box-shadow: 0 40px 120px -45px rgba(15, 23, 42, 0.6);
-        border: 1px solid rgba(148, 163, 184, 0.25);
-      }
-      body.users-page .wc-page-heading::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.4), transparent 45%);
-        mix-blend-mode: screen;
-        pointer-events: none;
-      }
-      body.users-page .wc-page-heading > * {
-        position: relative;
-        z-index: 1;
-      }
-      body.users-page .wc-page-heading__eyebrow {
-        color: rgba(241, 245, 249, 0.85);
-      }
-      body.users-page .wc-page-heading__title {
-        color: #f8fafc;
-      }
-      body.users-page .wc-page-heading__subtitle {
-        color: rgba(226, 232, 240, 0.92);
-      }
-      body.users-page .wc-page-heading__actions {
-        margin-top: 1.35rem;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.85rem;
-      }
-      body.users-page .wc-page-heading__actions .wc-button--ghost {
-        background: rgba(15, 23, 42, 0.25);
-        border-color: rgba(248, 250, 252, 0.35);
-        color: #f8fafc;
-        backdrop-filter: blur(6px);
-      }
-      body.users-page .wc-page-heading__actions .wc-button--ghost:hover {
-        background: rgba(15, 23, 42, 0.45);
-        border-color: rgba(248, 250, 252, 0.8);
-        color: #ffffff;
-      }
     </style>
   </head>
   <body class="wc-body users-page">
@@ -232,24 +192,26 @@
 
     <main class="wc-main">
       <div class="max-w-6xl mx-auto space-y-10">
-        <section class="wc-page-heading">
-          <span class="wc-page-heading__eyebrow">Control granular</span>
-          <h1 class="wc-page-heading__title">Usuarios y roles</h1>
-          <p class="wc-page-heading__subtitle">
-            Administra permisos, estados y asignación de sitios desde un panel
-            diseñado para equipos de operaciones con grandes volúmenes de datos.
-          </p>
-          <div class="wc-page-heading__actions">
-            <a
-              href="/dashboard"
-              class="wc-button wc-button--ghost"
-              id="backToDashboardBtn"
-            >
-              <i class="fa-solid fa-arrow-left-long"></i>
-              Volver al dashboard
-            </a>
+        <div
+          class="flex items-center justify-between border-b border-slate-100 pb-6 pt-2"
+        >
+          <div>
+            <h1 class="text-3xl font-semibold text-slate-900">
+              Gestión de usuarios
+            </h1>
+            <p class="mt-2 text-sm text-slate-500">
+              Administra permisos y asignación de sitios
+            </p>
           </div>
-        </section>
+          <a
+            href="/dashboard"
+            class="wc-button wc-button--ghost"
+            id="backToDashboardBtn"
+          >
+            <i class="fa-solid fa-arrow-left-long"></i>
+            Volver al dashboard
+          </a>
+        </div>
 
         <section class="wc-stats-grid">
           <article class="wc-stat-card" data-hover-lift>

@@ -191,11 +191,11 @@ class TemplateEngine:
             },
             {
                 "name": "Universidad de La Guajira",
-                "url": site_data.get("supporter_logo_uniguajira", "") or "https://drive.google.com/file/d/1RQ1G43M60E46mwsPMNFOWANISB3WKyBI/view?usp=drive_link"
+                "url": site_data.get("supporter_logo_uniguajira", "") or "https://drive.google.com/file/d/1ecf6tYHrSmN_BOt2RlfyKJKa7OfNXXo0/view?usp=drive_link"
             },
             {
                 "name": "Proyecto Reconversión Laboral",
-                "url": site_data.get("supporter_logo_project", "") or "https://drive.google.com/file/d/1maQ1FoXyzxfoS_sq6qN-oRLiPELKF_yV/view?usp=drive_link"
+                "url": site_data.get("supporter_logo_project", "") or "https://drive.google.com/file/d/11mfDehXVHWAY_fU5RkoKrzqz2MWNjAYF/view?usp=drive_link"
             }
         ]
 

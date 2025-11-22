@@ -15,11 +15,20 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/static/img/webcontrol-logo.png?v=3">
-    <link rel="icon" type="image/svg+xml" href="/static/img/webcontrol-logo.svg?v=3">
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico?v=3">
-    <link rel="shortcut icon" href="/static/favicon.ico?v=3">
-    <link rel="apple-touch-icon" href="/static/img/webcontrol-logo.png?v=3">
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/static/img/webcontrol-logo.png?v=3"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="/static/img/webcontrol-logo.svg?v=3"
+    />
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico?v=3" />
+    <link rel="shortcut icon" href="/static/favicon.ico?v=3" />
+    <link rel="apple-touch-icon" href="/static/img/webcontrol-logo.png?v=3" />
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -69,6 +78,82 @@
         height: 100%;
         width: 100%;
         object-fit: cover;
+      }
+
+      .site-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .site-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        line-height: 1.2;
+        border: 1px solid transparent;
+        transition: background-color 0.2s ease, color 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .site-action i {
+        font-size: 0.85rem;
+      }
+
+      .site-action--edit {
+        background-color: #eef2ff;
+        color: #3730a3;
+        border-color: #e0e7ff;
+      }
+
+      .site-action--edit:hover {
+        background-color: #e0e7ff;
+        color: #1e1b4b;
+      }
+
+      .site-action--view {
+        background-color: #dbeafe;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+      }
+
+      .site-action--view:hover {
+        background-color: #bfdbfe;
+        color: #1e40af;
+      }
+
+      .site-action--publish {
+        background-color: #ecfdf5;
+        color: #047857;
+        border-color: #a7f3d0;
+      }
+
+      .site-action--publish:hover {
+        background-color: #d1fae5;
+        color: #065f46;
+      }
+
+      .site-action--delete {
+        background-color: #fef2f2;
+        color: #b91c1c;
+        border-color: #fecaca;
+      }
+
+      .site-action--delete:hover {
+        background-color: #fee2e2;
+        color: #991b1b;
+      }
+
+      .site-action--disabled {
+        color: #9ca3af;
+        background-color: #f3f4f6;
+        border-color: #e5e7eb;
+        cursor: not-allowed;
+        pointer-events: none;
       }
 
       .social-chip {
@@ -322,7 +407,12 @@
               href="/dashboard"
               class="text-xl font-bold flex items-center lg:ml-2.5"
             >
-              <img src="/static/img/webcontrol-logo.png" alt="WebControl Logo" class="w-8 h-8 rounded-lg mr-2 object-cover" onerror="this.onerror=null;this.src='/static/img/webcontrol-logo.svg';">
+              <img
+                src="/static/img/webcontrol-logo.png"
+                alt="WebControl Logo"
+                class="w-8 h-8 rounded-lg mr-2 object-cover"
+                onerror="this.onerror=null;this.src='/static/img/webcontrol-logo.svg';"
+              />
               <span class="self-center whitespace-nowrap"
                 >WebControl Studio</span
               >
@@ -1813,8 +1903,8 @@
           .map((site) => {
             const liveUrl = getLiveUrl(site);
             const liveButton = liveUrl
-              ? `<a href="${liveUrl}" target="_blank" class="text-indigo-600 hover:text-indigo-900"><i class="fas fa-link"></i> Ir al sitio</a>`
-              : `<span class="text-gray-300 cursor-not-allowed"><i class="fas fa-link"></i> Ir al sitio</span>`;
+              ? `<a href="${liveUrl}" target="_blank" rel="noopener noreferrer" class="site-action site-action--view"><i class="fas fa-link"></i><span>Ir al sitio</span></a>`
+              : `<span class="site-action site-action--view site-action--disabled"><i class="fas fa-link"></i><span>Ir al sitio</span></span>`;
             return `
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -1859,27 +1949,31 @@
             }</span>
                         </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <a href="/editor/${
-                          site.id
-                        }" class="text-blue-600 hover:text-blue-900">
-                            <i class="fas fa-edit"></i> Editar
-                        </a>
-                        ${liveButton}
-                        ${(() => {
-                          const label = site.is_published
-                            ? "Replicar cambios"
-                            : "Publicar";
-                          return (
-                            `<button data-publish-button="${site.id}" onclick="publishSite(${site.id})" class="text-green-600 hover:text-green-900 flex items-center gap-1">` +
-                            `<i class="fas fa-upload"></i> ${label}</button>`
-                          );
-                        })()}
-                        <button onclick="deleteSite(${
-                          site.id
-                        })" class="text-red-600 hover:text-red-900">
-                            <i class="fas fa-trash"></i> Eliminar
-                        </button>
+                    <td class="px-6 py-4 text-sm font-medium">
+                        <div class="site-actions">
+                            <a href="/editor/${
+                              site.id
+                            }" class="site-action site-action--edit">
+                                <i class="fas fa-edit"></i>
+                                <span>Editar</span>
+                            </a>
+                            ${liveButton}
+                            ${(() => {
+                              const label = site.is_published
+                                ? "Replicar cambios"
+                                : "Publicar";
+                              return (
+                                `<button type="button" data-publish-button="${site.id}" onclick="publishSite(${site.id})" class="site-action site-action--publish">` +
+                                `<i class="fas fa-upload"></i><span>${label}</span></button>`
+                              );
+                            })()}
+                            <button type="button" onclick="deleteSite(${
+                              site.id
+                            })" class="site-action site-action--delete">
+                                <i class="fas fa-trash"></i>
+                                <span>Eliminar</span>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
