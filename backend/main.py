@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 from datetime import datetime, timedelta
 from pathlib import Path
 import json
@@ -103,6 +104,18 @@ DEFAULT_CNAME_TARGET = os.getenv(
     "DEFAULT_CNAME_TARGET",
     "reconvencionlaboralguajira.github.io",
 )
+PUBLISH_INFO_MESSAGE = (
+    "⏳ GitHub Pages puede tardar entre 1 y 3 minutos en activarse. "
+    "Si ves un error 404 espera un momento y vuelve a recargar."
+)
+
+
+class PublishPipelineError(Exception):
+    """Error controlado durante el pipeline de publicación."""
+
+    def __init__(self, message: str, status_code: int = 500):
+        super().__init__(message)
+        self.status_code = status_code
 
 
 def _slugify_identifier(value: str, fallback: str = "owner") -> str:
@@ -224,6 +237,141 @@ def _canonicalize_products(value):
         entry["image"] = _canonicalize_asset_value(entry.get("image"))
         products.append(entry)
     return products
+
+
+def _preferred_repo_name(site_payload: dict) -> str:
+    existing = site_payload.get("github_repo")
+    if existing:
+        return existing
+    base_name = site_payload.get("name") or f"sitio-{site_payload.get('id')}"
+    normalized = unicodedata.normalize("NFKD", base_name).encode("ascii", "ignore").decode("ascii")
+    slug = re.sub(r"[^a-z0-9-]", "-", normalized.lower()).strip("-")
+    slug = re.sub(r"-+", "-", slug)
+    if not slug:
+        slug = f"sitio-{site_payload.get('id')}"
+    return f"{slug}-{site_payload.get('id')}".strip("-")
+
+
+def _serialize_site_for_publish(site: Site) -> dict:
+    return {
+        "id": site.id,
+        "name": site.name,
+        "description": site.description,
+        "model_type": site.model_type,
+        "hero_title": site.hero_title,
+        "hero_subtitle": site.hero_subtitle,
+        "hero_image": site.hero_image,
+        "about_text": site.about_text,
+        "about_image": site.about_image,
+        "contact_email": site.contact_email,
+        "contact_phone": site.contact_phone,
+        "contact_address": site.contact_address,
+        "whatsapp_number": site.whatsapp_number,
+        "facebook_url": site.facebook_url,
+        "instagram_url": site.instagram_url,
+        "tiktok_url": site.tiktok_url,
+        "logo_url": site.logo_url,
+        "primary_color": site.primary_color,
+        "secondary_color": site.secondary_color,
+        "products_raw": site.products_json,
+        "gallery_raw": site.gallery_images,
+        "github_repo": site.github_repo,
+        "custom_domain": site.custom_domain,
+    }
+
+
+def _execute_publish_pipeline(site_payload: dict) -> dict:
+    try:
+        publisher = GitHubPublisher()
+    except ValueError as exc:
+        raise PublishPipelineError(str(exc), status_code=400) from exc
+    except Exception as exc:
+        raise PublishPipelineError(str(exc), status_code=500) from exc
+
+    desired_repo = _preferred_repo_name(site_payload)
+    repo_result = publisher.create_repository(
+        repo_name=desired_repo,
+        description=site_payload.get("description") or ""
+    )
+
+    if not repo_result.get("success"):
+        raise PublishPipelineError(repo_result.get("error", "Error al crear repositorio"))
+
+    repo_name = repo_result["repo_name"]
+
+    gallery_items = _coerce_list(site_payload.get("gallery_raw") or [])
+    products_items = _coerce_list(site_payload.get("products_raw") or [])
+
+    site_data = {
+        "id": site_payload.get("id"),
+        "name": site_payload.get("name"),
+        "description": site_payload.get("description"),
+        "hero_title": site_payload.get("hero_title"),
+        "hero_subtitle": site_payload.get("hero_subtitle"),
+        "hero_image": site_payload.get("hero_image"),
+        "about_text": site_payload.get("about_text"),
+        "about_image": site_payload.get("about_image"),
+        "contact_email": site_payload.get("contact_email"),
+        "contact_phone": site_payload.get("contact_phone"),
+        "contact_address": site_payload.get("contact_address"),
+        "whatsapp_number": site_payload.get("whatsapp_number"),
+        "facebook_url": site_payload.get("facebook_url"),
+        "instagram_url": site_payload.get("instagram_url"),
+        "tiktok_url": site_payload.get("tiktok_url"),
+        "logo_url": site_payload.get("logo_url"),
+        "primary_color": site_payload.get("primary_color"),
+        "secondary_color": site_payload.get("secondary_color"),
+        "products": products_items,
+        "products_json": json.dumps(products_items),
+        "gallery_images": gallery_items,
+    }
+
+    asset_updates = {}
+    gallery_update = None
+    products_update = None
+
+    site_data["hero_image"], changed = _localize_asset_for_publish(site_data["hero_image"])
+    if changed:
+        asset_updates["hero_image"] = site_data["hero_image"]
+
+    site_data["about_image"], changed = _localize_asset_for_publish(site_data["about_image"])
+    if changed:
+        asset_updates["about_image"] = site_data["about_image"]
+
+    site_data["logo_url"], changed = _localize_asset_for_publish(site_data["logo_url"])
+    if changed:
+        asset_updates["logo_url"] = site_data["logo_url"]
+
+    localized_gallery, gallery_changed = _localize_gallery_for_publish(gallery_items)
+    site_data["gallery_images"] = localized_gallery
+    if gallery_changed:
+        gallery_update = localized_gallery
+
+    localized_products, products_changed = _localize_products_for_publish(products_items)
+    site_data["products"] = localized_products
+    site_data["products_json"] = json.dumps(localized_products)
+    if products_changed:
+        products_update = localized_products
+
+    site_files = template_engine.generate_site(site_payload["model_type"], site_data)
+
+    publish_result = publisher.publish_site(
+        repo_name=repo_name,
+        site_files=site_files,
+        custom_domain=site_payload.get("custom_domain"),
+    )
+
+    if not publish_result.get("success"):
+        raise PublishPipelineError(publish_result.get("error", "Error al publicar sitio"))
+
+    return {
+        "repo_name": repo_name,
+        "pages_url": publish_result.get("pages_url"),
+        "warning": publish_result.get("warning"),
+        "asset_updates": asset_updates,
+        "gallery_update": gallery_update,
+        "products_update": products_update,
+    }
 
 
 def _get_preview_image(site):
@@ -709,141 +857,41 @@ async def publish_site(
     db: Session = Depends(get_db),
     _superadmin: User = Depends(require_superadmin)
 ):
-    """Publicar sitio en GitHub Pages"""
+    """Publicar sitio en GitHub Pages sin bloquear el event loop."""
     site = db.query(Site).filter(Site.id == site_id).first()
-    
+
     if not site:
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
 
+    site_payload = _serialize_site_for_publish(site)
+
     try:
-        publisher = GitHubPublisher()
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        publish_output = await run_in_threadpool(_execute_publish_pipeline, site_payload)
+    except PublishPipelineError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-    
-    try:
-        # Inicializar publisher
-        
-        # Nombre del repositorio (normalizar caracteres especiales)
-        import unicodedata
-        
-        # Determinar nombre del repositorio destino
-        if site.github_repo:
-            desired_repo = site.github_repo
-        else:
-            name_normalized = unicodedata.normalize('NFKD', site.name).encode('ASCII', 'ignore').decode('ASCII')
-            desired_repo = re.sub(r'[^a-zA-Z0-9\-]', '-', name_normalized.lower())
-            desired_repo = re.sub(r'-+', '-', desired_repo)  # Eliminar guiones múltiples
-            desired_repo = f"{desired_repo}-{site.id}".strip('-')
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-        print(f"🏷️  Nombre del repositorio: {desired_repo}")
+    for field, value in publish_output["asset_updates"].items():
+        setattr(site, field, value)
 
-        repo_result = publisher.create_repository(
-            repo_name=desired_repo,
-            description=site.description
-        )
+    if publish_output["gallery_update"] is not None:
+        site.gallery_images = json.dumps(publish_output["gallery_update"])
 
-        if not repo_result["success"]:
-            raise HTTPException(status_code=500, detail=repo_result["error"])
+    if publish_output["products_update"] is not None:
+        site.products_json = json.dumps(publish_output["products_update"])
 
-        site.github_repo = repo_result["repo_name"]
-        
-        gallery_items = _coerce_list(site.gallery_images or [])
-        products_items = _coerce_list(site.products_json or [])
+    site.github_repo = publish_output["repo_name"]
+    site.github_url = publish_output["pages_url"]
+    site.is_published = True
+    db.commit()
 
-        # Generar archivos del sitio
-        site_data = {
-            "id": site.id,
-            "name": site.name,
-            "description": site.description,
-            "hero_title": site.hero_title,
-            "hero_subtitle": site.hero_subtitle,
-            "hero_image": site.hero_image,
-            "about_text": site.about_text,
-            "about_image": site.about_image,
-            "contact_email": site.contact_email,
-            "contact_phone": site.contact_phone,
-            "contact_address": site.contact_address,
-            "whatsapp_number": site.whatsapp_number,
-            "facebook_url": site.facebook_url,
-            "instagram_url": site.instagram_url,
-            "tiktok_url": site.tiktok_url,
-            "logo_url": site.logo_url,
-            "primary_color": site.primary_color,
-            "secondary_color": site.secondary_color,
-            "products": products_items,
-            "products_json": json.dumps(products_items),
-            "gallery_images": gallery_items
-        }
-
-        asset_updates = {}
-        gallery_update = None
-        products_update = None
-
-        site_data["hero_image"], changed = _localize_asset_for_publish(site_data["hero_image"])
-        if changed:
-            asset_updates["hero_image"] = site_data["hero_image"]
-
-        site_data["about_image"], changed = _localize_asset_for_publish(site_data["about_image"])
-        if changed:
-            asset_updates["about_image"] = site_data["about_image"]
-
-        site_data["logo_url"], changed = _localize_asset_for_publish(site_data["logo_url"])
-        if changed:
-            asset_updates["logo_url"] = site_data["logo_url"]
-
-        localized_gallery, gallery_changed = _localize_gallery_for_publish(gallery_items)
-        site_data["gallery_images"] = localized_gallery
-        if gallery_changed:
-            gallery_update = localized_gallery
-
-        localized_products, products_changed = _localize_products_for_publish(products_items)
-        site_data["products"] = localized_products
-        site_data["products_json"] = json.dumps(localized_products)
-        if products_changed:
-            products_update = localized_products
-        
-        print(f"📝 Generando sitio para modelo: {site.model_type}")
-        site_files = template_engine.generate_site(site.model_type, site_data)
-        print(f"✅ Archivos generados: {list(site_files.keys())}")
-        
-        # Publicar en GitHub Pages
-        print(f"🚀 Publicando en repositorio: {site.github_repo}")
-        publish_result = publisher.publish_site(
-            repo_name=site.github_repo,
-            site_files=site_files,
-            custom_domain=site.custom_domain
-        )
-        
-        if not publish_result["success"]:
-            raise HTTPException(status_code=500, detail=publish_result["error"])
-        
-        # Actualizar BD con assets localizados
-        for field, value in asset_updates.items():
-            setattr(site, field, value)
-
-        if gallery_update is not None:
-            site.gallery_images = json.dumps(gallery_update)
-
-        if products_update is not None:
-            site.products_json = json.dumps(products_update)
-
-        site.github_url = publish_result["pages_url"]
-        site.is_published = True
-        db.commit()
-        
-        return {
-            "message": "Sitio publicado exitosamente",
-            "url": site.github_url,
-            "info": "⏳ GitHub Pages puede tardar 1-3 minutos en activarse. Si ves un error 404, espera unos minutos y recarga la página.",
-            "warning": publish_result.get("warning", None)
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return {
+        "message": "Sitio publicado exitosamente",
+        "url": site.github_url,
+        "info": PUBLISH_INFO_MESSAGE,
+        "warning": publish_output.get("warning"),
+    }
 
 
 # ============= API STATS =============
