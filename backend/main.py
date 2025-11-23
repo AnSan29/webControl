@@ -12,12 +12,22 @@ import json
 import os
 import re
 import shutil
+import time
 import uuid
 import unicodedata
 from dotenv import load_dotenv
 
 # Cargar variables de entorno
 load_dotenv()
+
+DEFAULT_TIMEZONE = os.getenv("TIMEZONE", "America/Bogota")
+if DEFAULT_TIMEZONE:
+    os.environ["TZ"] = DEFAULT_TIMEZONE
+    try:
+        time.tzset()
+    except AttributeError:
+        # Sistemas como Windows no exponen tzset
+        pass
 
 # Agregar el directorio raíz del proyecto al path para permitir importaciones absolutas
 import sys
@@ -81,7 +91,10 @@ templates.env.globals["normalize_drive_image"] = normalize_drive_image
 # Inicializar servicios
 template_engine = TemplateEngine()
 
-# Cargar modelos de negocio
+# Cargar datos semilla y modelos de negocio
+with open(Path(__file__).parent / "seed_data.json", 'r', encoding='utf-8') as f:
+    SEED_DATA = json.load(f)
+
 with open(Path(__file__).parent / "models.json", 'r', encoding='utf-8') as f:
     BUSINESS_MODELS = json.load(f)
 
@@ -90,12 +103,6 @@ MODEL_REGISTRY = {
 }
 
 # Conjunto de modelos válidos detectados en el catálogo o en los datos semilla
-AVAILABLE_MODEL_IDS = set(MODEL_REGISTRY.keys()) or set(SEED_DATA.keys())
-
-# Cargar datos semilla
-with open(Path(__file__).parent / "seed_data.json", 'r', encoding='utf-8') as f:
-    SEED_DATA = json.load(f)
-
 AVAILABLE_MODEL_IDS = set(MODEL_REGISTRY.keys()) or set(SEED_DATA.keys())
 
 
