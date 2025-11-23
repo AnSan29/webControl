@@ -53,3 +53,6 @@ temp/
 
 # Generated sites
 generated_sites/
+
+# User uploads
+uploads/
