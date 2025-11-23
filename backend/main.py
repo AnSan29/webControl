@@ -45,8 +45,8 @@ from backend.auth import (
     generate_temporary_password,
     get_current_user,
     hash_password,
+    require_admin_or_superadmin,
     require_owner_of_site,
-    require_superadmin,
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
 from backend.api_schemas import UserCreate, UserPasswordUpdate, UserUpdate
@@ -54,7 +54,14 @@ from backend.utils.github_api import GitHubPublisher
 from backend.utils.template_engine import TemplateEngine
 from backend.utils.asset_manager import ensure_local_asset
 from backend.template_helpers import normalize_drive_image, normalize_local_asset
-from backend.services.user_service import OWNER_ROLE, SUPERADMIN_ROLE, serialize_user
+from backend.services.user_service import (
+    OWNER_ROLE,
+    SUPERADMIN_ROLE,
+    generate_unique_email,
+    generate_unique_username,
+    serialize_user,
+    slugify_identifier,
+)
 from backend.routers.users import router as users_router
 from backend.routers.roles import router as roles_router
 
@@ -125,40 +132,14 @@ class PublishPipelineError(Exception):
         self.status_code = status_code
 
 
-def _slugify_identifier(value: str, fallback: str = "owner") -> str:
-    value = value or fallback
-    normalized = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
-    cleaned = re.sub(r"[^a-zA-Z0-9]+", "-", normalized).strip("-").lower()
-    return cleaned or fallback
-
-
-def _generate_unique_username(db: Session, base_value: str) -> str:
-    base = _slugify_identifier(base_value)
-    username = base
-    counter = 1
-    while db.query(User).filter(User.username == username).first():
-        counter += 1
-        username = f"{base}-{counter}"
-    return username
-
-
-def _generate_unique_owner_email(db: Session, base_username: str) -> str:
-    email = f"{base_username}@{OWNER_EMAIL_DOMAIN}"
-    counter = 1
-    while db.query(User).filter(User.email == email).first():
-        counter += 1
-        email = f"{base_username}-{counter}@{OWNER_EMAIL_DOMAIN}"
-    return email
-
-
 def _create_owner_account(db: Session, site: Site) -> dict:
     owner_role = db.query(Role).filter(Role.name == OWNER_ROLE).first()
     if owner_role is None:
         raise HTTPException(status_code=500, detail="No existe el rol owner para asignar al sitio")
 
-    base_username = _slugify_identifier(site.name, fallback=f"site-{site.id}")
-    username = _generate_unique_username(db, base_username)
-    email = _generate_unique_owner_email(db, username)
+    base_username = slugify_identifier(site.name, fallback=f"site-{site.id}")
+    username = generate_unique_username(db, base_username)
+    email = generate_unique_email(db, username, domain=OWNER_EMAIL_DOMAIN)
     temporary_password = generate_temporary_password()
     hashed_password = hash_password(temporary_password)
 
@@ -684,7 +665,7 @@ async def get_site(
 async def create_site(
     request: Request,
     db: Session = Depends(get_db),
-    _superadmin: User = Depends(require_superadmin)
+    _admin_user: User = Depends(require_admin_or_superadmin)
 ):
     """Crear nuevo sitio"""
     try:
@@ -837,7 +818,7 @@ async def preview_site(request: Request, _current_user: User = Depends(get_curre
 async def delete_site(
     site_id: int,
     db: Session = Depends(get_db),
-    _superadmin: User = Depends(require_superadmin)
+    _admin_user: User = Depends(require_admin_or_superadmin)
 ):
     """Eliminar sitio"""
     site = db.query(Site).filter(Site.id == site_id).first()
@@ -862,7 +843,7 @@ async def delete_site(
 async def publish_site(
     site_id: int,
     db: Session = Depends(get_db),
-    _superadmin: User = Depends(require_superadmin)
+    _admin_user: User = Depends(require_admin_or_superadmin)
 ):
     """Publicar sitio en GitHub Pages sin bloquear el event loop."""
     site = db.query(Site).filter(Site.id == site_id).first()

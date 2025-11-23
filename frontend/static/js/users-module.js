@@ -226,7 +226,7 @@
               <div class="text-sm font-semibold text-slate-900">${
                 user.username
               }</div>
-              <div class="text-xs text-slate-500">${user.email}</div>
+              <div class="text-xs text-slate-500">${user.email || "—"}</div>
               <div class="mt-2 flex flex-wrap gap-2 text-xs">${siteChip}${idChip}</div>
             </div>
           </div>
@@ -631,9 +631,10 @@
     const rawPassword = (formData.get("password") || "").trim();
     const siteIdValue = formData.get("site_id");
     const avatarValue = (formData.get("avatar_url") || "").toString().trim();
+    const emailValue = (formData.get("email") || "").trim();
     const payload = {
       username: (formData.get("username") || "").trim(),
-      email: (formData.get("email") || "").trim(),
+      email: emailValue || null,
       role: formData.get("role"),
       site_id: siteIdValue ? Number(siteIdValue) : null,
       expires_at: inputDateToISOString(formData.get("expires_at")),
@@ -641,8 +642,8 @@
       avatar_url: avatarValue || null,
     };
 
-    if (!payload.username || !payload.email || !payload.role) {
-      showNotification("Completa los campos obligatorios", "warning");
+    if (!payload.username || !payload.role) {
+      showNotification("Ingresa al menos usuario y rol", "warning");
       return;
     }
 

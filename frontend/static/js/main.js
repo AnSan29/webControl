@@ -225,6 +225,11 @@ async function checkAuth() {
 // Logout
 function logout() {
   localStorage.removeItem("token");
+  localStorage.removeItem("username");
+  localStorage.removeItem("email");
+  localStorage.removeItem("role");
+  localStorage.removeItem("site_id");
+  localStorage.removeItem("user_payload");
   window.location.href = "/";
 }
 

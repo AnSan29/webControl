@@ -587,8 +587,8 @@
                   Solo puedes administrar tu sitio asignado
                 </h2>
                 <p class="text-sm text-white/80 mt-1">
-                  Solicita apoyo de un superadmin si necesitas crear nuevos
-                  sitios u otorgar accesos adicionales.
+                  Solicita apoyo del equipo administrador si necesitas crear
+                  nuevos sitios u otorgar accesos adicionales.
                 </p>
               </div>
               <div class="flex flex-col gap-2 w-full lg:w-auto">
@@ -1400,6 +1400,9 @@
                             <option value="">Seleccionar rol</option>
                             <option value="owner">Owner</option>
                             <option value="admin">Administrador</option>
+                            <option value="superadmin" data-superadmin-only>
+                              Superadmin
+                            </option>
                           </select>
                         </div>
                       </div>
@@ -1615,8 +1618,10 @@
       }
 
       function applyRoleVisibility() {
-        const isOwner = currentUserRole === "owner";
-        const isSuperadmin = currentUserRole === "superadmin";
+        const normalizedRole = (currentUserRole || "").toLowerCase();
+        const isOwner = normalizedRole === "owner";
+        const hasAdminAccess =
+          normalizedRole === "superadmin" || normalizedRole === "admin";
         roleVisibility.ownerHidden.forEach((el) => {
           if (isOwner) {
             el.classList.add("hidden");
@@ -1625,11 +1630,7 @@
           }
         });
         roleVisibility.superadminOnly.forEach((el) => {
-          if (isSuperadmin) {
-            el.classList.remove("hidden");
-          } else {
-            el.classList.add("hidden");
-          }
+          el.classList.toggle("hidden", !hasAdminAccess);
         });
         roleVisibility.ownerOnly.forEach((el) => {
           if (isOwner) {
@@ -1786,11 +1787,15 @@
           });
           if (!response.ok) return;
           const data = await response.json();
-          document.getElementById("userEmail").textContent = data.email;
           const username =
             data.username || (data.email ? data.email.split("@")[0] : "Admin");
           document.getElementById("userName").textContent = username;
+          document.getElementById("userEmail").textContent =
+            data.email || username;
           updateCurrentUserAvatar(data.avatar_url || "", username);
+          if (data.username) {
+            localStorage.setItem("username", data.username);
+          }
           currentUserRole = data.role || null;
           if (currentUserRole) {
             localStorage.setItem("role", currentUserRole);
@@ -2253,9 +2258,12 @@
 
           if (nextView === "users") {
             await userInfoPromise;
-            if ((currentUserRole || "").toLowerCase() !== "superadmin") {
+            const normalizedRole = (currentUserRole || "").toLowerCase();
+            const hasAdminAccess =
+              normalizedRole === "superadmin" || normalizedRole === "admin";
+            if (!hasAdminAccess) {
               showNotification(
-                "Solo los superadministradores pueden acceder a Gestión de usuarios.",
+                "Solo los perfiles administrativos pueden acceder a Gestión de usuarios.",
                 "warning"
               );
               nextView = "dashboard";
@@ -2424,6 +2432,7 @@
 
       function logout() {
         localStorage.removeItem("token");
+        localStorage.removeItem("username");
         localStorage.removeItem("email");
         localStorage.removeItem("role");
         localStorage.removeItem("site_id");
