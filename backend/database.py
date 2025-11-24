@@ -82,6 +82,7 @@ class Site(Base):
 
     # Productos/Servicios (JSON serializado como texto)
     products_json = Column(Text)
+    supporter_logos_json = Column(Text, default="[]")
 
     owner_user = relationship("User", back_populates="site", uselist=False)
 
@@ -241,6 +242,8 @@ def ensure_site_dns_columns():
         statements = []
         if "cname_record" not in existing:
             statements.append("ALTER TABLE sites ADD COLUMN cname_record VARCHAR(200)")
+        if "supporter_logos_json" not in existing:
+            statements.append("ALTER TABLE sites ADD COLUMN supporter_logos_json TEXT DEFAULT '[]'")
         for statement in statements:
             conn.execute(text(statement))
         if statements:

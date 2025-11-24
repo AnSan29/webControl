@@ -364,3 +364,58 @@ def test_admin_user_avatar_can_be_set_and_cleared(client):
     assert update.status_code == 200, update.text
     updated_user = update.json()
     assert updated_user["avatar_url"] is None
+
+
+    def test_supporter_logos_accept_drive_links_and_render_in_preview(client):
+        creds = create_superadmin()
+        token, _ = login(client, creds["email"], creds["password"])
+
+        site_payload = client.post(
+            "/api/sites",
+            headers=auth_header(token),
+            json={"name": "Sitio Aliados", "model_type": "adecuaciones"},
+        ).json()
+
+        owner_creds = site_payload["owner"]
+        owner_token, _ = login(
+            client, owner_creds["email"], owner_creds["temporary_password"]
+        )
+
+        supporter_payload = [
+            {
+                "name": "Aliado Mineria",
+                "logo": "https://drive.google.com/file/d/1abc123drive/view?usp=sharing",
+                "website": "https://ejemplo.com/mineria",
+            },
+            {
+                "label": "Aliado Energia",
+                "drive_link": "https://drive.google.com/file/d/2abc456drive/view?usp=sharing",
+            },
+        ]
+
+        update_response = client.put(
+            f"/api/sites/{site_payload['id']}",
+            headers=auth_header(owner_token),
+            json={"supporter_logos": supporter_payload},
+        )
+        assert update_response.status_code == 200, update_response.text
+
+        site_detail = client.get(
+            f"/api/sites/{site_payload['id']}", headers=auth_header(owner_token)
+        ).json()
+        assert len(site_detail["supporter_logos"]) == 2
+        assert all("drive.google.com" in logo["url"] for logo in site_detail["supporter_logos"])
+
+        preview_response = client.post(
+            "/api/sites/preview",
+            headers=auth_header(owner_token),
+            json={
+                "model_type": site_detail["model_type"],
+                "name": site_detail["name"],
+                "supporter_logos": site_detail["supporter_logos"],
+            },
+        )
+        assert preview_response.status_code == 200, preview_response.text
+        html = preview_response.text
+        assert "footer-supporters" in html
+        assert "thumbnail?id=1abc123drive" in html or "uc?export=view&id=1abc123drive" in html

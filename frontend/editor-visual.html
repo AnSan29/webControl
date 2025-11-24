@@ -440,6 +440,20 @@
                             <div class="space-y-3" id="galleryList"></div>
                             <p class="text-sm text-gray-400" id="galleryEmpty">Agrega la primera imagen para comenzar.</p>
                         </section>
+
+                        <section class="control-section" id="supporterLogosSection">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3>Aliados y patrocinadores</h3>
+                                    <p>Agrega los logos con enlaces públicos de Google Drive o archivos propios.</p>
+                                </div>
+                                <button type="button" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600" onclick="editorVisual.addSupporterLogo()">
+                                    <i class="fas fa-plus"></i> Añadir logo
+                                </button>
+                            </div>
+                            <div class="space-y-4" id="supporterLogosList"></div>
+                            <p class="text-sm text-gray-400" id="supporterLogosEmpty">Aquí aparecerán tus logos aliados. Puedes agregarlos aunque el sitio siga en borrador.</p>
+                        </section>
                     </div>
 
                     <div class="space-y-6 xl:sticky xl:top-24 xl:self-start" style="max-height: calc(100vh - 7rem);">
@@ -495,7 +509,7 @@
 
     <script src="/static/js/main.js"></script>
     <script>
-        window.__SITE_ID__ = {{ site_id }};
+        window.__SITE_ID__ = "{{ site_id }}";
     </script>
     <script src="/static/js/editor-visual.js"></script>
 </body>

@@ -227,6 +227,78 @@ def _canonicalize_products(value):
     return products
 
 
+def _canonicalize_supporter_logos(value):
+    """Normaliza la colección de logos externos desde múltiples formatos."""
+
+    url_keys = (
+        "url",
+        "image",
+        "logo",
+        "logo_url",
+        "src",
+        "drive_url",
+        "drive_link",
+        "public_url",
+        "optimized_url",
+        "asset",
+        "path",
+    )
+    name_keys = ("name", "label", "title", "organization", "company", "alias")
+    link_keys = ("link", "href", "website", "cta_url")
+
+    supporters = []
+    for item in _coerce_list(value):
+        if isinstance(item, str):
+            canonical = _canonicalize_asset_value(item)
+            if canonical:
+                supporters.append({
+                    "name": "Aliado",
+                    "url": canonical,
+                    "image": canonical,
+                })
+            continue
+
+        if not isinstance(item, dict):
+            continue
+
+        name_value = next((item.get(key) for key in name_keys if item.get(key)), None)
+        name = (name_value or "Aliado").strip() or "Aliado"
+
+        image_source = next((item.get(key) for key in url_keys if item.get(key)), None)
+        if not image_source:
+            for candidate in item.values():
+                if not isinstance(candidate, str):
+                    continue
+                cleaned = candidate.strip()
+                if not cleaned:
+                    continue
+                if cleaned.startswith(("http://", "https://", "//", "images/", "/images/", "uploads/")):
+                    image_source = cleaned
+                    break
+        canonical = _canonicalize_asset_value(image_source)
+        if not canonical:
+            continue
+
+        entry = {
+            "name": name,
+            "url": canonical,
+            "image": canonical,
+        }
+
+        link_value = next((item.get(key) for key in link_keys if item.get(key)), None)
+        if link_value:
+            entry["link"] = link_value
+
+        if item.get("id"):
+            entry["id"] = item["id"]
+        if item.get("status"):
+            entry["status"] = item["status"]
+
+        supporters.append(entry)
+
+    return supporters
+
+
 def _preferred_repo_name(site_payload: dict) -> str:
     existing = site_payload.get("github_repo")
     if existing:
@@ -263,6 +335,7 @@ def _serialize_site_for_publish(site: Site) -> dict:
         "secondary_color": site.secondary_color,
         "products_raw": site.products_json,
         "gallery_raw": site.gallery_images,
+        "supporter_logos_json": site.supporter_logos_json,
         "github_repo": site.github_repo,
         "custom_domain": site.custom_domain,
     }
@@ -289,6 +362,11 @@ def _execute_publish_pipeline(site_payload: dict) -> dict:
 
     gallery_items = _coerce_list(site_payload.get("gallery_raw") or [])
     products_items = _coerce_list(site_payload.get("products_raw") or [])
+    supporter_items = _canonicalize_supporter_logos(
+        site_payload.get("supporter_logos")
+        or site_payload.get("supporter_logos_json")
+        or []
+    )
 
     site_data = {
         "id": site_payload.get("id"),
@@ -312,6 +390,7 @@ def _execute_publish_pipeline(site_payload: dict) -> dict:
         "products": products_items,
         "products_json": json.dumps(products_items),
         "gallery_images": gallery_items,
+        "supporter_logos_json": json.dumps(supporter_items),
     }
 
     asset_updates = {}
@@ -596,6 +675,7 @@ async def get_sites(
             "whatsapp_number": site.whatsapp_number or "",
             "primary_color": site.primary_color or "",
             "secondary_color": site.secondary_color or "",
+            "supporter_logos_json": site.supporter_logos_json or "[]",
             "is_published": site.is_published,
             "created_at": site.created_at.isoformat(),
             "updated_at": site.updated_at.isoformat()
@@ -628,6 +708,12 @@ async def get_site(
     except:
         products = []
     products = _canonicalize_products(products)
+
+    try:
+        supporter_logos = json.loads(site.supporter_logos_json) if site.supporter_logos_json else []
+    except:
+        supporter_logos = []
+    supporter_logos = _canonicalize_supporter_logos(supporter_logos)
     
     return {
         "id": site.id,
@@ -656,6 +742,8 @@ async def get_site(
         "secondary_color": site.secondary_color,
         "gallery_images": gallery_images,
         "products": products,
+        "supporter_logos": supporter_logos,
+        "supporter_logos_json": json.dumps(supporter_logos),
         "created_at": site.created_at.isoformat(),
         "updated_at": site.updated_at.isoformat()
     }
@@ -700,6 +788,13 @@ async def create_site(
     )
     products_payload = _canonicalize_products(products_input)
 
+    supporter_input = (
+        data.get("supporter_logos")
+        or data.get("supporter_logos_json")
+        or seed_data.get("supporter_logos", [])
+    )
+    supporter_payload = _canonicalize_supporter_logos(supporter_input)
+
     # Crear sitio en BD usando datos semilla como valores por defecto
     site = Site(
         name=name or seed_data.get("site_name", "Nuevo Sitio"),
@@ -723,7 +818,8 @@ async def create_site(
         primary_color=data.get("primary_color", ""),
         secondary_color=data.get("secondary_color", ""),
         gallery_images=json.dumps(gallery_payload),
-        products_json=json.dumps(products_payload)
+        products_json=json.dumps(products_payload),
+        supporter_logos_json=json.dumps(supporter_payload)
     )
     
     db.add(site)
@@ -775,6 +871,11 @@ async def update_site(
             setattr(site, "gallery_images", json.dumps(gallery_data))
             continue
 
+        if key == "supporter_logos" or key == "supporter_logos_json":
+            supporters_data = _canonicalize_supporter_logos(value)
+            setattr(site, "supporter_logos_json", json.dumps(supporters_data))
+            continue
+
         if hasattr(site, key) and key != "id":
             setattr(site, key, value)
     
@@ -801,6 +902,13 @@ async def preview_site(request: Request, _current_user: User = Depends(get_curre
     site_data.setdefault("name", "Vista previa")
     site_data.setdefault("hero_title", site_data.get("name", ""))
     site_data.setdefault("hero_subtitle", "")
+
+    supporter_payload = _canonicalize_supporter_logos(
+        site_data.get("supporter_logos")
+        or site_data.get("supporter_logos_json")
+        or []
+    )
+    site_data["supporter_logos_json"] = json.dumps(supporter_payload)
 
     try:
         files = template_engine.generate_site(model_type, site_data)

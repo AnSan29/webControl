@@ -4,6 +4,7 @@ const editorVisual = (() => {
     siteState: {
       products: [],
       gallery_images: [],
+      supporter_logos: [],
     },
     previewTimer: null,
     models: [],
@@ -72,6 +73,52 @@ const editorVisual = (() => {
       }));
   }
 
+  const SUPPORTER_URL_KEYS = [
+    "url",
+    "image",
+    "logo",
+    "logo_url",
+    "drive_link",
+    "drive_url",
+    "public_url",
+    "src",
+    "asset",
+    "path",
+  ];
+
+  function inferSupporterAsset(entry) {
+    for (const key of SUPPORTER_URL_KEYS) {
+      const candidate = entry?.[key];
+      if (typeof candidate === "string" && candidate.trim()) {
+        return candidate.trim();
+      }
+    }
+    return "";
+  }
+
+  function canonicalizeSupporterLogosList(items) {
+    if (!Array.isArray(items)) {
+      return [];
+    }
+
+    return items
+      .filter((item) => item && typeof item === "object")
+      .map((item) => {
+        const copy = { ...item };
+        const source = inferSupporterAsset(copy);
+        const canonical = canonicalizeAssetUrl(source);
+        if (canonical) {
+          copy.url = canonical;
+          copy.image = canonical;
+        }
+        copy.name = copy.name || copy.label || copy.title || copy.organization || copy.company || "Aliado";
+        if (copy.website && !copy.link) {
+          copy.link = copy.website;
+        }
+        return copy;
+      });
+  }
+
   function canonicalizeSiteMedia() {
     state.siteState.logo_url = canonicalizeAssetUrl(
       state.siteState.logo_url || ""
@@ -87,6 +134,9 @@ const editorVisual = (() => {
     );
     state.siteState.gallery_images = canonicalizeGalleryList(
       state.siteState.gallery_images || []
+    );
+    state.siteState.supporter_logos = canonicalizeSupporterLogosList(
+      state.siteState.supporter_logos || []
     );
   }
 
@@ -322,6 +372,9 @@ const editorVisual = (() => {
     const site = await response.json();
     const products = safeParseArray(site.products || site.products_json);
     const gallery = safeParseArray(site.gallery_images);
+    const supporterLogos = safeParseArray(
+      site.supporter_logos || site.supporter_logos_json
+    );
 
     state.siteState = {
       model_type: site.model_type,
@@ -344,7 +397,7 @@ const editorVisual = (() => {
       secondary_color: site.secondary_color || "#CBB67C",
       products,
       gallery_images: gallery,
-      supporter_logos: safeParseArray(site.supporter_logos_json),
+      supporter_logos: supporterLogos,
       custom_domain: site.custom_domain,
     };
 
@@ -354,6 +407,7 @@ const editorVisual = (() => {
     hydrateInputs();
     renderProducts();
     renderGallery();
+    renderSupporterLogos();
     updatePaletteState();
   }
 
@@ -519,6 +573,78 @@ const editorVisual = (() => {
       .join("");
   }
 
+  function renderSupporterLogos() {
+    const container = document.getElementById("supporterLogosList");
+    const empty = document.getElementById("supporterLogosEmpty");
+    if (!container || !empty) return;
+
+    const logos = state.siteState.supporter_logos || [];
+    if (logos.length === 0) {
+      container.innerHTML = "";
+      empty.classList.remove("hidden");
+      return;
+    }
+
+    empty.classList.add("hidden");
+    container.innerHTML = logos
+      .map(
+        (supporter, index) => `
+            <article class="border border-gray-100 rounded-2xl p-4 space-y-3 bg-white shadow-sm">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs uppercase tracking-wide text-gray-400">Aliado ${
+                          index + 1
+                        }</p>
+                        <p class="text-sm font-semibold text-gray-900">${escapeText(
+                          supporter.name || "Aliado"
+                        )}</p>
+                    </div>
+                    <button type="button" class="text-xs text-red-500" onclick="editorVisual.removeSupporterLogo(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <input type="text" class="input-control" value="${escapeAttr(
+                  supporter.name || ""
+                )}" placeholder="Nombre del aliado" oninput="editorVisual.updateSupporterLogo(${index}, 'name', this.value)">
+                <div class="dual-inputs">
+                    <div class="space-y-2">
+                        <label class="input-label text-xs">Logo (Drive o URL pública)</label>
+                        <div class="flex gap-2">
+                            <input type="url" class="input-control flex-1" value="${escapeAttr(
+                              supporter.url || supporter.image || ""
+                            )}" placeholder="https://drive.google.com/file/d/..." oninput="editorVisual.updateSupporterLogo(${index}, 'url', this.value)">
+                            <button type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50" onclick="editorVisual.uploadSupporterLogo(${index})">
+                                <i class="fas fa-upload"></i>
+                                Subir
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-gray-400">Acepta PNG, JPG, WEBP, SVG o enlaces públicos de Drive.</p>
+                    </div>
+                    <div>
+                        <label class="input-label text-xs">Sitio web del aliado (opcional)</label>
+                        <input type="url" class="input-control" value="${escapeAttr(
+                          supporter.link || supporter.website || ""
+                        )}" placeholder="https://aliado.com" oninput="editorVisual.updateSupporterLogo(${index}, 'link', this.value)">
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
+                    ${
+                      supporter.url
+                        ? `<img src="${escapeAttr(
+                            supporter.url
+                          )}" alt="${escapeAttr(
+                            supporter.name || "Aliado"
+                          )}" class="w-24 h-16 object-contain rounded-lg bg-white">`
+                        : `<p class="text-[11px] text-gray-500">Aún no has establecido el logo.</p>`
+                    }
+                    <p class="text-[11px] text-gray-500">Los logos aparecen en el pie de página de las plantillas compatibles.</p>
+                </div>
+            </article>
+        `
+      )
+      .join("");
+  }
+
   function addProduct() {
     state.siteState.products = state.siteState.products || [];
     state.siteState.products.push({
@@ -579,6 +705,55 @@ const editorVisual = (() => {
     state.siteState.gallery_images.splice(index, 1);
     renderGallery();
     refreshPreview();
+  }
+
+  function addSupporterLogo() {
+    state.siteState.supporter_logos = state.siteState.supporter_logos || [];
+    state.siteState.supporter_logos.push({
+      name: "Nuevo aliado",
+      url: "",
+      link: "",
+    });
+    renderSupporterLogos();
+    refreshPreview();
+  }
+
+  function updateSupporterLogo(index, field, value) {
+    const logos = state.siteState.supporter_logos || [];
+    if (!logos[index]) return;
+
+    if (field === "url") {
+      const canonical = canonicalizeAssetUrl(value);
+      logos[index].url = canonical;
+      logos[index].image = canonical;
+    } else if (field === "link") {
+      logos[index].link = value;
+    } else {
+      logos[index][field] = value;
+    }
+
+    renderSupporterLogos();
+    refreshPreview();
+  }
+
+  function removeSupporterLogo(index) {
+    state.siteState.supporter_logos.splice(index, 1);
+    renderSupporterLogos();
+    refreshPreview();
+  }
+
+  function uploadSupporterLogo(index) {
+    if (!state.siteState.supporter_logos[index]) return;
+    openImagePicker(async (file) => {
+      const uploadedUrl = await uploadAssetFile(file);
+      if (!uploadedUrl) return;
+      const canonical = canonicalizeAssetUrl(uploadedUrl);
+      state.siteState.supporter_logos[index].url = canonical;
+      state.siteState.supporter_logos[index].image = canonical;
+      renderSupporterLogos();
+      refreshPreview(true);
+      showNotification("Logo actualizado", "success");
+    });
   }
 
   function safeParseArray(value) {
@@ -649,6 +824,7 @@ const editorVisual = (() => {
         ...state.siteState,
         products: state.siteState.products || [],
         gallery_images: state.siteState.gallery_images || [],
+        supporter_logos: state.siteState.supporter_logos || [],
       };
 
       const response = await fetchAPI("/api/sites/preview", {
@@ -803,6 +979,7 @@ const editorVisual = (() => {
       ...state.siteState,
       products: state.siteState.products || [],
       gallery_images: state.siteState.gallery_images || [],
+      supporter_logos: state.siteState.supporter_logos || [],
     };
 
     try {
@@ -888,6 +1065,10 @@ const editorVisual = (() => {
     addGalleryImageFromFile,
     updateGalleryImage,
     removeGalleryImage,
+    addSupporterLogo,
+    updateSupporterLogo,
+    removeSupporterLogo,
+    uploadSupporterLogo,
     handleFieldUpload,
     uploadProductImage,
   };

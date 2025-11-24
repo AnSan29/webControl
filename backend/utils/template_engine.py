@@ -165,6 +165,8 @@ class TemplateEngine:
 
     def _build_supporters(self, site_data: dict) -> list[dict]:
         supporter_logos_input = self._load_json_list(site_data.get("supporter_logos_json", "[]"))
+        if not supporter_logos_input:
+            supporter_logos_input = self._load_json_list(site_data.get("supporter_logos", []))
         supporters: list[dict] = []
 
         for supporter in supporter_logos_input:
