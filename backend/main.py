@@ -704,6 +704,39 @@ async def get_flags():
     }
 
 
+@app.get("/api/security/ip-info", tags=["security"])
+async def get_ip_info(request: Request):
+    """Return information about how the server sees the requesting IP and rate-limit state."""
+    client_ip = _client_ip_from_request(request)
+    blocked_for = rate_limit_store.is_blocked(client_ip)
+    return {
+        "ip": client_ip,
+        "blocked": blocked_for > 0,
+        "blocked_for_seconds": round(blocked_for, 2),
+        "whitelisted": client_ip in RATE_LIMIT_WHITELIST_SET,
+        "rate_limit_enabled": RATE_LIMIT_ENABLED,
+        "limit": RATE_LIMIT_REQUESTS,
+        "window_seconds": RATE_LIMIT_WINDOW_SECONDS,
+        "block_seconds": RATE_LIMIT_BLOCK_SECONDS,
+    }
+
+
+@app.get("/api/security/rate-limit", tags=["security"])
+async def list_rate_limit_status(
+    _admin_user: User = Depends(require_admin_or_superadmin),
+):
+    """Expose rate-limit config and currently blocked IPs (admin only)."""
+    blocked_clients = rate_limit_store.list_blocked_clients()
+    return {
+        "rate_limit_enabled": RATE_LIMIT_ENABLED,
+        "limit": RATE_LIMIT_REQUESTS,
+        "window_seconds": RATE_LIMIT_WINDOW_SECONDS,
+        "block_seconds": RATE_LIMIT_BLOCK_SECONDS,
+        "whitelist": sorted(RATE_LIMIT_WHITELIST_SET),
+        "blocked_clients": blocked_clients,
+    }
+
+
 # ============= API MODELS =============
 
 @app.get("/api/models")

@@ -42,10 +42,24 @@ def _republish_site(site: Site) -> dict:
     return result
 
 
-def _iter_target_sites(session: SessionLocal, ids: Iterable[int] | None):
+def _iter_target_sites(
+    session: SessionLocal,
+    ids: Iterable[int] | None,
+    model_type: str | None = None,
+    include_unpublished: bool = False,
+):
     query = session.query(Site)
+
+    if model_type:
+        query = query.filter(Site.model_type == model_type)
+
     if ids:
-        return query.filter(Site.id.in_(ids)).all()
+        query = query.filter(Site.id.in_(ids))
+        return query.all()
+
+    if include_unpublished:
+        return query.all()
+
     return query.filter(Site.is_published == True).all()  # noqa: E712
 
 
@@ -58,13 +72,31 @@ def main():
         dest="site_ids",
         help="Specific site ID(s) to republish. Repeat flag to provide multiple.",
     )
+    parser.add_argument(
+        "--model-type",
+        dest="model_type",
+        help="Limit the republish operation to a specific modelo de negocio (artesanias, cocina, chivos, etc.)",
+    )
+    parser.add_argument(
+        "--include-unpublished",
+        action="store_true",
+        help="Incluir sitios que aún no estén marcados como publicados (útil tras migraciones/importaciones)",
+    )
     args = parser.parse_args()
 
     session = SessionLocal()
     try:
-        targets = _iter_target_sites(session, args.site_ids)
+        targets = _iter_target_sites(
+            session,
+            ids=args.site_ids,
+            model_type=args.model_type,
+            include_unpublished=args.include_unpublished,
+        )
         if not targets:
-            print("No hay sitios publicados para republicar")
+            scope = "" if not args.model_type else f" para el modelo '{args.model_type}'"
+            if args.include_unpublished:
+                scope += " (incluyendo no publicados)"
+            print(f"No hay sitios que republicar{scope}")
             return
 
         print(f"Republishing {len(targets)} site(s)...")

@@ -60,6 +60,29 @@ class RateLimitStore:
                 return False, block_seconds, 0
             return True, 0.0, remaining
 
+    def list_blocked_clients(self) -> list[dict[str, float]]:
+        """Return a snapshot of currently blocked IPs with remaining seconds."""
+        now = time.time()
+        blocked: list[dict[str, float]] = []
+        to_remove: list[str] = []
+        with self._lock:
+            for ip, until in self._blocked_until.items():
+                remaining = until - now
+                if remaining <= 0:
+                    to_remove.append(ip)
+                    continue
+                blocked.append(
+                    {
+                        "ip": ip,
+                        "blocked_for_seconds": round(remaining, 2),
+                        "unblocks_at_epoch": until,
+                    }
+                )
+            for ip in to_remove:
+                self._blocked_until.pop(ip, None)
+        blocked.sort(key=lambda entry: entry["blocked_for_seconds"], reverse=True)
+        return blocked
+
 
 class RateLimiterMiddleware(BaseHTTPMiddleware):
     """Starlette middleware that limits requests per client IP."""

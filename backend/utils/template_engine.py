@@ -1,5 +1,6 @@
 from jinja2 import Template
 import json
+import re
 from pathlib import Path
 
 from backend.template_helpers import (
@@ -127,6 +128,7 @@ class TemplateEngine:
             "instagram_url": site_data.get("instagram_url", ""),
             "tiktok_url": site_data.get("tiktok_url", ""),
             "logo_url": normalized_logo,
+            "favicon_url": normalized_logo,
             "primary_color": site_data.get("primary_color", model_config["palette"]["primary"]),
             "secondary_color": site_data.get("secondary_color", model_config["palette"]["secondary"]),
             "palette": model_config["palette"],
@@ -144,6 +146,8 @@ class TemplateEngine:
         except FileNotFoundError:
             # Si no existe plantilla específica, usar genérica
             files["index.html"] = self.generate_generic_template(context, model_config)
+
+        files["index.html"] = self._inject_favicon_link(files["index.html"], context.get("favicon_url"))
         
         # Generar CSS personalizado (permite overrides por modelo)
         try:
@@ -162,6 +166,20 @@ class TemplateEngine:
         """Normalizar URLs locales/Drive para que las plantillas usen rutas válidas."""
         canonical = normalize_local_asset(url)
         return normalize_drive_image(canonical)
+
+    @staticmethod
+    def _inject_favicon_link(html: str, favicon_url: str | None) -> str:
+        """Ensure the rendered HTML references the site logo as the favicon."""
+        if not favicon_url:
+            return html
+        if "rel=\"icon\"" in html or "rel='icon'" in html:
+            return html
+        tag = f'<link rel="icon" type="image/png" href="{favicon_url}">\n'
+        pattern = re.compile(r"</head>", re.IGNORECASE)
+        if pattern.search(html):
+            return pattern.sub(f"    {tag}</head>", html, count=1)
+        # If the template lacks a head tag, prepend the favicon tag
+        return f"{tag}{html}"
 
     def _build_supporters(self, site_data: dict) -> list[dict]:
         supporter_logos_input = self._load_json_list(site_data.get("supporter_logos_json", "[]"))
