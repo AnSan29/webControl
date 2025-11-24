@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Request, UploadFile, File
+from fastapi import BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -37,7 +38,15 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 # Importar módulos locales
-from backend.database import get_db, Role, Site, User, Visit, init_db
+from backend.database import (
+    get_db,
+    Role,
+    Site,
+    User,
+    Visit,
+    SessionLocal,
+    init_db,
+)
 from backend.auth import (
     authenticate_user,
     build_user_claims,
@@ -64,6 +73,36 @@ from backend.services.user_service import (
 )
 from backend.routers.users import router as users_router
 from backend.routers.roles import router as roles_router
+from backend.middleware.rate_limiter import RateLimitStore, RateLimiterMiddleware
+
+# Helpers para configurar características opcionales
+def _bool_env(var_name: str, default: bool) -> bool:
+    value = os.getenv(var_name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _int_env(var_name: str, default: int) -> int:
+    try:
+        return int(os.getenv(var_name, default))
+    except ValueError:
+        return default
+
+
+RATE_LIMIT_ENABLED = _bool_env("RATE_LIMIT_ENABLED", True)
+RATE_LIMIT_REQUESTS = _int_env("RATE_LIMIT_REQUESTS", 600)
+RATE_LIMIT_WINDOW_SECONDS = _int_env("RATE_LIMIT_WINDOW_SECONDS", 60)
+RATE_LIMIT_BLOCK_SECONDS = _int_env("RATE_LIMIT_BLOCK_SECONDS", 900)
+RATE_LIMIT_WHITELIST = [
+    ip.strip()
+    for ip in os.getenv("RATE_LIMIT_WHITELIST", "").split(",")
+    if ip.strip()
+]
+
+rate_limit_store = RateLimitStore()
+RATE_LIMIT_WHITELIST_SET = set(RATE_LIMIT_WHITELIST)
+
 
 # Inicializar app
 app = FastAPI(
@@ -82,6 +121,15 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+app.add_middleware(
+    RateLimiterMiddleware,
+    store=rate_limit_store,
+    limit=RATE_LIMIT_REQUESTS,
+    window_seconds=RATE_LIMIT_WINDOW_SECONDS,
+    block_seconds=RATE_LIMIT_BLOCK_SECONDS,
+    whitelist=RATE_LIMIT_WHITELIST_SET,
+    enabled=RATE_LIMIT_ENABLED,
 )
 
 # Montar archivos estáticos
@@ -122,6 +170,16 @@ PUBLISH_INFO_MESSAGE = (
     "⏳ GitHub Pages puede tardar entre 1 y 3 minutos en activarse. "
     "Si ves un error 404 espera un momento y vuelve a recargar."
 )
+
+
+def _client_ip_from_request(request: Request) -> str:
+    client = request.client
+    if client and client.host:
+        return client.host
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",", 1)[0].strip()
+    return "unknown"
 
 
 class PublishPipelineError(Exception):
@@ -420,12 +478,18 @@ def _execute_publish_pipeline(site_payload: dict) -> dict:
     if products_changed:
         products_update = localized_products
 
+    asset_manifest = _collect_local_assets(site_data)
+
     site_files = template_engine.generate_site(site_payload["model_type"], site_data)
+    if not site_files.get("index.html"):
+        site_files["index.html"] = """<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><title>Site en construcción</title></head><body><h1>Se está generando el sitio</h1></body></html>"""
+    site_files.setdefault(".nojekyll", "")
 
     publish_result = publisher.publish_site(
         repo_name=repo_name,
         site_files=site_files,
         custom_domain=site_payload.get("custom_domain"),
+        asset_files=asset_manifest,
     )
 
     if not publish_result.get("success"):
@@ -496,6 +560,30 @@ def _localize_products_for_publish(value):
         if was_downloaded:
             changed = True
     return products, changed
+
+
+def _collect_local_assets(site_data: dict) -> set[str]:
+    assets: set[str] = set()
+
+    def _add(value):
+        if not value or not isinstance(value, str):
+            return
+        normalized = value.strip().lstrip("/")
+        if normalized.startswith("images/"):
+            assets.add(normalized)
+
+    _add(site_data.get("hero_image"))
+    _add(site_data.get("about_image"))
+    _add(site_data.get("logo_url"))
+
+    for item in _coerce_list(site_data.get("gallery_images") or []):
+        _add(item)
+
+    for product in _coerce_list(site_data.get("products") or []):
+        if isinstance(product, dict):
+            _add(product.get("image"))
+
+    return assets
 
 
 def _inline_preview_assets(html: str, generated_files: dict) -> str:
@@ -660,6 +748,8 @@ async def get_sites(
     return [
         {
             "id": site.id,
+
+
             "name": site.name,
             "model_type": site.model_type,
             "description": site.description,
@@ -988,6 +1078,58 @@ async def publish_site(
         "info": PUBLISH_INFO_MESSAGE,
         "warning": publish_output.get("warning"),
     }
+
+
+@app.post("/api/sites/{site_id}/publish-async")
+async def publish_site_async(
+    site_id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    _admin_user: User = Depends(require_admin_or_superadmin),
+):
+    """Publicar sitio en GitHub Pages de forma asíncrona (no bloquear al cliente)."""
+    site = db.query(Site).filter(Site.id == site_id).first()
+    if not site:
+        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+
+    site_payload = _serialize_site_for_publish(site)
+
+    def _background_job(payload: dict):
+        try:
+            result = _execute_publish_pipeline(payload)
+        except PublishPipelineError as exc:
+            # Log and ignore; this keeps the RG of site not published
+            print(f"Error en publish pipeline (async): {exc}")
+            return
+        except Exception as exc:
+            print(f"Unexpected error during async publish: {exc}")
+            return
+
+        # Apply results to DB
+        db2 = SessionLocal()
+        try:
+            site2 = db2.query(Site).filter(Site.id == payload.get("id")).first()
+            if not site2:
+                return
+            for field, value in result["asset_updates"].items():
+                setattr(site2, field, value)
+
+            if result["gallery_update"] is not None:
+                site2.gallery_images = json.dumps(result["gallery_update"])
+
+            if result["products_update"] is not None:
+                site2.products_json = json.dumps(result["products_update"])
+
+            site2.github_repo = result["repo_name"]
+            site2.github_url = result.get("pages_url")
+            site2.is_published = True
+            db2.commit()
+        finally:
+            db2.close()
+
+    background_tasks.add_task(_background_job, site_payload)
+
+    return {"message": "Publicación asíncrona iniciada"}
 
 
 # ============= API STATS =============

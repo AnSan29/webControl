@@ -1,0 +1,19 @@
+[Unit]
+Description=webControl FastAPI service
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/home/ubuntu/webControl
+# Ensure you point to the correct virtualenv path (adjust if you use /srv/webcontrol/.venv etc.)
+EnvironmentFile=/home/ubuntu/webControl/.env
+ExecStart=/home/ubuntu/webControl/scripts/run_server.sh
+Restart=always
+RestartSec=5
+# Protect system — comment/uncomment as appropriate
+# PrivateTmp=true
+# ProtectKernelTunables=true
+
+[Install]
+WantedBy=multi-user.target
