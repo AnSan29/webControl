@@ -1,22 +1,36 @@
 from fastapi import FastAPI, Depends, HTTPException, status, Request, UploadFile, File
+from fastapi import BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Optional
 import json
 import os
 import re
 import shutil
+import time
 import uuid
 import unicodedata
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 
 # Cargar variables de entorno
 load_dotenv()
+
+DEFAULT_TIMEZONE = os.getenv("TIMEZONE", "America/Bogota")
+if DEFAULT_TIMEZONE:
+    os.environ["TZ"] = DEFAULT_TIMEZONE
+    try:
+        time.tzset()
+    except AttributeError:
+        # Sistemas como Windows no exponen tzset
+        pass
 
 # Agregar el directorio raíz del proyecto al path para permitir importaciones absolutas
 import sys
@@ -26,7 +40,15 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 # Importar módulos locales
-from backend.database import get_db, Role, Site, User, Visit, init_db
+from backend.database import (
+    get_db,
+    Role,
+    Site,
+    User,
+    Visit,
+    SessionLocal,
+    init_db,
+)
 from backend.auth import (
     authenticate_user,
     build_user_claims,
@@ -34,8 +56,8 @@ from backend.auth import (
     generate_temporary_password,
     get_current_user,
     hash_password,
+    require_admin_or_superadmin,
     require_owner_of_site,
-    require_superadmin,
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
 from backend.api_schemas import UserCreate, UserPasswordUpdate, UserUpdate
@@ -43,9 +65,46 @@ from backend.utils.github_api import GitHubPublisher
 from backend.utils.template_engine import TemplateEngine
 from backend.utils.asset_manager import ensure_local_asset
 from backend.template_helpers import normalize_drive_image, normalize_local_asset
-from backend.services.user_service import OWNER_ROLE, SUPERADMIN_ROLE, serialize_user
+from backend.services.user_service import (
+    OWNER_ROLE,
+    SUPERADMIN_ROLE,
+    generate_unique_email,
+    generate_unique_username,
+    serialize_user,
+    slugify_identifier,
+)
 from backend.routers.users import router as users_router
 from backend.routers.roles import router as roles_router
+from backend.middleware.rate_limiter import RateLimitStore, RateLimiterMiddleware
+
+# Helpers para configurar características opcionales
+def _bool_env(var_name: str, default: bool) -> bool:
+    value = os.getenv(var_name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _int_env(var_name: str, default: int) -> int:
+    try:
+        return int(os.getenv(var_name, default))
+    except ValueError:
+        return default
+
+
+RATE_LIMIT_ENABLED = _bool_env("RATE_LIMIT_ENABLED", True)
+RATE_LIMIT_REQUESTS = _int_env("RATE_LIMIT_REQUESTS", 600)
+RATE_LIMIT_WINDOW_SECONDS = _int_env("RATE_LIMIT_WINDOW_SECONDS", 60)
+RATE_LIMIT_BLOCK_SECONDS = _int_env("RATE_LIMIT_BLOCK_SECONDS", 900)
+RATE_LIMIT_WHITELIST = [
+    ip.strip()
+    for ip in os.getenv("RATE_LIMIT_WHITELIST", "").split(",")
+    if ip.strip()
+]
+
+rate_limit_store = RateLimitStore()
+RATE_LIMIT_WHITELIST_SET = set(RATE_LIMIT_WHITELIST)
+
 
 # Inicializar app
 app = FastAPI(
@@ -65,6 +124,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(
+    RateLimiterMiddleware,
+    store=rate_limit_store,
+    limit=RATE_LIMIT_REQUESTS,
+    window_seconds=RATE_LIMIT_WINDOW_SECONDS,
+    block_seconds=RATE_LIMIT_BLOCK_SECONDS,
+    whitelist=RATE_LIMIT_WHITELIST_SET,
+    enabled=RATE_LIMIT_ENABLED,
+)
 
 # Montar archivos estáticos
 frontend_path = Path(__file__).parent.parent / "frontend"
@@ -80,7 +148,10 @@ templates.env.globals["normalize_drive_image"] = normalize_drive_image
 # Inicializar servicios
 template_engine = TemplateEngine()
 
-# Cargar modelos de negocio
+# Cargar datos semilla y modelos de negocio
+with open(Path(__file__).parent / "seed_data.json", 'r', encoding='utf-8') as f:
+    SEED_DATA = json.load(f)
+
 with open(Path(__file__).parent / "models.json", 'r', encoding='utf-8') as f:
     BUSINESS_MODELS = json.load(f)
 
@@ -91,44 +162,41 @@ MODEL_REGISTRY = {
 # Conjunto de modelos válidos detectados en el catálogo o en los datos semilla
 AVAILABLE_MODEL_IDS = set(MODEL_REGISTRY.keys()) or set(SEED_DATA.keys())
 
-# Cargar datos semilla
-with open(Path(__file__).parent / "seed_data.json", 'r', encoding='utf-8') as f:
-    SEED_DATA = json.load(f)
-
-AVAILABLE_MODEL_IDS = set(MODEL_REGISTRY.keys()) or set(SEED_DATA.keys())
-
 
 OWNER_EMAIL_DOMAIN = os.getenv("OWNER_EMAIL_DOMAIN", "owners.webcontrol.local")
 DEFAULT_CNAME_TARGET = os.getenv(
     "DEFAULT_CNAME_TARGET",
     "reconvencionlaboralguajira.github.io",
 )
+PUBLISH_INFO_MESSAGE = (
+    "⏳ GitHub Pages puede tardar entre 1 y 3 minutos en activarse. "
+    "Si ves un error 404 espera un momento y vuelve a recargar."
+)
+
+templates.env.globals["DEFAULT_CNAME_TARGET"] = DEFAULT_CNAME_TARGET
 
 
-def _slugify_identifier(value: str, fallback: str = "owner") -> str:
-    value = value or fallback
-    normalized = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
-    cleaned = re.sub(r"[^a-zA-Z0-9]+", "-", normalized).strip("-").lower()
-    return cleaned or fallback
+class DomainConfigPayload(BaseModel):
+    custom_domain: Optional[str] = Field(default=None, max_length=255)
+    cname_record: Optional[str] = Field(default=None, max_length=255)
 
 
-def _generate_unique_username(db: Session, base_value: str) -> str:
-    base = _slugify_identifier(base_value)
-    username = base
-    counter = 1
-    while db.query(User).filter(User.username == username).first():
-        counter += 1
-        username = f"{base}-{counter}"
-    return username
+def _client_ip_from_request(request: Request) -> str:
+    client = request.client
+    if client and client.host:
+        return client.host
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",", 1)[0].strip()
+    return "unknown"
 
 
-def _generate_unique_owner_email(db: Session, base_username: str) -> str:
-    email = f"{base_username}@{OWNER_EMAIL_DOMAIN}"
-    counter = 1
-    while db.query(User).filter(User.email == email).first():
-        counter += 1
-        email = f"{base_username}-{counter}@{OWNER_EMAIL_DOMAIN}"
-    return email
+class PublishPipelineError(Exception):
+    """Error controlado durante el pipeline de publicación."""
+
+    def __init__(self, message: str, status_code: int = 500):
+        super().__init__(message)
+        self.status_code = status_code
 
 
 def _create_owner_account(db: Session, site: Site) -> dict:
@@ -136,9 +204,9 @@ def _create_owner_account(db: Session, site: Site) -> dict:
     if owner_role is None:
         raise HTTPException(status_code=500, detail="No existe el rol owner para asignar al sitio")
 
-    base_username = _slugify_identifier(site.name, fallback=f"site-{site.id}")
-    username = _generate_unique_username(db, base_username)
-    email = _generate_unique_owner_email(db, username)
+    base_username = slugify_identifier(site.name, fallback=f"site-{site.id}")
+    username = generate_unique_username(db, base_username)
+    email = generate_unique_email(db, username, domain=OWNER_EMAIL_DOMAIN)
     temporary_password = generate_temporary_password()
     hashed_password = hash_password(temporary_password)
 
@@ -226,6 +294,226 @@ def _canonicalize_products(value):
     return products
 
 
+def _canonicalize_supporter_logos(value):
+    """Normaliza la colección de logos externos desde múltiples formatos."""
+
+    url_keys = (
+        "url",
+        "image",
+        "logo",
+        "logo_url",
+        "src",
+        "drive_url",
+        "drive_link",
+        "public_url",
+        "optimized_url",
+        "asset",
+        "path",
+    )
+    name_keys = ("name", "label", "title", "organization", "company", "alias")
+    link_keys = ("link", "href", "website", "cta_url")
+
+    supporters = []
+    for item in _coerce_list(value):
+        if isinstance(item, str):
+            canonical = _canonicalize_asset_value(item)
+            if canonical:
+                supporters.append({
+                    "name": "Aliado",
+                    "url": canonical,
+                    "image": canonical,
+                })
+            continue
+
+        if not isinstance(item, dict):
+            continue
+
+        name_value = next((item.get(key) for key in name_keys if item.get(key)), None)
+        name = (name_value or "Aliado").strip() or "Aliado"
+
+        image_source = next((item.get(key) for key in url_keys if item.get(key)), None)
+        if not image_source:
+            for candidate in item.values():
+                if not isinstance(candidate, str):
+                    continue
+                cleaned = candidate.strip()
+                if not cleaned:
+                    continue
+                if cleaned.startswith(("http://", "https://", "//", "images/", "/images/", "uploads/")):
+                    image_source = cleaned
+                    break
+        canonical = _canonicalize_asset_value(image_source)
+        if not canonical:
+            continue
+
+        entry = {
+            "name": name,
+            "url": canonical,
+            "image": canonical,
+        }
+
+        link_value = next((item.get(key) for key in link_keys if item.get(key)), None)
+        if link_value:
+            entry["link"] = link_value
+
+        if item.get("id"):
+            entry["id"] = item["id"]
+        if item.get("status"):
+            entry["status"] = item["status"]
+
+        supporters.append(entry)
+
+    return supporters
+
+
+def _preferred_repo_name(site_payload: dict) -> str:
+    existing = site_payload.get("github_repo")
+    if existing:
+        return existing
+    base_name = site_payload.get("name") or f"sitio-{site_payload.get('id')}"
+    normalized = unicodedata.normalize("NFKD", base_name).encode("ascii", "ignore").decode("ascii")
+    slug = re.sub(r"[^a-z0-9-]", "-", normalized.lower()).strip("-")
+    slug = re.sub(r"-+", "-", slug)
+    if not slug:
+        slug = f"sitio-{site_payload.get('id')}"
+    return f"{slug}-{site_payload.get('id')}".strip("-")
+
+
+def _serialize_site_for_publish(site: Site) -> dict:
+    return {
+        "id": site.id,
+        "name": site.name,
+        "description": site.description,
+        "model_type": site.model_type,
+        "hero_title": site.hero_title,
+        "hero_subtitle": site.hero_subtitle,
+        "hero_image": site.hero_image,
+        "about_text": site.about_text,
+        "about_image": site.about_image,
+        "contact_email": site.contact_email,
+        "contact_phone": site.contact_phone,
+        "contact_address": site.contact_address,
+        "whatsapp_number": site.whatsapp_number,
+        "facebook_url": site.facebook_url,
+        "instagram_url": site.instagram_url,
+        "tiktok_url": site.tiktok_url,
+        "logo_url": site.logo_url,
+        "primary_color": site.primary_color,
+        "secondary_color": site.secondary_color,
+        "products_raw": site.products_json,
+        "gallery_raw": site.gallery_images,
+        "supporter_logos_json": site.supporter_logos_json,
+        "github_repo": site.github_repo,
+        "custom_domain": site.custom_domain,
+    }
+
+
+def _execute_publish_pipeline(site_payload: dict) -> dict:
+    try:
+        publisher = GitHubPublisher()
+    except ValueError as exc:
+        raise PublishPipelineError(str(exc), status_code=400) from exc
+    except Exception as exc:
+        raise PublishPipelineError(str(exc), status_code=500) from exc
+
+    desired_repo = _preferred_repo_name(site_payload)
+    repo_result = publisher.create_repository(
+        repo_name=desired_repo,
+        description=site_payload.get("description") or ""
+    )
+
+    if not repo_result.get("success"):
+        raise PublishPipelineError(repo_result.get("error", "Error al crear repositorio"))
+
+    repo_name = repo_result["repo_name"]
+
+    gallery_items = _coerce_list(site_payload.get("gallery_raw") or [])
+    products_items = _coerce_list(site_payload.get("products_raw") or [])
+    supporter_items = _canonicalize_supporter_logos(
+        site_payload.get("supporter_logos")
+        or site_payload.get("supporter_logos_json")
+        or []
+    )
+
+    site_data = {
+        "id": site_payload.get("id"),
+        "name": site_payload.get("name"),
+        "description": site_payload.get("description"),
+        "hero_title": site_payload.get("hero_title"),
+        "hero_subtitle": site_payload.get("hero_subtitle"),
+        "hero_image": site_payload.get("hero_image"),
+        "about_text": site_payload.get("about_text"),
+        "about_image": site_payload.get("about_image"),
+        "contact_email": site_payload.get("contact_email"),
+        "contact_phone": site_payload.get("contact_phone"),
+        "contact_address": site_payload.get("contact_address"),
+        "whatsapp_number": site_payload.get("whatsapp_number"),
+        "facebook_url": site_payload.get("facebook_url"),
+        "instagram_url": site_payload.get("instagram_url"),
+        "tiktok_url": site_payload.get("tiktok_url"),
+        "logo_url": site_payload.get("logo_url"),
+        "primary_color": site_payload.get("primary_color"),
+        "secondary_color": site_payload.get("secondary_color"),
+        "products": products_items,
+        "products_json": json.dumps(products_items),
+        "gallery_images": gallery_items,
+        "supporter_logos_json": json.dumps(supporter_items),
+    }
+
+    asset_updates = {}
+    gallery_update = None
+    products_update = None
+
+    site_data["hero_image"], changed = _localize_asset_for_publish(site_data["hero_image"])
+    if changed:
+        asset_updates["hero_image"] = site_data["hero_image"]
+
+    site_data["about_image"], changed = _localize_asset_for_publish(site_data["about_image"])
+    if changed:
+        asset_updates["about_image"] = site_data["about_image"]
+
+    site_data["logo_url"], changed = _localize_asset_for_publish(site_data["logo_url"])
+    if changed:
+        asset_updates["logo_url"] = site_data["logo_url"]
+
+    localized_gallery, gallery_changed = _localize_gallery_for_publish(gallery_items)
+    site_data["gallery_images"] = localized_gallery
+    if gallery_changed:
+        gallery_update = localized_gallery
+
+    localized_products, products_changed = _localize_products_for_publish(products_items)
+    site_data["products"] = localized_products
+    site_data["products_json"] = json.dumps(localized_products)
+    if products_changed:
+        products_update = localized_products
+
+    asset_manifest = _collect_local_assets(site_data)
+
+    site_files = template_engine.generate_site(site_payload["model_type"], site_data)
+    if not site_files.get("index.html"):
+        site_files["index.html"] = """<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><title>Site en construcción</title></head><body><h1>Se está generando el sitio</h1></body></html>"""
+    site_files.setdefault(".nojekyll", "")
+
+    publish_result = publisher.publish_site(
+        repo_name=repo_name,
+        site_files=site_files,
+        custom_domain=site_payload.get("custom_domain"),
+        asset_files=asset_manifest,
+    )
+
+    if not publish_result.get("success"):
+        raise PublishPipelineError(publish_result.get("error", "Error al publicar sitio"))
+
+    return {
+        "repo_name": repo_name,
+        "pages_url": publish_result.get("pages_url"),
+        "warning": publish_result.get("warning"),
+        "asset_updates": asset_updates,
+        "gallery_update": gallery_update,
+        "products_update": products_update,
+    }
+
+
 def _get_preview_image(site):
     hero_image = _canonicalize_asset_value(getattr(site, "hero_image", ""))
     if hero_image:
@@ -281,6 +569,30 @@ def _localize_products_for_publish(value):
         if was_downloaded:
             changed = True
     return products, changed
+
+
+def _collect_local_assets(site_data: dict) -> set[str]:
+    assets: set[str] = set()
+
+    def _add(value):
+        if not value or not isinstance(value, str):
+            return
+        normalized = value.strip().lstrip("/")
+        if normalized.startswith("images/"):
+            assets.add(normalized)
+
+    _add(site_data.get("hero_image"))
+    _add(site_data.get("about_image"))
+    _add(site_data.get("logo_url"))
+
+    for item in _coerce_list(site_data.get("gallery_images") or []):
+        _add(item)
+
+    for product in _coerce_list(site_data.get("products") or []):
+        if isinstance(product, dict):
+            _add(product.get("image"))
+
+    return assets
 
 
 def _inline_preview_assets(html: str, generated_files: dict) -> str:
@@ -401,6 +713,39 @@ async def get_flags():
     }
 
 
+@app.get("/api/security/ip-info", tags=["security"])
+async def get_ip_info(request: Request):
+    """Return information about how the server sees the requesting IP and rate-limit state."""
+    client_ip = _client_ip_from_request(request)
+    blocked_for = rate_limit_store.is_blocked(client_ip)
+    return {
+        "ip": client_ip,
+        "blocked": blocked_for > 0,
+        "blocked_for_seconds": round(blocked_for, 2),
+        "whitelisted": client_ip in RATE_LIMIT_WHITELIST_SET,
+        "rate_limit_enabled": RATE_LIMIT_ENABLED,
+        "limit": RATE_LIMIT_REQUESTS,
+        "window_seconds": RATE_LIMIT_WINDOW_SECONDS,
+        "block_seconds": RATE_LIMIT_BLOCK_SECONDS,
+    }
+
+
+@app.get("/api/security/rate-limit", tags=["security"])
+async def list_rate_limit_status(
+    _admin_user: User = Depends(require_admin_or_superadmin),
+):
+    """Expose rate-limit config and currently blocked IPs (admin only)."""
+    blocked_clients = rate_limit_store.list_blocked_clients()
+    return {
+        "rate_limit_enabled": RATE_LIMIT_ENABLED,
+        "limit": RATE_LIMIT_REQUESTS,
+        "window_seconds": RATE_LIMIT_WINDOW_SECONDS,
+        "block_seconds": RATE_LIMIT_BLOCK_SECONDS,
+        "whitelist": sorted(RATE_LIMIT_WHITELIST_SET),
+        "blocked_clients": blocked_clients,
+    }
+
+
 # ============= API MODELS =============
 
 @app.get("/api/models")
@@ -445,6 +790,8 @@ async def get_sites(
     return [
         {
             "id": site.id,
+
+
             "name": site.name,
             "model_type": site.model_type,
             "description": site.description,
@@ -460,6 +807,7 @@ async def get_sites(
             "whatsapp_number": site.whatsapp_number or "",
             "primary_color": site.primary_color or "",
             "secondary_color": site.secondary_color or "",
+            "supporter_logos_json": site.supporter_logos_json or "[]",
             "is_published": site.is_published,
             "created_at": site.created_at.isoformat(),
             "updated_at": site.updated_at.isoformat()
@@ -492,6 +840,12 @@ async def get_site(
     except:
         products = []
     products = _canonicalize_products(products)
+
+    try:
+        supporter_logos = json.loads(site.supporter_logos_json) if site.supporter_logos_json else []
+    except:
+        supporter_logos = []
+    supporter_logos = _canonicalize_supporter_logos(supporter_logos)
     
     return {
         "id": site.id,
@@ -520,6 +874,8 @@ async def get_site(
         "secondary_color": site.secondary_color,
         "gallery_images": gallery_images,
         "products": products,
+        "supporter_logos": supporter_logos,
+        "supporter_logos_json": json.dumps(supporter_logos),
         "created_at": site.created_at.isoformat(),
         "updated_at": site.updated_at.isoformat()
     }
@@ -529,7 +885,7 @@ async def get_site(
 async def create_site(
     request: Request,
     db: Session = Depends(get_db),
-    _superadmin: User = Depends(require_superadmin)
+    _admin_user: User = Depends(require_admin_or_superadmin)
 ):
     """Crear nuevo sitio"""
     try:
@@ -564,6 +920,13 @@ async def create_site(
     )
     products_payload = _canonicalize_products(products_input)
 
+    supporter_input = (
+        data.get("supporter_logos")
+        or data.get("supporter_logos_json")
+        or seed_data.get("supporter_logos", [])
+    )
+    supporter_payload = _canonicalize_supporter_logos(supporter_input)
+
     # Crear sitio en BD usando datos semilla como valores por defecto
     site = Site(
         name=name or seed_data.get("site_name", "Nuevo Sitio"),
@@ -587,7 +950,8 @@ async def create_site(
         primary_color=data.get("primary_color", ""),
         secondary_color=data.get("secondary_color", ""),
         gallery_images=json.dumps(gallery_payload),
-        products_json=json.dumps(products_payload)
+        products_json=json.dumps(products_payload),
+        supporter_logos_json=json.dumps(supporter_payload)
     )
     
     db.add(site)
@@ -639,6 +1003,11 @@ async def update_site(
             setattr(site, "gallery_images", json.dumps(gallery_data))
             continue
 
+        if key == "supporter_logos" or key == "supporter_logos_json":
+            supporters_data = _canonicalize_supporter_logos(value)
+            setattr(site, "supporter_logos_json", json.dumps(supporters_data))
+            continue
+
         if hasattr(site, key) and key != "id":
             setattr(site, key, value)
     
@@ -648,6 +1017,47 @@ async def update_site(
     return {
         "id": site.id,
         "message": "Sitio actualizado exitosamente"
+    }
+
+
+@app.put("/api/sites/{site_id}/domain")
+async def update_site_domain(
+    site_id: int,
+    payload: DomainConfigPayload,
+    db: Session = Depends(get_db),
+    _admin_user: User = Depends(require_admin_or_superadmin)
+):
+    """Actualizar únicamente la configuración de dominio/CNAME (solo admin)."""
+    site = db.query(Site).filter(Site.id == site_id).first()
+
+    if not site:
+        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+
+    custom_domain = (payload.custom_domain or "").strip()
+    if custom_domain:
+        # Normalizar protocolo y barras residuales para almacenar solo el host
+        custom_domain = re.sub(r"^https?://", "", custom_domain, flags=re.IGNORECASE)
+        custom_domain = custom_domain.split("/", 1)[0].strip()
+        if not custom_domain or "." not in custom_domain:
+            raise HTTPException(status_code=400, detail="Ingresa un dominio válido, por ejemplo: www.midominio.com")
+    else:
+        custom_domain = None
+
+    cname_record = (payload.cname_record or "").strip() or DEFAULT_CNAME_TARGET
+    cname_record = cname_record.rstrip(".")
+
+    site.custom_domain = custom_domain
+    site.cname_record = cname_record
+    site.updated_at = datetime.utcnow()
+    db.add(site)
+    db.commit()
+    db.refresh(site)
+
+    return {
+        "id": site.id,
+        "custom_domain": site.custom_domain,
+        "cname_record": site.cname_record,
+        "message": "Configuración de dominio actualizada. Vuelve a publicar para escribir el archivo CNAME en GitHub."
     }
 
 
@@ -666,6 +1076,13 @@ async def preview_site(request: Request, _current_user: User = Depends(get_curre
     site_data.setdefault("hero_title", site_data.get("name", ""))
     site_data.setdefault("hero_subtitle", "")
 
+    supporter_payload = _canonicalize_supporter_logos(
+        site_data.get("supporter_logos")
+        or site_data.get("supporter_logos_json")
+        or []
+    )
+    site_data["supporter_logos_json"] = json.dumps(supporter_payload)
+
     try:
         files = template_engine.generate_site(model_type, site_data)
     except FileNotFoundError as exc:
@@ -682,7 +1099,7 @@ async def preview_site(request: Request, _current_user: User = Depends(get_curre
 async def delete_site(
     site_id: int,
     db: Session = Depends(get_db),
-    _superadmin: User = Depends(require_superadmin)
+    _admin_user: User = Depends(require_admin_or_superadmin)
 ):
     """Eliminar sitio"""
     site = db.query(Site).filter(Site.id == site_id).first()
@@ -707,143 +1124,95 @@ async def delete_site(
 async def publish_site(
     site_id: int,
     db: Session = Depends(get_db),
-    _superadmin: User = Depends(require_superadmin)
+    _admin_user: User = Depends(require_admin_or_superadmin)
 ):
-    """Publicar sitio en GitHub Pages"""
+    """Publicar sitio en GitHub Pages sin bloquear el event loop."""
     site = db.query(Site).filter(Site.id == site_id).first()
-    
+
     if not site:
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
 
+    site_payload = _serialize_site_for_publish(site)
+
     try:
-        publisher = GitHubPublisher()
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
+        publish_output = await run_in_threadpool(_execute_publish_pipeline, site_payload)
+    except PublishPipelineError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-    
-    try:
-        # Inicializar publisher
-        
-        # Nombre del repositorio (normalizar caracteres especiales)
-        import unicodedata
-        
-        # Determinar nombre del repositorio destino
-        if site.github_repo:
-            desired_repo = site.github_repo
-        else:
-            name_normalized = unicodedata.normalize('NFKD', site.name).encode('ASCII', 'ignore').decode('ASCII')
-            desired_repo = re.sub(r'[^a-zA-Z0-9\-]', '-', name_normalized.lower())
-            desired_repo = re.sub(r'-+', '-', desired_repo)  # Eliminar guiones múltiples
-            desired_repo = f"{desired_repo}-{site.id}".strip('-')
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-        print(f"🏷️  Nombre del repositorio: {desired_repo}")
+    for field, value in publish_output["asset_updates"].items():
+        setattr(site, field, value)
 
-        repo_result = publisher.create_repository(
-            repo_name=desired_repo,
-            description=site.description
-        )
+    if publish_output["gallery_update"] is not None:
+        site.gallery_images = json.dumps(publish_output["gallery_update"])
 
-        if not repo_result["success"]:
-            raise HTTPException(status_code=500, detail=repo_result["error"])
+    if publish_output["products_update"] is not None:
+        site.products_json = json.dumps(publish_output["products_update"])
 
-        site.github_repo = repo_result["repo_name"]
-        
-        gallery_items = _coerce_list(site.gallery_images or [])
-        products_items = _coerce_list(site.products_json or [])
+    site.github_repo = publish_output["repo_name"]
+    site.github_url = publish_output["pages_url"]
+    site.is_published = True
+    db.commit()
 
-        # Generar archivos del sitio
-        site_data = {
-            "id": site.id,
-            "name": site.name,
-            "description": site.description,
-            "hero_title": site.hero_title,
-            "hero_subtitle": site.hero_subtitle,
-            "hero_image": site.hero_image,
-            "about_text": site.about_text,
-            "about_image": site.about_image,
-            "contact_email": site.contact_email,
-            "contact_phone": site.contact_phone,
-            "contact_address": site.contact_address,
-            "whatsapp_number": site.whatsapp_number,
-            "facebook_url": site.facebook_url,
-            "instagram_url": site.instagram_url,
-            "tiktok_url": site.tiktok_url,
-            "logo_url": site.logo_url,
-            "primary_color": site.primary_color,
-            "secondary_color": site.secondary_color,
-            "products": products_items,
-            "products_json": json.dumps(products_items),
-            "gallery_images": gallery_items
-        }
+    return {
+        "message": "Sitio publicado exitosamente",
+        "url": site.github_url,
+        "info": PUBLISH_INFO_MESSAGE,
+        "warning": publish_output.get("warning"),
+    }
 
-        asset_updates = {}
-        gallery_update = None
-        products_update = None
 
-        site_data["hero_image"], changed = _localize_asset_for_publish(site_data["hero_image"])
-        if changed:
-            asset_updates["hero_image"] = site_data["hero_image"]
+@app.post("/api/sites/{site_id}/publish-async")
+async def publish_site_async(
+    site_id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    _admin_user: User = Depends(require_admin_or_superadmin),
+):
+    """Publicar sitio en GitHub Pages de forma asíncrona (no bloquear al cliente)."""
+    site = db.query(Site).filter(Site.id == site_id).first()
+    if not site:
+        raise HTTPException(status_code=404, detail="Sitio no encontrado")
 
-        site_data["about_image"], changed = _localize_asset_for_publish(site_data["about_image"])
-        if changed:
-            asset_updates["about_image"] = site_data["about_image"]
+    site_payload = _serialize_site_for_publish(site)
 
-        site_data["logo_url"], changed = _localize_asset_for_publish(site_data["logo_url"])
-        if changed:
-            asset_updates["logo_url"] = site_data["logo_url"]
+    def _background_job(payload: dict):
+        try:
+            result = _execute_publish_pipeline(payload)
+        except PublishPipelineError as exc:
+            # Log and ignore; this keeps the RG of site not published
+            print(f"Error en publish pipeline (async): {exc}")
+            return
+        except Exception as exc:
+            print(f"Unexpected error during async publish: {exc}")
+            return
 
-        localized_gallery, gallery_changed = _localize_gallery_for_publish(gallery_items)
-        site_data["gallery_images"] = localized_gallery
-        if gallery_changed:
-            gallery_update = localized_gallery
+        # Apply results to DB
+        db2 = SessionLocal()
+        try:
+            site2 = db2.query(Site).filter(Site.id == payload.get("id")).first()
+            if not site2:
+                return
+            for field, value in result["asset_updates"].items():
+                setattr(site2, field, value)
 
-        localized_products, products_changed = _localize_products_for_publish(products_items)
-        site_data["products"] = localized_products
-        site_data["products_json"] = json.dumps(localized_products)
-        if products_changed:
-            products_update = localized_products
-        
-        print(f"📝 Generando sitio para modelo: {site.model_type}")
-        site_files = template_engine.generate_site(site.model_type, site_data)
-        print(f"✅ Archivos generados: {list(site_files.keys())}")
-        
-        # Publicar en GitHub Pages
-        print(f"🚀 Publicando en repositorio: {site.github_repo}")
-        publish_result = publisher.publish_site(
-            repo_name=site.github_repo,
-            site_files=site_files,
-            custom_domain=site.custom_domain
-        )
-        
-        if not publish_result["success"]:
-            raise HTTPException(status_code=500, detail=publish_result["error"])
-        
-        # Actualizar BD con assets localizados
-        for field, value in asset_updates.items():
-            setattr(site, field, value)
+            if result["gallery_update"] is not None:
+                site2.gallery_images = json.dumps(result["gallery_update"])
 
-        if gallery_update is not None:
-            site.gallery_images = json.dumps(gallery_update)
+            if result["products_update"] is not None:
+                site2.products_json = json.dumps(result["products_update"])
 
-        if products_update is not None:
-            site.products_json = json.dumps(products_update)
+            site2.github_repo = result["repo_name"]
+            site2.github_url = result.get("pages_url")
+            site2.is_published = True
+            db2.commit()
+        finally:
+            db2.close()
 
-        site.github_url = publish_result["pages_url"]
-        site.is_published = True
-        db.commit()
-        
-        return {
-            "message": "Sitio publicado exitosamente",
-            "url": site.github_url,
-            "info": "⏳ GitHub Pages puede tardar 1-3 minutos en activarse. Si ves un error 404, espera unos minutos y recarga la página.",
-            "warning": publish_result.get("warning", None)
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    background_tasks.add_task(_background_job, site_payload)
+
+    return {"message": "Publicación asíncrona iniciada"}
 
 
 # ============= API STATS =============

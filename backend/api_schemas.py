@@ -54,7 +54,7 @@ class RoleRead(RoleBase):
 
 class UserBase(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    email: str = Field(..., min_length=3, max_length=255)
+    email: Optional[str] = Field(default=None, min_length=3, max_length=255)
     site_id: Optional[int] = None
     role_id: Optional[int] = None
     is_active: bool = True
@@ -62,8 +62,8 @@ class UserBase(BaseModel):
 
     @field_validator("email")
     @classmethod
-    def validate_email(cls, value: str) -> str:
-        return _normalize_email(value)
+    def validate_email(cls, value: Optional[str]) -> Optional[str]:
+        return _normalize_optional_email(value)
 
 
 class UserCreate(UserBase):

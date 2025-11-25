@@ -526,12 +526,11 @@
 
           <div>
             <label class="block text-sm font-medium text-gray-700"
-              >Correo electrónico</label
+              >Correo electrónico (opcional)</label
             >
             <input
               type="email"
               id="emailInput"
-              required
               class="mt-1 block w-full border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="usuario@webcontrol.com"
             />
@@ -550,8 +549,8 @@
               </option>
             </select>
             <p class="mt-1 text-xs text-gray-500">
-              Los superadmins solo se crean desde seed. Owners requieren un
-              sitio exclusivo.
+              Los superadmins solo pueden crearlos otros superadmins.
+              Los owners requieren un sitio exclusivo.
             </p>
           </div>
 
@@ -1404,10 +1403,19 @@
         async function handleUserSubmit(event) {
           event.preventDefault();
           const isEdit = Boolean(state.editingUser);
+          const usernameValue = (elements.username.value || "").trim();
+          const emailValue = (elements.email.value || "").trim();
+          const roleValue = elements.roleSelect.value;
+
+          if (!usernameValue || !roleValue) {
+            showToast("Ingresa al menos usuario y rol", "error");
+            return;
+          }
+
           const payload = {
-            username: elements.username.value.trim(),
-            email: elements.email.value.trim(),
-            role: elements.roleSelect.value,
+            username: usernameValue,
+            email: emailValue || null,
+            role: roleValue,
             is_active: elements.activeToggle.checked,
           };
           const expirationRaw = elements.expiresInput.value;
@@ -1420,11 +1428,6 @@
             payload.expires_at = iso;
           } else {
             payload.expires_at = null;
-          }
-
-          if (!payload.username || !payload.email) {
-            showToast("Completa los campos obligatorios", "error");
-            return;
           }
 
           if (!isEdit) {

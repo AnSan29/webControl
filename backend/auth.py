@@ -126,6 +126,16 @@ def require_superadmin(current_user: User = Depends(get_current_user)) -> User:
     return current_user
 
 
+def require_admin_or_superadmin(current_user: User = Depends(get_current_user)) -> User:
+    """Permite acceso a usuarios con rol admin o superadmin."""
+    if not _has_role(current_user, SUPERADMIN_ROLE, ADMIN_ROLE):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acceso restringido a perfiles administrativos",
+        )
+    return current_user
+
+
 def require_roles(*roles: str) -> Callable[[User], User]:
     """Crea un guard dinámico que permite solo los roles especificados."""
 

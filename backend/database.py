@@ -82,6 +82,7 @@ class Site(Base):
 
     # Productos/Servicios (JSON serializado como texto)
     products_json = Column(Text)
+    supporter_logos_json = Column(Text, default="[]")
 
     owner_user = relationship("User", back_populates="site", uselist=False)
 
@@ -205,8 +206,23 @@ def seed_superadmin_user(db, bcrypt_module):
         activated_at=datetime.utcnow(),
     )
     db.add(new_user)
-    db.commit()
-    print(f"✅ Superadmin creado: {admin_email}")
+    try:
+        db.commit()
+        print(f"✅ Superadmin creado: {admin_email}")
+    except Exception as exc:  # handle concurrent create race (unique constraints)
+        # In concurrent worker startups multiple processes may try to create the same
+        # default user. If a UNIQUE constraint fires, rollback and try to detect
+        # the already-created account instead of failing startup.
+        from sqlalchemy.exc import IntegrityError
+
+        db.rollback()
+        if isinstance(exc, IntegrityError):
+            existing = db.query(User).filter(User.email == admin_email).first()
+            if existing:
+                print(f"⚠️ Superadmin {admin_email} already exists (concurrent create). Skipping.")
+                return
+        # re-raise unexpected errors
+        raise
 
 
 def ensure_user_audit_columns():
@@ -241,6 +257,8 @@ def ensure_site_dns_columns():
         statements = []
         if "cname_record" not in existing:
             statements.append("ALTER TABLE sites ADD COLUMN cname_record VARCHAR(200)")
+        if "supporter_logos_json" not in existing:
+            statements.append("ALTER TABLE sites ADD COLUMN supporter_logos_json TEXT DEFAULT '[]'")
         for statement in statements:
             conn.execute(text(statement))
         if statements:

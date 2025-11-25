@@ -416,7 +416,9 @@
           el.classList.toggle("hidden", normalized !== "owner");
         });
         roleVisibility.superadminOnly.forEach((el) => {
-          el.classList.toggle("hidden", normalized !== "superadmin");
+          const hasAdminAccess =
+            normalized === "superadmin" || normalized === "admin";
+          el.classList.toggle("hidden", !hasAdminAccess);
         });
       }
 
@@ -446,11 +448,17 @@
         try {
           const response = await fetchAPI("/api/me");
           if (!response || !response.ok) return;
-          const data = await response.json();
-          const email = data.email || "admin@webcontrol.com";
-          const username =
-            data.username || (email.includes("@") ? email.split("@")[0] : email);
-          document.getElementById("userName").textContent = username;
+        const username =
+          data.username ||
+          (data.email && data.email.includes("@")
+            ? data.email.split("@")[0]
+            : "Admin");
+        document.getElementById("userName").textContent = username;
+        document.getElementById("userEmail").textContent =
+          data.email || username;
+        if (data.username) {
+          localStorage.setItem("username", data.username);
+        }
           document.getElementById("userEmail").textContent = email;
           currentUserRole = data.role || data.role_name || currentUserRole;
           if (currentUserRole) {

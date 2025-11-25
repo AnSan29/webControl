@@ -2,7 +2,10 @@ from github import Github, GithubException
 import os
 import json
 import time
-from typing import Optional
+from pathlib import Path
+from typing import Iterable, Optional
+
+import requests
 
 class GitHubPublisher:
     """Utilidad para publicar sitios en GitHub Pages"""
@@ -28,6 +31,16 @@ class GitHubPublisher:
             self.user = self.github.get_user()
             # Verificar que el token sea válido
             self.user.login
+            desired_username = os.getenv('GITHUB_USERNAME')
+            if desired_username and desired_username != self.user.login:
+                raise ValueError(
+                    "GITHUB_USERNAME en .env ('{0}') no coincide con el dueño real del token ('{1}'). "
+                    "Actualiza el archivo .env para evitar publicar en la cuenta incorrecta.".format(
+                        desired_username,
+                        self.user.login,
+                    )
+                )
+            self.username = self.user.login
         except Exception as e:
             raise ValueError(
                 f"❌ Error al conectar con GitHub: {str(e)}\n\n"
@@ -130,24 +143,11 @@ class GitHubPublisher:
         try:
             repo = self.user.get_repo(repo_name)
             
-            # Intentar obtener el archivo existente
+            # Use safe update/create helper to handle race conditions and 422 errors
             try:
-                file = repo.get_contents(file_path)
-                repo.update_file(
-                    path=file_path,
-                    message=commit_message,
-                    content=content,
-                    sha=file.sha,
-                    branch="main"
-                )
-            except GithubException:
-                # El archivo no existe, crearlo
-                repo.create_file(
-                    path=file_path,
-                    message=commit_message,
-                    content=content,
-                    branch="main"
-                )
+                self._safe_update_or_create(repo, file_path, content, commit_message)
+            except Exception as exc:
+                return {"success": False, "error": str(exc)}
             
             return {"success": True}
         except GithubException as e:
@@ -158,24 +158,10 @@ class GitHubPublisher:
         try:
             repo = self.user.get_repo(repo_name)
             
-            # Intentar obtener el archivo existente
             try:
-                file = repo.get_contents(file_path)
-                repo.update_file(
-                    path=file_path,
-                    message=commit_message,
-                    content=file_content,
-                    sha=file.sha,
-                    branch="main"
-                )
-            except GithubException:
-                # El archivo no existe, crearlo
-                repo.create_file(
-                    path=file_path,
-                    message=commit_message,
-                    content=file_content,
-                    branch="main"
-                )
+                self._safe_update_or_create(repo, file_path, file_content, commit_message, binary=True)
+            except Exception as exc:
+                return {"success": False, "error": str(exc)}
             
             return {"success": True}
         except GithubException as e:
@@ -224,14 +210,7 @@ class GitHubPublisher:
                     if has_commits:
                         # El repo tiene commits, intentar actualizar o crear
                         try:
-                            file = repo.get_contents(file_path)
-                            repo.update_file(
-                                path=file_path,
-                                message=commit_message,
-                                content=content,
-                                sha=file.sha,
-                                branch="main"
-                            )
+                            self._safe_update_or_create(repo, file_path, content, commit_message)
                             print(f"  ✓ Actualizado: {file_path}")
                         except GithubException:
                             # El archivo no existe, crearlo
@@ -267,60 +246,180 @@ class GitHubPublisher:
             print(f"❌ {error_msg}")
             return {"success": False, "error": error_msg}
     
-    def enable_github_pages(self, repo_name: str, branch: str = "main", path: str = "/") -> dict:
-        """Habilitar GitHub Pages en el repositorio"""
-        try:
-            repo = self.user.get_repo(repo_name)
-            
-            # Usar la API de GitHub para habilitar Pages
-            # Necesitamos hacer una petición POST a la API de Pages
-            try:
-                # Intentar obtener la configuración de Pages existente
-                pages = repo.get_pages_build()
-            except:
-                # Si no existe, crear la configuración de Pages
-                # Usamos la API REST directamente
-                import requests
-                headers = {
-                    "Authorization": f"token {self.token}",
-                    "Accept": "application/vnd.github.v3+json"
-                }
-                
-                # Habilitar GitHub Pages
-                pages_config = {
-                    "source": {
-                        "branch": branch,
-                        "path": path
-                    }
-                }
-                
-                response = requests.post(
-                    f"https://api.github.com/repos/{self.username}/{repo_name}/pages",
-                    headers=headers,
-                    json=pages_config
+    def _pages_headers(self):
+        return {
+            "Authorization": f"token {self.token}",
+            "Accept": "application/vnd.github+json"
+        }
+
+    def _pages_api_url(self, repo_name: str) -> str:
+        return f"https://api.github.com/repos/{self.username}/{repo_name}/pages"
+
+    def _pages_build_url(self, repo_name: str) -> str:
+        return f"https://api.github.com/repos/{self.username}/{repo_name}/pages/builds/latest"
+
+    def _pages_builds_collection_url(self, repo_name: str) -> str:
+        return f"https://api.github.com/repos/{self.username}/{repo_name}/pages/builds"
+
+    def _ensure_pages_response(self, response: requests.Response, action: str):
+        if response.status_code in (200, 201, 202, 204):
+            return
+        raise RuntimeError(
+            f"No se pudo {action} (HTTP {response.status_code}): {response.text}"
+        )
+
+    def _wait_for_pages_build(self, repo_name: str, timeout: int = 180):
+        deadline = time.time() + timeout
+        last_status = "desconocido"
+        headers = self._pages_headers()
+        url = self._pages_build_url(repo_name)
+
+        while time.time() < deadline:
+            response = requests.get(url, headers=headers, timeout=15)
+            if response.status_code == 200:
+                payload = response.json()
+                status = payload.get("status") or payload.get("state") or ""
+                last_status = status or last_status
+                if status in ("built", "succeeded"):
+                    return
+                if status in ("building", "queued", "pending"):
+                    time.sleep(5)
+                    continue
+                raise RuntimeError(
+                    f"Build de GitHub Pages falló con estado '{status}': {payload}"
                 )
-                
-                # Si ya está habilitado, intentar actualizarlo
+            if response.status_code == 404:
+                # La API tarda en reflejar la configuración inicial
+                time.sleep(5)
+                continue
+            raise RuntimeError(
+                f"No se pudo consultar el estado del build (HTTP {response.status_code}): {response.text}"
+            )
+
+        raise RuntimeError(
+            f"Timeout esperando a que GitHub Pages complete el build (último estado conocido: {last_status})"
+        )
+
+    def _trigger_pages_build(self, repo_name: str):
+        url = self._pages_builds_collection_url(repo_name)
+        headers = self._pages_headers()
+        response = requests.post(url, headers=headers, timeout=15)
+        if response.status_code == 201:
+            return
+        if response.status_code == 409:
+            # Ya hay un build en progreso; continuar
+            return
+        self._ensure_pages_response(response, "disparar build de GitHub Pages")
+
+    def _safe_update_or_create(self, repo, file_path: str, content, commit_message: str, binary: bool = False):
+        """Actualizar o crear un archivo en el repo, con manejo de 422 (sha) y relectura del archivo."""
+        try:
+            print(f"[GitHubPublisher] Updating or creating: {file_path} (binary={binary})")
+            # Intentar recuperar versión actual
+            file = None
+            try:
+                file = repo.get_contents(file_path)
+            except GithubException:
+                file = None
+
+            if file and getattr(file, 'sha', None):
+                print(f"[GitHubPublisher] Found existing file: {file_path} sha={file.sha}")
+                try:
+                    repo.update_file(path=file_path, message=commit_message, content=content, sha=file.sha, branch="main")
+                    return
+                except GithubException as ue:
+                    print(f"[GitHubPublisher] update_file error for {file_path}: {ue}")
+                    # Si GitHub responde que falta el SHA, intentar re-obtener el contenido y actualizar
+                    err_str = str(ue)
+                    if "sha" in err_str.lower() or ue.status == 422:
+                        try:
+                            file = repo.get_contents(file_path)
+                            if file and file.sha:
+                                repo.update_file(path=file_path, message=commit_message, content=content, sha=file.sha, branch="main")
+                                return
+                        except GithubException:
+                            pass
+                    # Si sigue fallando, intentar crear (puede fallar con 422 si ya existe)
+            # Si no hay archivo o update falló, intentar crear
+            print(f"[GitHubPublisher] Creating file {file_path}")
+            repo.create_file(path=file_path, message=commit_message, content=content, branch="main")
+            return
+        except GithubException as ge:
+            # Si create falla porque ya existe (race), reintentar update
+            msg = str(ge)
+            if "already exists" in msg.lower() or ge.status == 422:
+                try:
+                    file = repo.get_contents(file_path)
+                    repo.update_file(path=file_path, message=commit_message, content=content, sha=file.sha, branch="main")
+                    return
+                except GithubException as final_exc:
+                    raise final_exc
+            raise ge
+
+    def _wait_for_site_availability(self, pages_url: str, timeout: int = 180):
+        deadline = time.time() + timeout
+        last_error = ""
+        site_url = pages_url.rstrip("/") + "/"
+
+        while time.time() < deadline:
+            try:
+                response = requests.get(site_url, timeout=15)
+                if response.status_code == 200:
+                    return
+                last_error = f"HTTP {response.status_code}"
+            except requests.RequestException as exc:
+                last_error = str(exc)
+            time.sleep(6)
+
+        raise RuntimeError(
+            f"El sitio publicado nunca respondió 200 en GitHub Pages (último error: {last_error})"
+        )
+
+    def enable_github_pages(self, repo_name: str, branch: str = "main", path: str = "/") -> dict:
+        """Habilitar GitHub Pages en el repositorio y esperar confirmación."""
+        headers = self._pages_headers()
+        pages_api = self._pages_api_url(repo_name)
+        payload = {
+            "source": {
+                "branch": branch,
+                "path": path
+            }
+        }
+
+        try:
+            current_config = requests.get(pages_api, headers=headers, timeout=15)
+            if current_config.status_code == 200:
+                source = current_config.json().get("source", {})
+                needs_update = (
+                    source.get("branch") != branch or
+                    source.get("path") != path
+                )
+                if needs_update:
+                    response = requests.put(pages_api, headers=headers, json=payload, timeout=15)
+                    self._ensure_pages_response(response, "actualizar GitHub Pages")
+            elif current_config.status_code == 404:
+                response = requests.post(pages_api, headers=headers, json=payload, timeout=15)
                 if response.status_code == 409:
-                    response = requests.put(
-                        f"https://api.github.com/repos/{self.username}/{repo_name}/pages",
-                        headers=headers,
-                        json=pages_config
-                    )
-            
+                    response = requests.put(pages_api, headers=headers, json=payload, timeout=15)
+                self._ensure_pages_response(response, "habilitar GitHub Pages")
+            else:
+                self._ensure_pages_response(current_config, "consultar configuración de GitHub Pages")
+
+            # Forzar un build para evitar que GitHub Pages se quede sin publicar
+            self._trigger_pages_build(repo_name)
+            # Esperar a que GitHub procese el build y propague el sitio
+            self._wait_for_pages_build(repo_name)
             pages_url = f"https://{self.username}.github.io/{repo_name}/"
-            
+            self._wait_for_site_availability(pages_url)
+
             return {
                 "success": True,
                 "pages_url": pages_url
             }
         except Exception as e:
-            # Si hay error, intentar de todos modos devolver la URL
-            pages_url = f"https://{self.username}.github.io/{repo_name}/"
             return {
-                "success": True,
-                "pages_url": pages_url,
-                "warning": f"Pages URL generada, pero puede requerir configuración manual: {str(e)}"
+                "success": False,
+                "error": str(e)
             }
     
     def create_cname(self, repo_name: str, custom_domain: str) -> dict:
@@ -336,7 +435,13 @@ class GitHubPublisher:
         except Exception as e:
             return {"success": False, "error": str(e)}
     
-    def publish_site(self, repo_name: str, site_files: dict, custom_domain: Optional[str] = None) -> dict:
+    def publish_site(
+        self,
+        repo_name: str,
+        site_files: dict,
+        custom_domain: Optional[str] = None,
+        asset_files: Optional[Iterable[str]] = None,
+    ) -> dict:
         """
         Publicar sitio completo en GitHub Pages
         
@@ -344,6 +449,7 @@ class GitHubPublisher:
             repo_name: Nombre del repositorio
             site_files: Dict con archivos {path: content}
             custom_domain: Dominio personalizado opcional
+            asset_files: Iteración de rutas relativas (images/archivo.png) que deben subirse desde uploads/
         """
         try:
             # Subir archivos del sitio
@@ -353,24 +459,39 @@ class GitHubPublisher:
                 return result
             
             # Subir imágenes locales desde uploads/
-            from pathlib import Path
             uploads_dir = Path(__file__).parent.parent.parent / "uploads"
             if uploads_dir.exists():
-                for image_file in uploads_dir.glob("*"):
-                    if image_file.is_file() and image_file.suffix.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']:
-                        try:
-                            with open(image_file, 'rb') as f:
-                                image_content = f.read()
-                            
-                            # Subir imagen al repo en carpeta images/
-                            self.upload_binary_file(
-                                repo_name=repo_name,
-                                file_path=f"images/{image_file.name}",
-                                file_content=image_content,
-                                commit_message=f"Upload image {image_file.name}"
-                            )
-                        except Exception as e:
-                            print(f"Warning: Could not upload image {image_file.name}: {e}")
+                if asset_files:
+                    target_files = []
+                    added = set()
+                    for asset in asset_files:
+                        if not asset:
+                            continue
+                        filename = Path(asset).name
+                        if filename in added:
+                            continue
+                        candidate = uploads_dir / filename
+                        if candidate.exists():
+                            target_files.append(candidate)
+                            added.add(filename)
+                else:
+                    target_files = [p for p in uploads_dir.glob("*") if p.is_file()]
+
+                for image_file in target_files:
+                    if image_file.suffix.lower() not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']:
+                        continue
+                    try:
+                        with open(image_file, 'rb') as f:
+                            image_content = f.read()
+                        # Subir imagen al repo en carpeta images/
+                        self.upload_binary_file(
+                            repo_name=repo_name,
+                            file_path=f"images/{image_file.name}",
+                            file_content=image_content,
+                            commit_message=f"Upload image {image_file.name}"
+                        )
+                    except Exception as e:
+                        print(f"Warning: Could not upload image {image_file.name}: {e}")
             
             # Si hay dominio personalizado, crear CNAME
             if custom_domain:

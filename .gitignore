@@ -53,3 +53,9 @@ temp/
 
 # Generated sites
 generated_sites/
+
+# User uploads
+uploads/
+
+# Ignore backup env files
+.env.example.bak

@@ -31,14 +31,14 @@ pip install -r requirements.txt
 
 Crea un archivo `.env` usando `.env.example` como referencia.
 
-| Clave | Descripción |
-| --- | --- |
-| `SECRET_KEY` | Clave para firmar JWT y CSRF tokens. |
-| `HOST` / `PORT` | Host y puerto que usará Uvicorn. |
-| `GITHUB_TOKEN` | Token personal para clonar/push y crear repositorios. |
-| `GITHUB_USERNAME` | Cuenta que alojará los sitios publicados. |
-| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Credenciales del superadmin inicial. |
-| `DATABASE_URL` | Ruta SQLite, por defecto `sqlite:///./backend/db.sqlite3`. |
+| Clave                            | Descripción                                                |
+| -------------------------------- | ---------------------------------------------------------- |
+| `SECRET_KEY`                     | Clave para firmar JWT y CSRF tokens.                       |
+| `HOST` / `PORT`                  | Host y puerto que usará Uvicorn.                           |
+| `GITHUB_TOKEN`                   | Token personal para clonar/push y crear repositorios.      |
+| `GITHUB_USERNAME`                | Cuenta que alojará los sitios publicados.                  |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Credenciales del superadmin inicial.                       |
+| `DATABASE_URL`                   | Ruta SQLite, por defecto `sqlite:///./backend/db.sqlite3`. |
 
 ### Inicializar la base de datos
 
