@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Optional
 import json
 import os
 import re
@@ -17,6 +18,7 @@ import time
 import uuid
 import unicodedata
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 
 # Cargar variables de entorno
 load_dotenv()
@@ -170,6 +172,11 @@ PUBLISH_INFO_MESSAGE = (
     "⏳ GitHub Pages puede tardar entre 1 y 3 minutos en activarse. "
     "Si ves un error 404 espera un momento y vuelve a recargar."
 )
+
+
+class DomainConfigPayload(BaseModel):
+    custom_domain: Optional[str] = Field(default=None, max_length=255)
+    cname_record: Optional[str] = Field(default=None, max_length=255)
 
 
 def _client_ip_from_request(request: Request) -> str:
@@ -1008,6 +1015,47 @@ async def update_site(
     return {
         "id": site.id,
         "message": "Sitio actualizado exitosamente"
+    }
+
+
+@app.put("/api/sites/{site_id}/domain")
+async def update_site_domain(
+    site_id: int,
+    payload: DomainConfigPayload,
+    db: Session = Depends(get_db),
+    _admin_user: User = Depends(require_admin_or_superadmin)
+):
+    """Actualizar únicamente la configuración de dominio/CNAME (solo admin)."""
+    site = db.query(Site).filter(Site.id == site_id).first()
+
+    if not site:
+        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+
+    custom_domain = (payload.custom_domain or "").strip()
+    if custom_domain:
+        # Normalizar protocolo y barras residuales para almacenar solo el host
+        custom_domain = re.sub(r"^https?://", "", custom_domain, flags=re.IGNORECASE)
+        custom_domain = custom_domain.split("/", 1)[0].strip()
+        if not custom_domain or "." not in custom_domain:
+            raise HTTPException(status_code=400, detail="Ingresa un dominio válido, por ejemplo: www.midominio.com")
+    else:
+        custom_domain = None
+
+    cname_record = (payload.cname_record or "").strip() or DEFAULT_CNAME_TARGET
+    cname_record = cname_record.rstrip(".")
+
+    site.custom_domain = custom_domain
+    site.cname_record = cname_record
+    site.updated_at = datetime.utcnow()
+    db.add(site)
+    db.commit()
+    db.refresh(site)
+
+    return {
+        "id": site.id,
+        "custom_domain": site.custom_domain,
+        "cname_record": site.cname_record,
+        "message": "Configuración de dominio actualizada. Vuelve a publicar para escribir el archivo CNAME en GitHub."
     }
 
 

@@ -148,6 +148,17 @@
         color: #991b1b;
       }
 
+      .site-action--domain {
+        background-color: #e0f2fe;
+        color: #075985;
+        border-color: #bae6fd;
+      }
+
+      .site-action--domain:hover {
+        background-color: #bae6fd;
+        color: #0c4a6e;
+      }
+
       .site-action--disabled {
         color: #9ca3af;
         background-color: #f3f4f6;
@@ -361,6 +372,32 @@
         display: flex;
         flex-wrap: wrap;
         gap: 0.85rem;
+      }
+
+      .domain-provider-card {
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 20px;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 25px 60px -40px rgba(15, 23, 42, 0.35);
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      .domain-provider-card h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+
+      .domain-provider-card p {
+        font-size: 0.85rem;
+        color: #475569;
+        line-height: 1.4;
       }
 
       @keyframes usersModuleEnter {
@@ -1488,6 +1525,170 @@
       </div>
     </div>
 
+    <!-- Modal de configuración de dominios -->
+    <div
+      id="domainModal"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center overflow-y-auto bg-slate-900/70 backdrop-blur-sm px-4 py-10"
+    >
+      <div
+        class="w-full max-w-3xl rounded-[32px] border border-slate-100 bg-white shadow-2xl"
+      >
+        <div
+          class="flex items-center justify-between border-b border-slate-100 px-6 py-5"
+        >
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+              Dominios
+            </p>
+            <h3
+              id="domainSiteName"
+              class="text-xl font-semibold text-slate-900"
+            >
+              Sitio seleccionado
+            </h3>
+          </div>
+          <button
+            type="button"
+            id="closeDomainModalBtn"
+            class="text-slate-400 transition-colors hover:text-slate-900"
+          >
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+        <form id="domainForm" class="px-6 py-6 space-y-6">
+          <div class="flex flex-wrap items-center gap-3 text-sm">
+            <span
+              id="domainStatusChip"
+              class="wc-chip wc-chip--warning"
+            >
+              Sin dominio personalizado
+            </span>
+            <a
+              id="domainLiveLink"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hidden text-sm font-medium text-blue-600"
+            >
+              Abrir sitio publicado
+            </a>
+          </div>
+
+          <div class="grid gap-6 md:grid-cols-2">
+            <div>
+              <label
+                for="customDomainInput"
+                class="block text-sm font-semibold text-slate-700 mb-2"
+                >Dominio personalizado</label
+              >
+              <input
+                type="text"
+                id="customDomainInput"
+                class="form-input"
+                placeholder="ej. www.misitio.com"
+              />
+              <p class="mt-2 text-xs text-slate-500">
+                Ingresa el dominio final (sin https://). Déjalo vacío para
+                volver a usar la URL *.github.io.
+              </p>
+            </div>
+            <div>
+              <label
+                for="cnameInput"
+                class="block text-sm font-semibold text-slate-700 mb-2"
+                >Destino del CNAME</label
+              >
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  id="cnameInput"
+                  class="form-input flex-1"
+                />
+                <button
+                  type="button"
+                  id="copyCnameBtn"
+                  class="site-action site-action--view whitespace-nowrap"
+                >
+                  <i class="fas fa-copy"></i>
+                  Copiar
+                </button>
+              </div>
+              <p id="domainGithubHint" class="mt-2 text-xs text-slate-500">
+                Copia este valor en tu proveedor DNS.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-600"
+          >
+            <p class="mb-2 font-semibold text-slate-700">
+              Checklist rápido
+            </p>
+            <ul class="list-disc space-y-1 pl-5">
+              <li>
+                El registro CNAME debe apuntar exactamente al valor indicado
+                arriba.
+              </li>
+              <li>La propagación puede tardar entre 5 y 30 minutos.</li>
+              <li>
+                Después de guardar, vuelve a publicar el sitio para generar el
+                archivo CNAME en GitHub.
+              </li>
+            </ul>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-3 text-sm" id="domainProviderGuides">
+            <div class="domain-provider-card">
+              <h4><i class="fab fa-github text-slate-500"></i> GitHub Pages</h4>
+              <p>
+                1. Repo → Settings → Pages.<br />
+                2. Ingresa el dominio personalizado y guarda.<br />
+                3. Verifica que GitHub muestre “DNS check in progress” y
+                republica desde WebControl.
+              </p>
+            </div>
+            <div class="domain-provider-card">
+              <h4><i class="fas fa-server text-slate-500"></i> Hostinger</h4>
+              <p>
+                1. hPanel → Domains → DNS / Zona DNS.<br />
+                2. Agrega un CNAME con Host = subdominio (ej. www).<br />
+                3. Target = valor CNAME y TTL 300.
+              </p>
+            </div>
+            <div class="domain-provider-card">
+              <h4><i class="fas fa-crown text-slate-500"></i> GoDaddy</h4>
+              <p>
+                1. Mis productos → DNS → Agregar.<br />
+                2. Tipo CNAME, Host = www.<br />
+                3. Apunta al destino indicado y guarda.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="flex flex-wrap justify-end gap-3 border-t border-slate-100 pt-4"
+          >
+            <button
+              type="button"
+              class="wc-button wc-button--ghost text-slate-600"
+              onclick="closeDomainModal()"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              id="domainModalSaveBtn"
+              class="wc-button wc-button--primary"
+            >
+              <i class="fas fa-floppy-disk"></i>
+              Guardar dominios
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <script src="/static/js/users-module.js"></script>
     <script>
       const API_URL = `${window.location.origin}/api`;
@@ -1503,6 +1704,8 @@
       };
 
       const visitsCache = {};
+      const siteLookup = new Map();
+      const domainState = { siteId: null };
 
       const dom = {
         toggleSidebarMobile: document.getElementById("toggleSidebarMobile"),
@@ -1525,6 +1728,17 @@
         mosaicGrid: document.getElementById("mosaicGrid"),
         ownerSiteSummary: document.getElementById("ownerSiteSummary"),
         ownerSiteShortcut: document.getElementById("ownerSiteShortcut"),
+        domainModal: document.getElementById("domainModal"),
+        domainForm: document.getElementById("domainForm"),
+        domainSiteName: document.getElementById("domainSiteName"),
+        domainStatusChip: document.getElementById("domainStatusChip"),
+        domainLiveLink: document.getElementById("domainLiveLink"),
+        customDomainInput: document.getElementById("customDomainInput"),
+        cnameInput: document.getElementById("cnameInput"),
+        domainGithubHint: document.getElementById("domainGithubHint"),
+        copyCnameBtn: document.getElementById("copyCnameBtn"),
+        domainModalSaveBtn: document.getElementById("domainModalSaveBtn"),
+        closeDomainModalBtn: document.getElementById("closeDomainModalBtn"),
       };
 
       const roleVisibility = {
@@ -1564,6 +1778,7 @@
       bindInteractions();
       applyRoleVisibility();
       setupInlineNavigation(viewController);
+      setupDomainModal();
 
       userInfoPromise = loadUserInfo();
       viewController.show(initialView, { replaceHistory: true });
@@ -1639,6 +1854,11 @@
             el.classList.add("hidden");
           }
         });
+      }
+
+      function canManageDomains() {
+        const normalizedRole = (currentUserRole || "").toLowerCase();
+        return normalizedRole === "admin" || normalizedRole === "superadmin";
       }
 
       function updateOwnerShortcut(site = null) {
@@ -1809,6 +2029,9 @@
             updateOwnerShortcut();
           }
           applyRoleVisibility();
+          if (state.sites.length) {
+            applyFilters();
+          }
         } catch (error) {
           console.error("Error loading user info:", error);
         }
@@ -1846,6 +2069,8 @@
           });
           if (!response.ok) throw new Error("Respuesta inválida de /api/sites");
           state.sites = await response.json();
+          siteLookup.clear();
+          state.sites.forEach((site) => siteLookup.set(site.id, site));
 
           if (currentUserRole === "owner") {
             const assignedId = Number(localStorage.getItem("site_id") || 0);
@@ -1963,6 +2188,14 @@
                                 <span>Editar</span>
                             </a>
                             ${liveButton}
+                            ${
+                              canManageDomains()
+                                ? `<button type="button" class="site-action site-action--domain" onclick="openDomainModal(${site.id})">
+                                      <i class="fas fa-globe"></i>
+                                      <span>Dominios</span>
+                                   </button>`
+                                : ""
+                            }
                             ${(() => {
                               const label = site.is_published
                                 ? "Replicar cambios"
@@ -2120,6 +2353,165 @@
             : `https://${normalized.replace(/^\/+/, "")}`;
         }
         return "";
+      }
+
+      function setupDomainModal() {
+        if (!dom.domainModal || !dom.domainForm) return;
+        dom.domainForm.addEventListener("submit", handleDomainFormSubmit);
+        if (dom.copyCnameBtn) {
+          dom.copyCnameBtn.addEventListener("click", () => copyModalCname());
+        }
+        if (dom.closeDomainModalBtn) {
+          dom.closeDomainModalBtn.addEventListener("click", closeDomainModal);
+        }
+        if (dom.cnameInput) {
+          dom.cnameInput.addEventListener("input", () => updateDomainHelperTexts());
+        }
+        dom.domainModal.addEventListener("click", (event) => {
+          if (event.target === dom.domainModal) {
+            closeDomainModal();
+          }
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && !dom.domainModal.classList.contains("hidden")) {
+            closeDomainModal();
+          }
+        });
+      }
+
+      function openDomainModal(siteId) {
+        if (!canManageDomains()) {
+          showNotification("Solo los perfiles administrativos pueden configurar dominios.", "warning");
+          return;
+        }
+        const site = siteLookup.get(siteId);
+        if (!site) {
+          showNotification("No encontramos la información del sitio seleccionado.", "error");
+          return;
+        }
+        domainState.siteId = siteId;
+        hydrateDomainModal(site);
+        dom.domainModal.classList.remove("hidden");
+        document.body.classList.add("overflow-hidden");
+      }
+
+      function hydrateDomainModal(site) {
+        if (!dom.domainSiteName || !dom.customDomainInput || !dom.cnameInput) {
+          return;
+        }
+        dom.domainSiteName.textContent = site.name || `Sitio #${site.id}`;
+        dom.customDomainInput.value = site.custom_domain || "";
+        dom.cnameInput.value = site.cname_record || "reconvencionlaboralguajira.github.io";
+        updateDomainHelperTexts(site);
+
+        if (dom.domainLiveLink) {
+          const liveUrl = getLiveUrl(site);
+          if (liveUrl) {
+            dom.domainLiveLink.href = liveUrl;
+            dom.domainLiveLink.classList.remove("hidden");
+          } else {
+            dom.domainLiveLink.href = "#";
+            dom.domainLiveLink.classList.add("hidden");
+          }
+        }
+
+        if (dom.domainStatusChip) {
+          if (site.custom_domain) {
+            dom.domainStatusChip.textContent = `Dominio activo: ${site.custom_domain}`;
+            dom.domainStatusChip.classList.remove("wc-chip--warning");
+            dom.domainStatusChip.classList.add("wc-chip--success");
+          } else {
+            dom.domainStatusChip.textContent = "Usando dominio por defecto (.github.io)";
+            dom.domainStatusChip.classList.remove("wc-chip--success");
+            dom.domainStatusChip.classList.add("wc-chip--warning");
+          }
+        }
+      }
+
+      function updateDomainHelperTexts(site) {
+        if (!dom.domainGithubHint || !dom.cnameInput) return;
+        const fallbackSite =
+          site || (domainState.siteId ? siteLookup.get(domainState.siteId) : null) || {};
+        const cnameValue =
+          dom.cnameInput.value || fallbackSite.cname_record || "reconvencionlaboralguajira.github.io";
+        dom.domainGithubHint.textContent = `Crea un registro CNAME que apunte a ${cnameValue}.`;
+      }
+
+      function closeDomainModal() {
+        domainState.siteId = null;
+        if (!dom.domainModal) return;
+        dom.domainModal.classList.add("hidden");
+        document.body.classList.remove("overflow-hidden");
+      }
+
+      function setDomainModalLoading(isLoading) {
+        if (!dom.domainModalSaveBtn) return;
+        dom.domainModalSaveBtn.disabled = isLoading;
+        dom.domainModalSaveBtn.classList.toggle("opacity-60", isLoading);
+        dom.domainModalSaveBtn.classList.toggle("cursor-wait", isLoading);
+        if (isLoading) {
+          dom.domainModalSaveBtn.dataset.originalLabel =
+            dom.domainModalSaveBtn.dataset.originalLabel || dom.domainModalSaveBtn.innerHTML;
+          dom.domainModalSaveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        } else if (dom.domainModalSaveBtn.dataset.originalLabel) {
+          dom.domainModalSaveBtn.innerHTML = dom.domainModalSaveBtn.dataset.originalLabel;
+        } else {
+          dom.domainModalSaveBtn.innerHTML = '<i class="fas fa-floppy-disk"></i> Guardar dominios';
+        }
+      }
+
+      async function handleDomainFormSubmit(event) {
+        event.preventDefault();
+        if (!domainState.siteId) return;
+        const payload = {
+          custom_domain: (dom.customDomainInput.value || "").trim(),
+          cname_record: (dom.cnameInput.value || "").trim(),
+        };
+        setDomainModalLoading(true);
+        try {
+          const response = await fetch(`${API_URL}/sites/${domainState.siteId}/domain`, {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+          const data = await response.json();
+          if (response.ok) {
+            showNotification(data.message || "Dominio actualizado", "success");
+            closeDomainModal();
+            await refreshDashboard();
+          } else {
+            showNotification(data.detail || "No se pudo actualizar el dominio", "error");
+          }
+        } catch (error) {
+          console.error("Error updating domain:", error);
+          showNotification("Error al guardar la configuración de dominio", "error");
+        } finally {
+          setDomainModalLoading(false);
+        }
+      }
+
+      async function copyModalCname() {
+        const value = (dom.cnameInput?.value || "").trim();
+        if (!value) {
+          showNotification("No hay un valor CNAME para copiar.", "warning");
+          return;
+        }
+        try {
+          if (typeof copyToClipboard === "function") {
+            await copyToClipboard(value);
+          } else if (navigator.clipboard) {
+            await navigator.clipboard.writeText(value);
+            showNotification("CNAME copiado al portapapeles", "success");
+          } else {
+            showNotification("Tu navegador no permite copiar automáticamente. Copia el valor manualmente.", "warning");
+          }
+        } catch (error) {
+          console.error("Clipboard error", error);
+          showNotification("No se pudo copiar el CNAME", "error");
+        }
       }
 
       function setView(view) {
