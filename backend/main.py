@@ -173,6 +173,8 @@ PUBLISH_INFO_MESSAGE = (
     "Si ves un error 404 espera un momento y vuelve a recargar."
 )
 
+templates.env.globals["DEFAULT_CNAME_TARGET"] = DEFAULT_CNAME_TARGET
+
 
 class DomainConfigPayload(BaseModel):
     custom_domain: Optional[str] = Field(default=None, max_length=255)

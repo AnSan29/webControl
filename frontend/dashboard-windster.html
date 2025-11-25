@@ -33,6 +33,10 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="/static/js/main.js"></script>
+    <script>
+      window.DEFAULT_CNAME_TARGET =
+        (window.DEFAULT_CNAME_TARGET || {{ DEFAULT_CNAME_TARGET | tojson }});
+    </script>
 
     <style>
       @keyframes fadeIn {
@@ -1691,6 +1695,8 @@
 
     <script src="/static/js/users-module.js"></script>
     <script>
+      const DEFAULT_CNAME_TARGET =
+        (window.DEFAULT_CNAME_TARGET || "reconvencionlaboralguajira.github.io");
       const API_URL = `${window.location.origin}/api`;
       let token = localStorage.getItem("token");
       let chart = null;
@@ -2401,7 +2407,7 @@
         }
         dom.domainSiteName.textContent = site.name || `Sitio #${site.id}`;
         dom.customDomainInput.value = site.custom_domain || "";
-        dom.cnameInput.value = site.cname_record || "reconvencionlaboralguajira.github.io";
+        dom.cnameInput.value = site.cname_record || DEFAULT_CNAME_TARGET;
         updateDomainHelperTexts(site);
 
         if (dom.domainLiveLink) {
@@ -2433,7 +2439,7 @@
         const fallbackSite =
           site || (domainState.siteId ? siteLookup.get(domainState.siteId) : null) || {};
         const cnameValue =
-          dom.cnameInput.value || fallbackSite.cname_record || "reconvencionlaboralguajira.github.io";
+          dom.cnameInput.value || fallbackSite.cname_record || DEFAULT_CNAME_TARGET;
         dom.domainGithubHint.textContent = `Crea un registro CNAME que apunte a ${cnameValue}.`;
       }
 
@@ -2494,7 +2500,7 @@
       }
 
       async function copyModalCname() {
-        const value = (dom.cnameInput?.value || "").trim();
+        const value = (dom.cnameInput?.value || DEFAULT_CNAME_TARGET).trim();
         if (!value) {
           showNotification("No hay un valor CNAME para copiar.", "warning");
           return;

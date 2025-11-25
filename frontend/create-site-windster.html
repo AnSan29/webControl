@@ -11,6 +11,10 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <script>
+      window.DEFAULT_CNAME_TARGET =
+        (window.DEFAULT_CNAME_TARGET || {{ DEFAULT_CNAME_TARGET | tojson }});
+    </script>
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="/static/img/webcontrol-logo.png?v=3">
     <link rel="icon" type="image/svg+xml" href="/static/img/webcontrol-logo.svg?v=3">
@@ -903,6 +907,8 @@
     <script src="/static/js/main.js"></script>
     <script>
       const token = localStorage.getItem("token");
+      const DEFAULT_CNAME_TARGET =
+        window.DEFAULT_CNAME_TARGET || "reconvencionlaboralguajira.github.io";
       let currentUserRole = localStorage.getItem("role") || null;
       if (!token) {
         window.location.href = "/";
@@ -968,7 +974,7 @@
       let previewPaletteOverride = null;
       const PENDING_CNAME_STORAGE_KEY = "webcontrol:cnameDraft";
 
-      const CNAME_TARGET = "reconvencionlaboralguajira.github.io";
+      const CNAME_TARGET = DEFAULT_CNAME_TARGET;
 
       setActiveNavLink();
       applyRoleVisibility();
