@@ -12,8 +12,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <script>
-      window.DEFAULT_CNAME_TARGET =
-        (window.DEFAULT_CNAME_TARGET || {{ DEFAULT_CNAME_TARGET | tojson }});
+      window.DEFAULT_CNAME_TARGET = {{ DEFAULT_CNAME_TARGET | tojson | safe }};
     </script>
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="/static/img/webcontrol-logo.png?v=3">
