@@ -35,7 +35,7 @@
     <script src="/static/js/main.js"></script>
     <script>
       window.DEFAULT_CNAME_TARGET =
-        (window.DEFAULT_CNAME_TARGET || {{ DEFAULT_CNAME_TARGET | tojson }});
+        window.DEFAULT_CNAME_TARGET || {{ DEFAULT_CNAME_TARGET | tojson | safe }};
     </script>
 
     <style>
@@ -1602,7 +1602,7 @@
                 class="block text-sm font-semibold text-slate-700 mb-2"
                 >Destino del CNAME</label
               >
-              <div class="flex gap-2">
+              <div class="flex gap-2 flex-wrap">
                 <input
                   type="text"
                   id="cnameInput"
@@ -1614,12 +1614,55 @@
                   class="site-action site-action--view whitespace-nowrap"
                 >
                   <i class="fas fa-copy"></i>
-                  Copiar
+                  Copiar ruta
                 </button>
               </div>
-              <p id="domainGithubHint" class="mt-2 text-xs text-slate-500">
-                Copia este valor en tu proveedor DNS.
-              </p>
+              <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <span>Host base DNS:</span>
+                <code id="cnameHostLabel" class="px-2 py-1 rounded bg-slate-100 text-slate-700">
+                  reconvencionlaboralguajira.github.io
+                </code>
+                <button
+                  type="button"
+                  id="copyCnameHostBtn"
+                  class="site-action site-action--view whitespace-nowrap text-xs px-3 py-1"
+                >
+                  <i class="fas fa-clipboard"></i>
+                  Copiar host
+                </button>
+              </div>
+              <p id="domainGithubHint" class="mt-2 text-xs text-slate-500"></p>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-100 bg-white/80 p-4 text-sm text-slate-600 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <div>
+                <p class="font-semibold text-slate-700">Registros DNS sugeridos</p>
+                <p class="text-xs text-slate-500">Copia estos valores tal cual en tu proveedor (Hostinger, GoDaddy, Cloudflare, etc.).</p>
+              </div>
+              <button
+                type="button"
+                id="copyDnsBundleBtn"
+                class="wc-button wc-button--ghost text-xs"
+              >
+                <i class="fas fa-copy"></i>
+                Copiar todo
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full text-xs">
+                <thead>
+                  <tr class="text-left text-slate-500 border-b border-slate-100">
+                    <th class="py-2 pr-3">Tipo</th>
+                    <th class="py-2 pr-3">Host</th>
+                    <th class="py-2 pr-3">Contenido</th>
+                    <th class="py-2 pr-3">TTL</th>
+                    <th class="py-2 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="dnsRecordsBody"></tbody>
+              </table>
             </div>
           </div>
 
@@ -1698,6 +1741,12 @@
       const DEFAULT_CNAME_TARGET =
         (window.DEFAULT_CNAME_TARGET || "reconvencionlaboralguajira.github.io");
       const API_URL = `${window.location.origin}/api`;
+      const GITHUB_PAGES_IPS = [
+        "185.199.108.153",
+        "185.199.109.153",
+        "185.199.110.153",
+        "185.199.111.153",
+      ];
       let token = localStorage.getItem("token");
       let chart = null;
 
@@ -1711,7 +1760,7 @@
 
       const visitsCache = {};
       const siteLookup = new Map();
-      const domainState = { siteId: null };
+  const domainState = { siteId: null, dnsRecords: [] };
 
       const dom = {
         toggleSidebarMobile: document.getElementById("toggleSidebarMobile"),
@@ -1741,8 +1790,12 @@
         domainLiveLink: document.getElementById("domainLiveLink"),
         customDomainInput: document.getElementById("customDomainInput"),
         cnameInput: document.getElementById("cnameInput"),
+        cnameHostLabel: document.getElementById("cnameHostLabel"),
         domainGithubHint: document.getElementById("domainGithubHint"),
         copyCnameBtn: document.getElementById("copyCnameBtn"),
+        copyCnameHostBtn: document.getElementById("copyCnameHostBtn"),
+  dnsRecordsBody: document.getElementById("dnsRecordsBody"),
+  copyDnsBundleBtn: document.getElementById("copyDnsBundleBtn"),
         domainModalSaveBtn: document.getElementById("domainModalSaveBtn"),
         closeDomainModalBtn: document.getElementById("closeDomainModalBtn"),
       };
@@ -1930,6 +1983,126 @@
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;")
           .replace(/'/g, "&#39;");
+      }
+
+      function getSuggestedCnameHost(customDomain = "") {
+        const normalized = customDomain.trim().toLowerCase();
+        if (!normalized) return "www";
+        const parts = normalized.split(".").filter(Boolean);
+        if (parts.length >= 3) {
+          return parts[0];
+        }
+        return "www";
+      }
+
+      function getCurrentDomainSite() {
+        return domainState.siteId ? siteLookup.get(domainState.siteId) : null;
+      }
+
+      function collectDnsRecords(site = null) {
+        const siteData = site || getCurrentDomainSite() || {};
+        const cnameValue =
+          normalizeCnameValue(dom.cnameInput?.value || siteData.cname_record || DEFAULT_CNAME_TARGET) ||
+          DEFAULT_CNAME_TARGET;
+        const customDomain = (dom.customDomainInput?.value || siteData.custom_domain || "").trim();
+        const cnameHost = getSuggestedCnameHost(customDomain);
+        const ttlValue = 14400;
+        const records = [
+          {
+            type: "CNAME",
+            host: cnameHost,
+            target: cnameValue,
+            ttl: ttlValue,
+            note: "Subdominio público",
+          },
+          ...GITHUB_PAGES_IPS.map((ip) => ({
+            type: "A",
+            host: "@",
+            target: ip,
+            ttl: ttlValue,
+            note: "Dominio raíz",
+          })),
+        ];
+        return records;
+      }
+
+      function renderDnsRecords(site = null) {
+        if (!dom.dnsRecordsBody) return;
+        const records = collectDnsRecords(site);
+        domainState.dnsRecords = records;
+        dom.dnsRecordsBody.innerHTML = records
+          .map((record) => {
+            const label = `${record.type} ${record.host}`;
+            return `
+              <tr class="border-b border-slate-100 last:border-transparent">
+                <td class="py-2 pr-3 font-semibold text-slate-700">${record.type}</td>
+                <td class="py-2 pr-3"><code>${escapeHtml(record.host)}</code></td>
+                <td class="py-2 pr-3 break-all"><code>${escapeHtml(record.target)}</code></td>
+                <td class="py-2 pr-3">${record.ttl}</td>
+                <td class="py-2 text-right">
+                  <button type="button" class="site-action site-action--view text-xs dns-copy-btn" data-copy-value="${escapeHtml(
+                    record.target
+                  )}" data-copy-label="${escapeHtml(label)}">
+                    <i class="fas fa-copy"></i>
+                    Copiar
+                  </button>
+                </td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      async function copyValueToClipboard(value, descriptor) {
+        if (!value) {
+          showNotification("No hay información para copiar.", "warning");
+          return;
+        }
+        try {
+          if (typeof copyToClipboard === "function") {
+            await copyToClipboard(value);
+          } else if (navigator.clipboard) {
+            await navigator.clipboard.writeText(value);
+          } else {
+            showNotification("Tu navegador no permite copiar automáticamente. Copia el valor manualmente.", "warning");
+            return;
+          }
+          if (descriptor) {
+            showNotification(`${descriptor} copiado al portapapeles`, "success");
+          }
+        } catch (error) {
+          console.error("Clipboard error", error);
+          showNotification("No se pudo copiar el valor solicitado", "error");
+        }
+      }
+
+      async function copyDnsBundle() {
+        const records = domainState.dnsRecords || [];
+        if (!records.length) {
+          showNotification("Aún no hay registros para copiar.", "warning");
+          return;
+        }
+        const text = records
+          .map((record) => `${record.type}\t${record.host}\t${record.target}\tTTL ${record.ttl}`)
+          .join("\n");
+        await copyValueToClipboard(text, "Registros DNS");
+      }
+
+      function normalizeCnameValue(value = "") {
+        return `${value || ""}`.trim();
+      }
+
+      function extractCnameHost(value = "") {
+        const normalized = normalizeCnameValue(value);
+        if (!normalized) return "";
+        try {
+          const parsed = normalized.startsWith("http")
+            ? new URL(normalized)
+            : new URL(`https://${normalized}`);
+          return parsed.hostname || normalized.split("/")[0];
+        } catch (error) {
+          return normalized.split("/")[0];
+        }
       }
 
       function resolveAssetUrl(url = "") {
@@ -2365,13 +2538,40 @@
         if (!dom.domainModal || !dom.domainForm) return;
         dom.domainForm.addEventListener("submit", handleDomainFormSubmit);
         if (dom.copyCnameBtn) {
-          dom.copyCnameBtn.addEventListener("click", () => copyModalCname());
+          dom.copyCnameBtn.addEventListener("click", () => copyModalCname("full"));
+        }
+        if (dom.copyCnameHostBtn) {
+          dom.copyCnameHostBtn.addEventListener("click", () => copyModalCname("host"));
+        }
+        if (dom.copyDnsBundleBtn) {
+          dom.copyDnsBundleBtn.addEventListener("click", copyDnsBundle);
+        }
+        if (dom.dnsRecordsBody) {
+          dom.dnsRecordsBody.addEventListener("click", (event) => {
+            const target = event.target instanceof Element ? event.target : null;
+            const copyButton = target ? target.closest(".dns-copy-btn") : null;
+            if (!copyButton) return;
+            event.preventDefault();
+            copyValueToClipboard(
+              copyButton.dataset.copyValue || "",
+              copyButton.dataset.copyLabel || "Registro DNS"
+            );
+          });
         }
         if (dom.closeDomainModalBtn) {
           dom.closeDomainModalBtn.addEventListener("click", closeDomainModal);
         }
         if (dom.cnameInput) {
-          dom.cnameInput.addEventListener("input", () => updateDomainHelperTexts());
+          dom.cnameInput.readOnly = true;
+          dom.cnameInput.classList.add("bg-gray-100", "cursor-not-allowed");
+          dom.cnameInput.title =
+            "Este valor se genera automáticamente después de publicar el sitio";
+        }
+        if (dom.customDomainInput) {
+          dom.customDomainInput.addEventListener("input", () => {
+            updateDomainHelperTexts();
+            renderDnsRecords();
+          });
         }
         dom.domainModal.addEventListener("click", (event) => {
           if (event.target === dom.domainModal) {
@@ -2432,6 +2632,8 @@
             dom.domainStatusChip.classList.add("wc-chip--warning");
           }
         }
+
+        renderDnsRecords(site);
       }
 
       function updateDomainHelperTexts(site) {
@@ -2439,8 +2641,20 @@
         const fallbackSite =
           site || (domainState.siteId ? siteLookup.get(domainState.siteId) : null) || {};
         const cnameValue =
-          dom.cnameInput.value || fallbackSite.cname_record || DEFAULT_CNAME_TARGET;
-        dom.domainGithubHint.textContent = `Crea un registro CNAME que apunte a ${cnameValue}.`;
+          normalizeCnameValue(
+            dom.cnameInput.value || fallbackSite.cname_record || DEFAULT_CNAME_TARGET
+          ) || DEFAULT_CNAME_TARGET;
+        const hostTarget = extractCnameHost(cnameValue) || DEFAULT_CNAME_TARGET;
+        if (dom.cnameHostLabel) {
+          dom.cnameHostLabel.textContent = hostTarget;
+        }
+        dom.domainGithubHint.innerHTML = `
+          <span class="font-semibold text-slate-600">Ruta completa de GitHub Pages:</span>
+          <code>${escapeHtml(cnameValue)}</code><br>
+          <span class="text-xs text-slate-400">Usa el host base <code>${escapeHtml(
+            hostTarget
+          )}</code> en tu proveedor DNS (Hostinger, GoDaddy, etc.). El sitio servirá desde la ruta completa mostrada arriba.</span>
+        `;
       }
 
       function closeDomainModal() {
@@ -2471,7 +2685,6 @@
         if (!domainState.siteId) return;
         const payload = {
           custom_domain: (dom.customDomainInput.value || "").trim(),
-          cname_record: (dom.cnameInput.value || "").trim(),
         };
         setDomainModalLoading(true);
         try {
@@ -2499,25 +2712,16 @@
         }
       }
 
-      async function copyModalCname() {
+      async function copyModalCname(mode = "full") {
         const value = (dom.cnameInput?.value || DEFAULT_CNAME_TARGET).trim();
         if (!value) {
           showNotification("No hay un valor CNAME para copiar.", "warning");
           return;
         }
-        try {
-          if (typeof copyToClipboard === "function") {
-            await copyToClipboard(value);
-          } else if (navigator.clipboard) {
-            await navigator.clipboard.writeText(value);
-            showNotification("CNAME copiado al portapapeles", "success");
-          } else {
-            showNotification("Tu navegador no permite copiar automáticamente. Copia el valor manualmente.", "warning");
-          }
-        } catch (error) {
-          console.error("Clipboard error", error);
-          showNotification("No se pudo copiar el CNAME", "error");
-        }
+        const hostTarget = extractCnameHost(value) || value;
+        const payload = mode === "host" ? hostTarget : value;
+        const descriptor = mode === "host" ? `Host ${hostTarget}` : `Ruta ${value}`;
+        await copyValueToClipboard(payload, descriptor);
       }
 
       function setView(view) {

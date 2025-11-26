@@ -164,6 +164,7 @@ AVAILABLE_MODEL_IDS = set(MODEL_REGISTRY.keys()) or set(SEED_DATA.keys())
 
 
 OWNER_EMAIL_DOMAIN = os.getenv("OWNER_EMAIL_DOMAIN", "owners.webcontrol.local")
+GITHUB_USERNAME = os.getenv("GITHUB_USERNAME", "").strip()
 DEFAULT_CNAME_TARGET = os.getenv(
     "DEFAULT_CNAME_TARGET",
     "reconvencionlaboralguajira.github.io",
@@ -379,6 +380,25 @@ def _preferred_repo_name(site_payload: dict) -> str:
     return f"{slug}-{site_payload.get('id')}".strip("-")
 
 
+def _build_repo_cname(repo_name: Optional[str]) -> Optional[str]:
+    if not repo_name or not GITHUB_USERNAME:
+        return None
+    sanitized = str(repo_name).strip().strip("/")
+    if not sanitized:
+        return None
+    return f"{GITHUB_USERNAME}.github.io/{sanitized}/"
+
+
+def _site_cname_value(site: Site) -> str:
+    stored = (site.cname_record or "").strip()
+    if stored and stored != DEFAULT_CNAME_TARGET:
+        return stored
+    computed = _build_repo_cname(getattr(site, "github_repo", None))
+    if computed:
+        return computed
+    return stored or DEFAULT_CNAME_TARGET
+
+
 def _serialize_site_for_publish(site: Site) -> dict:
     return {
         "id": site.id,
@@ -504,6 +524,8 @@ def _execute_publish_pipeline(site_payload: dict) -> dict:
     if not publish_result.get("success"):
         raise PublishPipelineError(publish_result.get("error", "Error al publicar sitio"))
 
+    cname_value = _build_repo_cname(repo_name)
+
     return {
         "repo_name": repo_name,
         "pages_url": publish_result.get("pages_url"),
@@ -511,6 +533,7 @@ def _execute_publish_pipeline(site_payload: dict) -> dict:
         "asset_updates": asset_updates,
         "gallery_update": gallery_update,
         "products_update": products_update,
+        "cname_value": cname_value,
     }
 
 
@@ -799,7 +822,7 @@ async def get_sites(
             "hero_image": _canonicalize_asset_value(site.hero_image),
             "preview_image": _get_preview_image(site),
             "custom_domain": site.custom_domain,
-            "cname_record": site.cname_record or DEFAULT_CNAME_TARGET,
+            "cname_record": _site_cname_value(site),
             "github_url": site.github_url,
             "facebook_url": site.facebook_url or "",
             "instagram_url": site.instagram_url or "",
@@ -853,7 +876,7 @@ async def get_site(
         "model_type": site.model_type,
         "description": site.description,
         "custom_domain": site.custom_domain,
-    "cname_record": site.cname_record or DEFAULT_CNAME_TARGET,
+        "cname_record": _site_cname_value(site),
         "github_repo": site.github_repo,
         "github_url": site.github_url,
         "is_published": site.is_published,
@@ -869,7 +892,7 @@ async def get_site(
         "facebook_url": site.facebook_url,
         "instagram_url": site.instagram_url,
         "tiktok_url": site.tiktok_url,
-    "logo_url": _canonicalize_asset_value(site.logo_url),
+        "logo_url": _canonicalize_asset_value(site.logo_url),
         "primary_color": site.primary_color,
         "secondary_color": site.secondary_color,
         "gallery_images": gallery_images,
@@ -967,7 +990,7 @@ async def create_site(
         "id": site.id,
         "name": site.name,
         "message": "Sitio creado exitosamente con datos de ejemplo",
-        "cname_record": site.cname_record,
+        "cname_record": _site_cname_value(site),
         "owner": owner_data,
     }
 
@@ -1043,11 +1066,10 @@ async def update_site_domain(
     else:
         custom_domain = None
 
-    cname_record = (payload.cname_record or "").strip() or DEFAULT_CNAME_TARGET
-    cname_record = cname_record.rstrip(".")
-
     site.custom_domain = custom_domain
-    site.cname_record = cname_record
+    cname_input = (payload.cname_record or "").strip()
+    if cname_input:
+        site.cname_record = cname_input.rstrip(".")
     site.updated_at = datetime.utcnow()
     db.add(site)
     db.commit()
@@ -1056,7 +1078,7 @@ async def update_site_domain(
     return {
         "id": site.id,
         "custom_domain": site.custom_domain,
-        "cname_record": site.cname_record,
+        "cname_record": _site_cname_value(site),
         "message": "Configuración de dominio actualizada. Vuelve a publicar para escribir el archivo CNAME en GitHub."
     }
 
@@ -1153,6 +1175,9 @@ async def publish_site(
     site.github_repo = publish_output["repo_name"]
     site.github_url = publish_output["pages_url"]
     site.is_published = True
+    cname_value = publish_output.get("cname_value")
+    if cname_value and (not site.cname_record or site.cname_record == DEFAULT_CNAME_TARGET):
+        site.cname_record = cname_value
     db.commit()
 
     return {
