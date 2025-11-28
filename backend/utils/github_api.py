@@ -2,8 +2,7 @@ from github import Github, GithubException
 import os
 import json
 import time
-from pathlib import Path
-from typing import Iterable, Optional
+from typing import Optional, Iterable
 
 import requests
 
@@ -31,15 +30,9 @@ class GitHubPublisher:
             self.user = self.github.get_user()
             # Verificar que el token sea válido
             self.user.login
-            desired_username = os.getenv('GITHUB_USERNAME')
-            if desired_username and desired_username != self.user.login:
-                raise ValueError(
-                    "GITHUB_USERNAME en .env ('{0}') no coincide con el dueño real del token ('{1}'). "
-                    "Actualiza el archivo .env para evitar publicar en la cuenta incorrecta.".format(
-                        desired_username,
-                        self.user.login,
-                    )
-                )
+            # Ensure environment username isn't stale: prefer actual token owner
+            if os.getenv('GITHUB_USERNAME') and os.getenv('GITHUB_USERNAME') != self.user.login:
+                print(f"⚠️ Advertencia: GITHUB_USERNAME en .env ('{os.getenv('GITHUB_USERNAME')}') no coincide con el usuario del token ('{self.user.login}'). Usando '{self.user.login}' en su lugar.")
             self.username = self.user.login
         except Exception as e:
             raise ValueError(
@@ -261,6 +254,14 @@ class GitHubPublisher:
     def _pages_builds_collection_url(self, repo_name: str) -> str:
         return f"https://api.github.com/repos/{self.username}/{repo_name}/pages/builds"
 
+    def _pages_domain_verify_url(self, repo_name: str, domain: str) -> str:
+        sanitized = domain.strip().lower()
+        return f"https://api.github.com/repos/{self.username}/{repo_name}/pages/domains/{sanitized}/verify"
+
+    def _pages_domain_detail_url(self, repo_name: str, domain: str) -> str:
+        sanitized = domain.strip().lower()
+        return f"https://api.github.com/repos/{self.username}/{repo_name}/pages/domains/{sanitized}"
+
     def _ensure_pages_response(self, response: requests.Response, action: str):
         if response.status_code in (200, 201, 202, 204):
             return
@@ -375,8 +376,16 @@ class GitHubPublisher:
             f"El sitio publicado nunca respondió 200 en GitHub Pages (último error: {last_error})"
         )
 
-    def enable_github_pages(self, repo_name: str, branch: str = "main", path: str = "/") -> dict:
-        """Habilitar GitHub Pages en el repositorio y esperar confirmación."""
+    def enable_github_pages(
+        self,
+        repo_name: str,
+        branch: str = "main",
+        path: str = "/",
+        custom_domain: Optional[str] = None,
+        enforce_https: bool = True,
+        wait_for_build: bool = True,
+    ) -> dict:
+        """Habilitar GitHub Pages en el repositorio y aplicar dominio opcional."""
         headers = self._pages_headers()
         pages_api = self._pages_api_url(repo_name)
         payload = {
@@ -385,6 +394,10 @@ class GitHubPublisher:
                 "path": path
             }
         }
+        if custom_domain:
+            payload["cname"] = custom_domain.strip()
+        if enforce_https:
+            payload["https_enforced"] = True
 
         try:
             current_config = requests.get(pages_api, headers=headers, timeout=15)
@@ -405,12 +418,13 @@ class GitHubPublisher:
             else:
                 self._ensure_pages_response(current_config, "consultar configuración de GitHub Pages")
 
+            pages_url = f"https://{self.username}.github.io/{repo_name}/"
             # Forzar un build para evitar que GitHub Pages se quede sin publicar
             self._trigger_pages_build(repo_name)
-            # Esperar a que GitHub procese el build y propague el sitio
-            self._wait_for_pages_build(repo_name)
-            pages_url = f"https://{self.username}.github.io/{repo_name}/"
-            self._wait_for_site_availability(pages_url)
+            if wait_for_build:
+                # Esperar a que GitHub procese el build y propague el sitio
+                self._wait_for_pages_build(repo_name)
+                self._wait_for_site_availability(pages_url)
 
             return {
                 "success": True,
@@ -434,13 +448,81 @@ class GitHubPublisher:
             return result
         except Exception as e:
             return {"success": False, "error": str(e)}
+
+    def verify_custom_domain(self, repo_name: str, custom_domain: str, timeout: int = 240) -> dict:
+        """Solicitar a GitHub que revalide el DNS del dominio y esperar confirmación."""
+        domain = (custom_domain or "").strip()
+        if not domain:
+            return {"success": False, "error": "Dominio vacío"}
+
+        headers = self._pages_headers()
+        verify_url = self._pages_domain_verify_url(repo_name, domain)
+        status_url = self._pages_api_url(repo_name)
+        detail_url = self._pages_domain_detail_url(repo_name, domain)
+
+        try:
+            # Solicitar nueva verificación en GitHub (ignorar 409 si ya está en curso)
+            response = requests.post(verify_url, headers=headers, timeout=15)
+            if response.status_code not in (200, 201, 202, 204, 409):
+                return {
+                    "success": False,
+                    "error": f"No se pudo solicitar verificación DNS (HTTP {response.status_code}): {response.text}",
+                    "status_code": response.status_code,
+                }
+        except requests.RequestException as exc:
+            return {"success": False, "error": f"Error al solicitar verificación DNS: {exc}"}
+
+        deadline = time.time() + timeout
+        last_status = {}
+
+        while time.time() < deadline:
+            try:
+                status_resp = requests.get(detail_url, headers=headers, timeout=15)
+                if status_resp.status_code == 200:
+                    payload = status_resp.json()
+                    last_status = payload
+                    verified = payload.get("verified")
+                    pending = payload.get("pending_verification")
+                    misconfigured = payload.get("is_apex_domain", False) and payload.get("dns_resolves") is False
+                    if verified and pending is False and not misconfigured:
+                        return {
+                            "success": True,
+                            "verified": True,
+                            "https_enforced": payload.get("https", {}).get("enforced", False),
+                            "detail": payload
+                        }
+                # Si no existe el recurso aún, usar el endpoint general de Pages
+                if status_resp.status_code == 404:
+                    pages_resp = requests.get(status_url, headers=headers, timeout=15)
+                    if pages_resp.status_code == 200:
+                        doc = pages_resp.json()
+                        cname = (doc.get("cname") or "").strip().lower()
+                        pending = doc.get("pending_domain_unverified")
+                        last_status = doc
+                        if cname == domain.lower() and pending is False:
+                            return {
+                                "success": True,
+                                "verified": True,
+                                "https_enforced": doc.get("https_enforced", False),
+                                "detail": doc
+                            }
+                time.sleep(6)
+            except requests.RequestException as exc:
+                last_status = {"error": str(exc)}
+                time.sleep(5)
+
+        return {
+            "success": False,
+            "error": f"El dominio {domain} no se verificó antes del timeout",
+            "last_status": last_status
+        }
     
     def publish_site(
         self,
         repo_name: str,
         site_files: dict,
         custom_domain: Optional[str] = None,
-        asset_files: Optional[Iterable[str]] = None,
+        required_uploads: Optional[Iterable[str]] = None,
     ) -> dict:
         """
         Publicar sitio completo en GitHub Pages
@@ -449,7 +531,7 @@ class GitHubPublisher:
             repo_name: Nombre del repositorio
             site_files: Dict con archivos {path: content}
             custom_domain: Dominio personalizado opcional
-            asset_files: Iteración de rutas relativas (images/archivo.png) que deben subirse desde uploads/
+            required_uploads: Lista opcional de archivos de uploads/ que se deben subir
         """
         try:
             # Subir archivos del sitio
@@ -459,48 +541,70 @@ class GitHubPublisher:
                 return result
             
             # Subir imágenes locales desde uploads/
+            from pathlib import Path
             uploads_dir = Path(__file__).parent.parent.parent / "uploads"
             if uploads_dir.exists():
-                if asset_files:
-                    target_files = []
-                    added = set()
-                    for asset in asset_files:
-                        if not asset:
+                allowed_suffixes = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'}
+
+                def _iter_required_files():
+                    if not required_uploads:
+                        yield from uploads_dir.glob("*")
+                        return
+
+                    normalized = set()
+                    for entry in required_uploads:
+                        if not entry:
                             continue
-                        filename = Path(asset).name
-                        if filename in added:
-                            continue
+                        sanitized = entry.strip().lstrip("/")
+                        if sanitized.startswith("images/"):
+                            sanitized = sanitized.split("/", 1)[1]
+                        normalized.add(sanitized)
+
+                    for filename in normalized:
                         candidate = uploads_dir / filename
                         if candidate.exists():
-                            target_files.append(candidate)
-                            added.add(filename)
-                else:
-                    target_files = [p for p in uploads_dir.glob("*") if p.is_file()]
+                            yield candidate
+                        else:
+                            print(f"Warning: required asset {filename} not found in uploads/")
 
-                for image_file in target_files:
-                    if image_file.suffix.lower() not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']:
-                        continue
-                    try:
-                        with open(image_file, 'rb') as f:
-                            image_content = f.read()
-                        # Subir imagen al repo en carpeta images/
-                        self.upload_binary_file(
-                            repo_name=repo_name,
-                            file_path=f"images/{image_file.name}",
-                            file_content=image_content,
-                            commit_message=f"Upload image {image_file.name}"
-                        )
-                    except Exception as e:
-                        print(f"Warning: Could not upload image {image_file.name}: {e}")
+                for image_file in _iter_required_files():
+                    if image_file.is_file() and image_file.suffix.lower() in allowed_suffixes:
+                        try:
+                            with open(image_file, 'rb') as f:
+                                image_content = f.read()
+
+                            self.upload_binary_file(
+                                repo_name=repo_name,
+                                file_path=f"images/{image_file.name}",
+                                file_content=image_content,
+                                commit_message=f"Upload image {image_file.name}"
+                            )
+                        except Exception as e:
+                            print(f"Warning: Could not upload image {image_file.name}: {e}")
             
+            dns_result = None
+
             # Si hay dominio personalizado, crear CNAME
             if custom_domain:
                 cname_result = self.create_cname(repo_name, custom_domain)
                 if not cname_result["success"]:
                     return cname_result
             
-            # Habilitar GitHub Pages
-            pages_result = self.enable_github_pages(repo_name)
+            # Habilitar GitHub Pages (aplica custom domain si existe)
+            pages_result = self.enable_github_pages(
+                repo_name,
+                custom_domain=custom_domain,
+                enforce_https=True
+            )
+            if not pages_result.get("success"):
+                return pages_result
+
+            # Confirmar DNS del dominio personalizado
+            if custom_domain:
+                dns_result = self.verify_custom_domain(repo_name, custom_domain)
+                pages_result["dns_verification"] = dns_result
+                if not dns_result.get("success"):
+                    pages_result["warning"] = dns_result.get("error") or "GitHub no pudo confirmar el dominio todavía"
             
             return pages_result
         except Exception as e:

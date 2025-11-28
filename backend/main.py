@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Request, UploadFile, File
+from fastapi import FastAPI, Depends, HTTPException, status, Request, UploadFile, File, Response
 from fastapi import BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
 import json
 import os
 import re
@@ -18,7 +17,7 @@ import time
 import uuid
 import unicodedata
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
+from typing import Optional
 
 # Cargar variables de entorno
 load_dotenv()
@@ -40,15 +39,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 # Importar módulos locales
-from backend.database import (
-    get_db,
-    Role,
-    Site,
-    User,
-    Visit,
-    SessionLocal,
-    init_db,
-)
+from backend.database import get_db, Role, Site, User, Visit, init_db
 from backend.auth import (
     authenticate_user,
     build_user_claims,
@@ -75,36 +66,6 @@ from backend.services.user_service import (
 )
 from backend.routers.users import router as users_router
 from backend.routers.roles import router as roles_router
-from backend.middleware.rate_limiter import RateLimitStore, RateLimiterMiddleware
-
-# Helpers para configurar características opcionales
-def _bool_env(var_name: str, default: bool) -> bool:
-    value = os.getenv(var_name)
-    if value is None:
-        return default
-    return value.strip().lower() in {"1", "true", "yes", "on"}
-
-
-def _int_env(var_name: str, default: int) -> int:
-    try:
-        return int(os.getenv(var_name, default))
-    except ValueError:
-        return default
-
-
-RATE_LIMIT_ENABLED = _bool_env("RATE_LIMIT_ENABLED", True)
-RATE_LIMIT_REQUESTS = _int_env("RATE_LIMIT_REQUESTS", 600)
-RATE_LIMIT_WINDOW_SECONDS = _int_env("RATE_LIMIT_WINDOW_SECONDS", 60)
-RATE_LIMIT_BLOCK_SECONDS = _int_env("RATE_LIMIT_BLOCK_SECONDS", 900)
-RATE_LIMIT_WHITELIST = [
-    ip.strip()
-    for ip in os.getenv("RATE_LIMIT_WHITELIST", "").split(",")
-    if ip.strip()
-]
-
-rate_limit_store = RateLimitStore()
-RATE_LIMIT_WHITELIST_SET = set(RATE_LIMIT_WHITELIST)
-
 
 # Inicializar app
 app = FastAPI(
@@ -123,15 +84,6 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
-app.add_middleware(
-    RateLimiterMiddleware,
-    store=rate_limit_store,
-    limit=RATE_LIMIT_REQUESTS,
-    window_seconds=RATE_LIMIT_WINDOW_SECONDS,
-    block_seconds=RATE_LIMIT_BLOCK_SECONDS,
-    whitelist=RATE_LIMIT_WHITELIST_SET,
-    enabled=RATE_LIMIT_ENABLED,
 )
 
 # Montar archivos estáticos
@@ -164,32 +116,21 @@ AVAILABLE_MODEL_IDS = set(MODEL_REGISTRY.keys()) or set(SEED_DATA.keys())
 
 
 OWNER_EMAIL_DOMAIN = os.getenv("OWNER_EMAIL_DOMAIN", "owners.webcontrol.local")
-GITHUB_USERNAME = os.getenv("GITHUB_USERNAME", "").strip()
 DEFAULT_CNAME_TARGET = os.getenv(
     "DEFAULT_CNAME_TARGET",
     "reconvencionlaboralguajira.github.io",
 )
+CUSTOM_DOMAIN_PATTERN = re.compile(r"^[a-z0-9.-]+$")
 PUBLISH_INFO_MESSAGE = (
     "⏳ GitHub Pages puede tardar entre 1 y 3 minutos en activarse. "
     "Si ves un error 404 espera un momento y vuelve a recargar."
 )
 
-templates.env.globals["DEFAULT_CNAME_TARGET"] = DEFAULT_CNAME_TARGET
-
-
-class DomainConfigPayload(BaseModel):
-    custom_domain: Optional[str] = Field(default=None, max_length=255)
-    cname_record: Optional[str] = Field(default=None, max_length=255)
-
-
-def _client_ip_from_request(request: Request) -> str:
-    client = request.client
-    if client and client.host:
-        return client.host
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",", 1)[0].strip()
-    return "unknown"
+templates.env.globals.update({
+    "DEFAULT_CNAME_TARGET": DEFAULT_CNAME_TARGET,
+    "OWNER_EMAIL_DOMAIN": OWNER_EMAIL_DOMAIN,
+    "PUBLISH_INFO_MESSAGE": PUBLISH_INFO_MESSAGE,
+})
 
 
 class PublishPipelineError(Exception):
@@ -198,6 +139,37 @@ class PublishPipelineError(Exception):
     def __init__(self, message: str, status_code: int = 500):
         super().__init__(message)
         self.status_code = status_code
+
+
+def _normalize_custom_domain(raw_value) -> Optional[str]:
+    """Sanitiza y valida un dominio personalizado opcional."""
+    if raw_value is None:
+        return None
+
+    sanitized = str(raw_value).strip()
+    if not sanitized:
+        return None
+
+    sanitized = re.sub(r"^https?://", "", sanitized, flags=re.IGNORECASE)
+    sanitized = sanitized.strip().strip("/")
+    sanitized = sanitized.lower()
+
+    if not sanitized:
+        return None
+
+    if any(char in sanitized for char in ("/", "?", "#")):
+        raise HTTPException(status_code=400, detail="El dominio no puede incluir rutas ni parámetros adicionales")
+
+    if len(sanitized) > 200:
+        raise HTTPException(status_code=400, detail="El dominio supera el límite de 200 caracteres")
+
+    if sanitized.count(".") < 1:
+        raise HTTPException(status_code=400, detail="Ingresa un dominio con al menos un punto (ej. midominio.com)")
+
+    if not CUSTOM_DOMAIN_PATTERN.fullmatch(sanitized):
+        raise HTTPException(status_code=400, detail="El dominio solo puede contener letras, números, puntos y guiones")
+
+    return sanitized
 
 
 def _create_owner_account(db: Session, site: Site) -> dict:
@@ -380,25 +352,6 @@ def _preferred_repo_name(site_payload: dict) -> str:
     return f"{slug}-{site_payload.get('id')}".strip("-")
 
 
-def _build_repo_cname(repo_name: Optional[str]) -> Optional[str]:
-    if not repo_name or not GITHUB_USERNAME:
-        return None
-    sanitized = str(repo_name).strip().strip("/")
-    if not sanitized:
-        return None
-    return f"{GITHUB_USERNAME}.github.io/{sanitized}/"
-
-
-def _site_cname_value(site: Site) -> str:
-    stored = (site.cname_record or "").strip()
-    if stored and stored != DEFAULT_CNAME_TARGET:
-        return stored
-    computed = _build_repo_cname(getattr(site, "github_repo", None))
-    if computed:
-        return computed
-    return stored or DEFAULT_CNAME_TARGET
-
-
 def _serialize_site_for_publish(site: Site) -> dict:
     return {
         "id": site.id,
@@ -507,7 +460,7 @@ def _execute_publish_pipeline(site_payload: dict) -> dict:
     if products_changed:
         products_update = localized_products
 
-    asset_manifest = _collect_local_assets(site_data)
+    required_uploads = _collect_required_uploads(site_data, supporter_items)
 
     site_files = template_engine.generate_site(site_payload["model_type"], site_data)
     if not site_files.get("index.html"):
@@ -518,13 +471,11 @@ def _execute_publish_pipeline(site_payload: dict) -> dict:
         repo_name=repo_name,
         site_files=site_files,
         custom_domain=site_payload.get("custom_domain"),
-        asset_files=asset_manifest,
+        required_uploads=required_uploads,
     )
 
     if not publish_result.get("success"):
         raise PublishPipelineError(publish_result.get("error", "Error al publicar sitio"))
-
-    cname_value = _build_repo_cname(repo_name)
 
     return {
         "repo_name": repo_name,
@@ -533,7 +484,35 @@ def _execute_publish_pipeline(site_payload: dict) -> dict:
         "asset_updates": asset_updates,
         "gallery_update": gallery_update,
         "products_update": products_update,
-        "cname_value": cname_value,
+    }
+
+
+def _sync_site_domain_with_github(repo_name: str, custom_domain: str) -> dict:
+    """Crear/actualizar el CNAME en GitHub y aplicar la configuración de Pages."""
+    if not repo_name or not custom_domain:
+        raise PublishPipelineError("Repositorio o dominio no configurados para sincronizar")
+
+    try:
+        publisher = GitHubPublisher()
+    except Exception as exc:
+        raise PublishPipelineError(str(exc)) from exc
+
+    cname_result = publisher.create_cname(repo_name, custom_domain)
+    if not cname_result.get("success"):
+        raise PublishPipelineError(cname_result.get("error") or "No se pudo crear el archivo CNAME en GitHub")
+
+    pages_result = publisher.enable_github_pages(
+        repo_name,
+        custom_domain=custom_domain,
+        enforce_https=True,
+        wait_for_build=False,
+    )
+    if not pages_result.get("success"):
+        raise PublishPipelineError(pages_result.get("error") or "No se pudo actualizar la configuración de GitHub Pages")
+
+    return {
+        "success": True,
+        "pages_url": pages_result.get("pages_url"),
     }
 
 
@@ -593,29 +572,31 @@ def _localize_products_for_publish(value):
             changed = True
     return products, changed
 
+def _collect_required_uploads(site_data: dict, supporters: list) -> list:
+    """Return the list of image filenames that must exist in uploads/."""
+    required = set()
 
-def _collect_local_assets(site_data: dict) -> set[str]:
-    assets: set[str] = set()
+    def _register(value):
+        canonical = _canonicalize_asset_value(value)
+        if canonical and canonical.startswith("images/"):
+            required.add(canonical.split("/", 1)[1])
 
-    def _add(value):
-        if not value or not isinstance(value, str):
-            return
-        normalized = value.strip().lstrip("/")
-        if normalized.startswith("images/"):
-            assets.add(normalized)
+    for key in ("hero_image", "about_image", "logo_url"):
+        _register(site_data.get(key))
 
-    _add(site_data.get("hero_image"))
-    _add(site_data.get("about_image"))
-    _add(site_data.get("logo_url"))
+    for entry in _coerce_list(site_data.get("gallery_images", [])):
+        _register(entry)
 
-    for item in _coerce_list(site_data.get("gallery_images") or []):
-        _add(item)
-
-    for product in _coerce_list(site_data.get("products") or []):
+    for product in _coerce_list(site_data.get("products", [])):
         if isinstance(product, dict):
-            _add(product.get("image"))
+            _register(product.get("image"))
 
-    return assets
+    for supporter in supporters or []:
+        if isinstance(supporter, dict):
+            _register(supporter.get("image"))
+            _register(supporter.get("url"))
+
+    return sorted(required)
 
 
 def _inline_preview_assets(html: str, generated_files: dict) -> str:
@@ -653,7 +634,14 @@ async def root(request: Request):
     return templates.TemplateResponse("login-windster.html", {"request": request})
 
 
+@app.head("/")
+async def root_head():
+    """Respuesta vacía para chequeos HEAD en el dominio principal."""
+    return Response(status_code=status.HTTP_200_OK)
+
+
 @app.get("/dashboard", response_class=HTMLResponse)
+
 async def dashboard(request: Request):
     """Panel principal - Windster version"""
     context = {"request": request, "initial_view": "dashboard"}
@@ -736,39 +724,6 @@ async def get_flags():
     }
 
 
-@app.get("/api/security/ip-info", tags=["security"])
-async def get_ip_info(request: Request):
-    """Return information about how the server sees the requesting IP and rate-limit state."""
-    client_ip = _client_ip_from_request(request)
-    blocked_for = rate_limit_store.is_blocked(client_ip)
-    return {
-        "ip": client_ip,
-        "blocked": blocked_for > 0,
-        "blocked_for_seconds": round(blocked_for, 2),
-        "whitelisted": client_ip in RATE_LIMIT_WHITELIST_SET,
-        "rate_limit_enabled": RATE_LIMIT_ENABLED,
-        "limit": RATE_LIMIT_REQUESTS,
-        "window_seconds": RATE_LIMIT_WINDOW_SECONDS,
-        "block_seconds": RATE_LIMIT_BLOCK_SECONDS,
-    }
-
-
-@app.get("/api/security/rate-limit", tags=["security"])
-async def list_rate_limit_status(
-    _admin_user: User = Depends(require_admin_or_superadmin),
-):
-    """Expose rate-limit config and currently blocked IPs (admin only)."""
-    blocked_clients = rate_limit_store.list_blocked_clients()
-    return {
-        "rate_limit_enabled": RATE_LIMIT_ENABLED,
-        "limit": RATE_LIMIT_REQUESTS,
-        "window_seconds": RATE_LIMIT_WINDOW_SECONDS,
-        "block_seconds": RATE_LIMIT_BLOCK_SECONDS,
-        "whitelist": sorted(RATE_LIMIT_WHITELIST_SET),
-        "blocked_clients": blocked_clients,
-    }
-
-
 # ============= API MODELS =============
 
 @app.get("/api/models")
@@ -813,8 +768,6 @@ async def get_sites(
     return [
         {
             "id": site.id,
-
-
             "name": site.name,
             "model_type": site.model_type,
             "description": site.description,
@@ -822,7 +775,7 @@ async def get_sites(
             "hero_image": _canonicalize_asset_value(site.hero_image),
             "preview_image": _get_preview_image(site),
             "custom_domain": site.custom_domain,
-            "cname_record": _site_cname_value(site),
+            "cname_record": site.cname_record or DEFAULT_CNAME_TARGET,
             "github_url": site.github_url,
             "facebook_url": site.facebook_url or "",
             "instagram_url": site.instagram_url or "",
@@ -876,7 +829,7 @@ async def get_site(
         "model_type": site.model_type,
         "description": site.description,
         "custom_domain": site.custom_domain,
-        "cname_record": _site_cname_value(site),
+    "cname_record": site.cname_record or DEFAULT_CNAME_TARGET,
         "github_repo": site.github_repo,
         "github_url": site.github_url,
         "is_published": site.is_published,
@@ -892,7 +845,7 @@ async def get_site(
         "facebook_url": site.facebook_url,
         "instagram_url": site.instagram_url,
         "tiktok_url": site.tiktok_url,
-        "logo_url": _canonicalize_asset_value(site.logo_url),
+    "logo_url": _canonicalize_asset_value(site.logo_url),
         "primary_color": site.primary_color,
         "secondary_color": site.secondary_color,
         "gallery_images": gallery_images,
@@ -990,7 +943,7 @@ async def create_site(
         "id": site.id,
         "name": site.name,
         "message": "Sitio creado exitosamente con datos de ejemplo",
-        "cname_record": _site_cname_value(site),
+        "cname_record": site.cname_record,
         "owner": owner_data,
     }
 
@@ -1046,40 +999,156 @@ async def update_site(
 @app.put("/api/sites/{site_id}/domain")
 async def update_site_domain(
     site_id: int,
-    payload: DomainConfigPayload,
+    request: Request,
     db: Session = Depends(get_db),
-    _admin_user: User = Depends(require_admin_or_superadmin)
+    _admin_user: User = Depends(require_admin_or_superadmin),
 ):
-    """Actualizar únicamente la configuración de dominio/CNAME (solo admin)."""
+    """Guardar la configuración de dominio personalizado para un sitio específico."""
     site = db.query(Site).filter(Site.id == site_id).first()
-
     if not site:
         raise HTTPException(status_code=404, detail="Sitio no encontrado")
 
-    custom_domain = (payload.custom_domain or "").strip()
-    if custom_domain:
-        # Normalizar protocolo y barras residuales para almacenar solo el host
-        custom_domain = re.sub(r"^https?://", "", custom_domain, flags=re.IGNORECASE)
-        custom_domain = custom_domain.split("/", 1)[0].strip()
-        if not custom_domain or "." not in custom_domain:
-            raise HTTPException(status_code=400, detail="Ingresa un dominio válido, por ejemplo: www.midominio.com")
-    else:
-        custom_domain = None
+    try:
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="El cuerpo de la solicitud no es JSON válido")
 
+    custom_domain = _normalize_custom_domain(payload.get("custom_domain"))
     site.custom_domain = custom_domain
-    cname_input = (payload.cname_record or "").strip()
-    if cname_input:
-        site.cname_record = cname_input.rstrip(".")
-    site.updated_at = datetime.utcnow()
-    db.add(site)
+
+    if "cname_record" in payload:
+        cname_candidate = str(payload.get("cname_record") or "").strip()
+        site.cname_record = cname_candidate or site.cname_record or DEFAULT_CNAME_TARGET
+    elif not site.cname_record:
+        site.cname_record = DEFAULT_CNAME_TARGET
+
     db.commit()
     db.refresh(site)
 
-    return {
-        "id": site.id,
+    github_sync = None
+    should_sync_now = bool(site.custom_domain and site.github_repo)
+
+    if should_sync_now:
+        try:
+            github_sync = await run_in_threadpool(
+                _sync_site_domain_with_github,
+                site.github_repo,
+                site.custom_domain,
+            )
+        except PublishPipelineError as exc:
+            github_sync = {"success": False, "error": str(exc)}
+        except Exception as exc:
+            github_sync = {"success": False, "error": str(exc)}
+
+    requires_republish = bool(site.custom_domain and not site.github_repo)
+    if github_sync and not github_sync.get("success"):
+        requires_republish = True
+
+    response = {
+        "message": "Configuración de dominio guardada",
         "custom_domain": site.custom_domain,
-        "cname_record": _site_cname_value(site),
-        "message": "Configuración de dominio actualizada. Vuelve a publicar para escribir el archivo CNAME en GitHub."
+        "cname_record": site.cname_record or DEFAULT_CNAME_TARGET,
+        "requires_republish": requires_republish,
+    }
+
+    if github_sync is not None:
+        response["github_sync"] = github_sync
+
+    if site.custom_domain and not site.github_repo:
+        response["github_sync"] = {
+            "success": False,
+            "error": "Publica primero el sitio en GitHub Pages para propagar el dominio automáticamente",
+        }
+
+    return response
+
+
+@app.post("/api/sites/{site_id}/domain/verify")
+async def verify_site_domain(
+    site_id: int,
+    db: Session = Depends(get_db),
+    _admin_user: User = Depends(require_admin_or_superadmin),
+):
+    """Solicitar a GitHub la verificación DNS del dominio personalizado del sitio."""
+    site = db.query(Site).filter(Site.id == site_id).first()
+    if not site:
+        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+
+    domain = _normalize_custom_domain(site.custom_domain)
+    if not domain:
+        raise HTTPException(status_code=400, detail="Configura un dominio personalizado antes de verificarlo")
+
+    if not site.github_repo:
+        raise HTTPException(status_code=400, detail="Publica el sitio en GitHub Pages para poder verificarlo con GitHub")
+
+    try:
+        publisher = GitHubPublisher()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    try:
+        result = publisher.verify_custom_domain(site.github_repo, domain)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=400, detail={"message": str(exc)}) from exc
+
+    if not result.get("success"):
+        error_message = result.get("error") or "GitHub no pudo confirmar el estado del dominio"
+        detail_payload = result.get("last_status") or {}
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": error_message,
+                "last_status": detail_payload,
+            },
+        )
+
+    verification_payload = {
+        "domain": domain,
+        "verified": bool(result.get("verified")),
+        "https_enforced": bool(result.get("https_enforced")),
+        "source": "github",
+        "detail": result.get("detail") or {},
+        "checked_at": datetime.utcnow().isoformat(),
+    }
+
+    return {
+        "message": "Estado DNS sincronizado con GitHub",
+        "verification": verification_payload,
+    }
+
+
+@app.post("/api/sites/{site_id}/domain/sync")
+async def sync_site_domain(
+    site_id: int,
+    db: Session = Depends(get_db),
+    _admin_user: User = Depends(require_admin_or_superadmin),
+):
+    """Forzar que GitHub Pages reciba nuevamente el CNAME del sitio."""
+    site = db.query(Site).filter(Site.id == site_id).first()
+    if not site:
+        raise HTTPException(status_code=404, detail="Sitio no encontrado")
+
+    domain = _normalize_custom_domain(site.custom_domain)
+    if not domain:
+        raise HTTPException(status_code=400, detail="Configura un dominio personalizado antes de sincronizarlo")
+
+    if not site.github_repo:
+        raise HTTPException(status_code=400, detail="Publica el sitio en GitHub Pages antes de sincronizar el dominio")
+
+    try:
+        github_sync = await run_in_threadpool(
+            _sync_site_domain_with_github,
+            site.github_repo,
+            domain,
+        )
+    except PublishPipelineError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    return {
+        "message": "Dominio sincronizado en GitHub",
+        "github_sync": github_sync,
     }
 
 
@@ -1175,9 +1244,6 @@ async def publish_site(
     site.github_repo = publish_output["repo_name"]
     site.github_url = publish_output["pages_url"]
     site.is_published = True
-    cname_value = publish_output.get("cname_value")
-    if cname_value and (not site.cname_record or site.cname_record == DEFAULT_CNAME_TARGET):
-        site.cname_record = cname_value
     db.commit()
 
     return {

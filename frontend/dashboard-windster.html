@@ -1535,7 +1535,7 @@
       class="fixed inset-0 z-50 hidden flex items-center justify-center overflow-y-auto bg-slate-900/70 backdrop-blur-sm px-4 py-10"
     >
       <div
-        class="w-full max-w-3xl rounded-[32px] border border-slate-100 bg-white shadow-2xl"
+        class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[32px] border border-slate-100 bg-white shadow-2xl"
       >
         <div
           class="flex items-center justify-between border-b border-slate-100 px-6 py-5"
@@ -1632,6 +1632,68 @@
                 </button>
               </div>
               <p id="domainGithubHint" class="mt-2 text-xs text-slate-500"></p>
+            </div>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-2 text-sm">
+            <div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-4 shadow-sm">
+              <p class="text-sm font-semibold text-slate-800">Custom domain</p>
+              <p class="mt-1 text-xs text-slate-500">
+                Custom domains allow you to serve your site from a domain other than
+                <span class="font-mono text-slate-700">{{ DEFAULT_CNAME_TARGET }}</span>.
+                <a
+                  href="https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/about-custom-domains-and-github-pages"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-blue-600 font-semibold"
+                >Learn more</a>
+                about configuring custom domains.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-4 shadow-sm">
+              <p class="text-sm font-semibold text-slate-800">Enforce HTTPS</p>
+              <p class="mt-1 text-xs text-slate-500">
+                <span class="font-semibold text-slate-700">Required</span> for your site because you are using the default domain
+                (<span class="font-mono text-slate-700">{{ DEFAULT_CNAME_TARGET }}</span>).
+              </p>
+              <p class="mt-1 text-xs text-slate-500">
+                HTTPS provides a layer of encryption that prevents others from snooping on or tampering with traffic to your site.
+                When HTTPS is enforced, your site will only be served over HTTPS.
+                <a
+                  href="https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/securing-your-github-pages-site-with-https"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-blue-600 font-semibold"
+                >Learn more</a>
+                about securing your GitHub Pages site with HTTPS.
+              </p>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-100 bg-white/80 p-4 text-sm text-slate-600 shadow-sm" id="dnsStatusCard">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p class="font-semibold text-slate-700">DNS check (GitHub)</p>
+                <p class="text-xs text-slate-500">Solicita una verificación directa en GitHub Pages para confirmar tus registros CNAME.</p>
+              </div>
+              <button
+                type="button"
+                id="dnsVerifyBtn"
+                class="wc-button wc-button--primary text-xs whitespace-nowrap"
+              >
+                <i class="fas fa-satellite-dish"></i>
+                Consultar en GitHub
+              </button>
+            </div>
+            <div class="mt-3 space-y-2 text-xs text-slate-500">
+              <div class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-[11px] font-semibold text-slate-600" id="dnsStatusBadge">
+                <span class="h-2 w-2 rounded-full bg-slate-300" data-role="status-dot"></span>
+                <span id="dnsStatusBadgeLabel">Estado sin verificar</span>
+              </div>
+              <p id="dnsStatusMessage" class="text-slate-600">
+                GitHub mostrará aquí la última confirmación DNS cuando hagas clic en el botón.
+              </p>
+              <pre id="dnsStatusDetails" class="hidden overflow-x-auto rounded-2xl bg-slate-900 p-3 text-[11px] leading-4 text-slate-100"></pre>
             </div>
           </div>
 
@@ -1758,9 +1820,9 @@
         view: "list",
       };
 
-      const visitsCache = {};
-      const siteLookup = new Map();
-  const domainState = { siteId: null, dnsRecords: [] };
+        const visitsCache = {};
+        const siteLookup = new Map();
+        const domainState = { siteId: null, dnsRecords: [], lastDnsVerification: null };
 
       const dom = {
         toggleSidebarMobile: document.getElementById("toggleSidebarMobile"),
@@ -1792,12 +1854,17 @@
         cnameInput: document.getElementById("cnameInput"),
         cnameHostLabel: document.getElementById("cnameHostLabel"),
         domainGithubHint: document.getElementById("domainGithubHint"),
-        copyCnameBtn: document.getElementById("copyCnameBtn"),
-        copyCnameHostBtn: document.getElementById("copyCnameHostBtn"),
-  dnsRecordsBody: document.getElementById("dnsRecordsBody"),
-  copyDnsBundleBtn: document.getElementById("copyDnsBundleBtn"),
+          copyCnameBtn: document.getElementById("copyCnameBtn"),
+          copyCnameHostBtn: document.getElementById("copyCnameHostBtn"),
+          dnsRecordsBody: document.getElementById("dnsRecordsBody"),
+          copyDnsBundleBtn: document.getElementById("copyDnsBundleBtn"),
         domainModalSaveBtn: document.getElementById("domainModalSaveBtn"),
         closeDomainModalBtn: document.getElementById("closeDomainModalBtn"),
+          dnsVerifyBtn: document.getElementById("dnsVerifyBtn"),
+          dnsStatusBadge: document.getElementById("dnsStatusBadge"),
+          dnsStatusBadgeLabel: document.getElementById("dnsStatusBadgeLabel"),
+          dnsStatusMessage: document.getElementById("dnsStatusMessage"),
+          dnsStatusDetails: document.getElementById("dnsStatusDetails"),
       };
 
       const roleVisibility = {
@@ -2158,6 +2225,18 @@
           year: "numeric",
           month: "short",
           day: "numeric",
+        });
+      }
+
+      function formatDateTime(dateString) {
+        if (!dateString) return "-";
+        const date = new Date(dateString);
+        return date.toLocaleString("es-ES", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
         });
       }
 
@@ -2546,6 +2625,9 @@
         if (dom.copyDnsBundleBtn) {
           dom.copyDnsBundleBtn.addEventListener("click", copyDnsBundle);
         }
+        if (dom.dnsVerifyBtn) {
+          dom.dnsVerifyBtn.addEventListener("click", triggerGithubDnsCheck);
+        }
         if (dom.dnsRecordsBody) {
           dom.dnsRecordsBody.addEventListener("click", (event) => {
             const target = event.target instanceof Element ? event.target : null;
@@ -2596,6 +2678,7 @@
           return;
         }
         domainState.siteId = siteId;
+        domainState.lastDnsVerification = null;
         hydrateDomainModal(site);
         dom.domainModal.classList.remove("hidden");
         document.body.classList.add("overflow-hidden");
@@ -2634,6 +2717,13 @@
         }
 
         renderDnsRecords(site);
+        const verificationReason = !site.custom_domain
+          ? "Configura un dominio personalizado para habilitar la verificación con GitHub."
+          : !site.is_published
+          ? "Publica el sitio al menos una vez para poder consultar su estado en GitHub."
+          : "GitHub mostrará aquí el resultado más reciente cuando lo solicites.";
+        renderDnsStatus(null, { reason: verificationReason });
+        updateDnsVerifyAvailability(site);
       }
 
       function updateDomainHelperTexts(site) {
@@ -2659,6 +2749,7 @@
 
       function closeDomainModal() {
         domainState.siteId = null;
+        domainState.lastDnsVerification = null;
         if (!dom.domainModal) return;
         dom.domainModal.classList.add("hidden");
         document.body.classList.remove("overflow-hidden");
@@ -2702,7 +2793,10 @@
             closeDomainModal();
             await refreshDashboard();
           } else {
-            showNotification(data.detail || "No se pudo actualizar el dominio", "error");
+            const detailMessage = typeof data.detail === "string"
+              ? data.detail
+              : data.detail?.message || "No se pudo actualizar el dominio";
+            showNotification(detailMessage, "error");
           }
         } catch (error) {
           console.error("Error updating domain:", error);
@@ -2722,6 +2816,158 @@
         const payload = mode === "host" ? hostTarget : value;
         const descriptor = mode === "host" ? `Host ${hostTarget}` : `Ruta ${value}`;
         await copyValueToClipboard(payload, descriptor);
+      }
+
+      function setDnsVerifyLoading(isLoading) {
+        if (!dom.dnsVerifyBtn) return;
+        if (isLoading) {
+          dom.dnsVerifyBtn.dataset.originalLabel =
+            dom.dnsVerifyBtn.dataset.originalLabel || dom.dnsVerifyBtn.innerHTML;
+          dom.dnsVerifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Consultando...';
+          dom.dnsVerifyBtn.classList.add("opacity-70", "cursor-wait");
+          dom.dnsVerifyBtn.disabled = true;
+        } else {
+          if (dom.dnsVerifyBtn.dataset.originalLabel) {
+            dom.dnsVerifyBtn.innerHTML = dom.dnsVerifyBtn.dataset.originalLabel;
+          }
+          dom.dnsVerifyBtn.classList.remove("cursor-wait", "opacity-70");
+          dom.dnsVerifyBtn.disabled = false;
+        }
+      }
+
+      function renderDnsStatus(status = null, options = {}) {
+        if (!dom.dnsStatusBadge || !dom.dnsStatusMessage) return;
+        const badge = dom.dnsStatusBadge;
+        const badgeDot = badge.querySelector('[data-role="status-dot"]');
+        const badgeLabel = dom.dnsStatusBadgeLabel;
+        const message = dom.dnsStatusMessage;
+        const details = dom.dnsStatusDetails;
+        const reason = options.reason || "";
+        const raw = options.raw || null;
+
+        const resetBadge = () => {
+          badge.classList.remove(
+            "text-green-700",
+            "border-green-200",
+            "text-amber-700",
+            "border-amber-200"
+          );
+          badge.classList.add("border-slate-200", "text-slate-600");
+          if (badgeDot) {
+            badgeDot.className = "h-2 w-2 rounded-full bg-slate-300";
+          }
+        };
+
+        if (status) {
+          domainState.lastDnsVerification = status;
+          const verified = Boolean(status.verified);
+          resetBadge();
+          if (verified) {
+            badge.classList.remove("text-slate-600", "border-slate-200");
+            badge.classList.add("text-green-700", "border-green-200");
+            if (badgeDot) badgeDot.className = "h-2 w-2 rounded-full bg-green-500";
+            if (badgeLabel) badgeLabel.textContent = "Verificado por GitHub";
+          } else {
+            badge.classList.remove("text-slate-600", "border-slate-200");
+            badge.classList.add("text-amber-700", "border-amber-200");
+            if (badgeDot) badgeDot.className = "h-2 w-2 rounded-full bg-amber-400";
+            if (badgeLabel) badgeLabel.textContent = "Verificación pendiente";
+          }
+          message.innerHTML = status.checked_at
+            ? `GitHub respondió el <strong>${formatDateTime(status.checked_at)}</strong>.`
+            : "GitHub devolvió el estado actual.";
+          if (status.https_enforced) {
+            message.innerHTML += " <span class=\"text-green-700 font-semibold\">HTTPS está forzado para este dominio.</span>";
+          }
+          if (details) {
+            const detailPayload = status.detail ?? {};
+            if (detailPayload && typeof detailPayload === "object") {
+              const keys = Object.keys(detailPayload);
+              details.textContent = JSON.stringify(detailPayload, null, 2);
+              details.classList.toggle("hidden", keys.length === 0);
+            } else if (detailPayload) {
+              details.textContent = detailPayload;
+              details.classList.remove("hidden");
+            } else {
+              details.textContent = "";
+              details.classList.add("hidden");
+            }
+          }
+        } else {
+          domainState.lastDnsVerification = null;
+          resetBadge();
+          if (badgeLabel) badgeLabel.textContent = "Estado sin verificar";
+          message.textContent = reason || "GitHub mostrará aquí la última confirmación DNS cuando hagas clic en el botón.";
+          if (details) {
+            if (raw) {
+              if (typeof raw === "object") {
+                details.textContent = JSON.stringify(raw, null, 2);
+              } else {
+                details.textContent = `${raw}`;
+              }
+              details.classList.remove("hidden");
+            } else {
+              details.textContent = "";
+              details.classList.add("hidden");
+            }
+          }
+        }
+      }
+
+      function updateDnsVerifyAvailability(site = null) {
+        if (!dom.dnsVerifyBtn) return;
+        const canVerify = Boolean(site && site.custom_domain && site.is_published);
+        dom.dnsVerifyBtn.disabled = !canVerify;
+        dom.dnsVerifyBtn.classList.toggle("opacity-60", !canVerify);
+        dom.dnsVerifyBtn.classList.toggle("cursor-not-allowed", !canVerify);
+        dom.dnsVerifyBtn.title = canVerify
+          ? "Solicita una confirmación directa en GitHub"
+          : !site || !site.custom_domain
+          ? "Configura un dominio personalizado para habilitar la verificación"
+          : "Publica el sitio al menos una vez para consultar el estado en GitHub";
+        if (!canVerify) {
+          renderDnsStatus(null, { reason: dom.dnsVerifyBtn.title });
+        } else if (!domainState.lastDnsVerification) {
+          renderDnsStatus(null, { reason: "Aún no se ha solicitado una verificación a GitHub." });
+        }
+      }
+
+      async function triggerGithubDnsCheck() {
+        if (!domainState.siteId || !dom.dnsVerifyBtn) return;
+        const site = getCurrentDomainSite();
+        if (!site || !site.custom_domain || !site.is_published) {
+          showNotification("Configura un dominio personalizado y publica el sitio antes de verificarlo.", "warning");
+          return;
+        }
+        setDnsVerifyLoading(true);
+        renderDnsStatus(null, { reason: "Solicitando confirmación directa a GitHub..." });
+        try {
+          const response = await fetch(`${API_URL}/sites/${domainState.siteId}/domain/verify`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await response.json();
+          if (response.ok) {
+            if (data.verification) {
+              renderDnsStatus(data.verification);
+            }
+            showNotification(data.message || "GitHub confirmó el estado DNS", "success");
+          } else {
+            const detail = data.detail || {};
+            const errorMessage = typeof detail === "string"
+              ? detail
+              : detail.message || data.message || "GitHub no pudo confirmar el dominio";
+            renderDnsStatus(null, { reason: errorMessage, raw: detail.last_status || detail });
+            showNotification(errorMessage, "error");
+          }
+        } catch (error) {
+          console.error("DNS verification error", error);
+          renderDnsStatus(null, { reason: "No se pudo contactar a GitHub. Intenta nuevamente en unos segundos." });
+          showNotification("No se pudo contactar a GitHub", "error");
+        } finally {
+          setDnsVerifyLoading(false);
+          updateDnsVerifyAvailability(getCurrentDomainSite());
+        }
       }
 
       function setView(view) {
