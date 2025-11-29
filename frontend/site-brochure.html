@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site.name }} - Folleto A6</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: {{ site.primary_color or '#2563eb' }};
+            --secondary: {{ site.secondary_color or '#f97316' }};
+            --text: #0f172a;
+            --muted: #64748b;
+            --surface: #ffffff;
+            --border: rgba(15, 23, 42, 0.08);
+            --bg-screen: #f8fafc;
+            --a6-width: 105mm;
+            --a6-height: 148mm;
+            --preview-max-width: 620px;
+            --logo-bg: url('{{ site.logo_url or "" }}');
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        @keyframes subtle-float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text);
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            line-height: 1.5;
+        }
+
+        img {
+            display: block;
+            max-width: 100%;
+        }
+
+        .brochure-stage {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+        }
+
+        .brochure {
+            width: 105mm;
+            height: 148mm;
+            max-width: 92vw;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 
+                0 20px 60px rgba(15, 23, 42, 0.15),
+                0 10px 30px rgba(15, 23, 42, 0.1),
+                0 0 0 1px rgba(226, 232, 240, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            animation: subtle-float 4s ease-in-out infinite;
+        }
+        
+        .brochure::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(249, 115, 22, 0.05));
+            pointer-events: none;
+            opacity: 0.3;
+        }
+        
+        .brochure::after {
+            content: '';
+            position: absolute;
+            inset: 16px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            border-image: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(249, 115, 22, 0.1)) 1;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .brochure-header {
+            padding: 14px 20px 16px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 4px 12px rgba(15, 23, 42, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .brochure-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+
+        
+        /* Decorative header line pattern */
+        .header-grid::before {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.3) 10%, 
+                rgba(255, 255, 255, 0.5) 50%, 
+                rgba(255, 255, 255, 0.3) 90%, 
+                transparent 100%);
+        }
+
+        .header-grid {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .logo-box {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+        
+        .logo-box::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .logo-box img {
+            border-radius: 10px;
+        }
+
+        .logo-fallback {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .business-meta {
+            flex: 1;
+        }
+
+        .model-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2));
+            backdrop-filter: blur(12px);
+            border-radius: 999px;
+            padding: 3px 8px;
+            margin-bottom: 6px;
+            box-shadow: 
+                0 3px 10px rgba(0, 0, 0, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+        }
+
+        .business-name {
+            font-size: 20px;
+            font-weight: 900;
+            margin-bottom: 2px;
+            line-height: 1.2;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            letter-spacing: -0.4px;
+        }
+
+        .business-tagline {
+            font-size: 11px;
+            opacity: 0.9;
+            line-height: 1.3;
+        }
+
+        .brochure-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 14px 18px 8px;
+            gap: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .brochure-body::before {
+            content: '';
+            position: absolute;
+            top: 65%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-12deg);
+            width: 220px;
+            height: 220px;
+            background-image: var(--logo-bg);
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.09;
+            filter: grayscale(100%) brightness(1.3) contrast(0.9);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .brochure-body > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .section {
+            background: rgba(248, 250, 252, 0.5);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 12px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+            position: relative;
+        }
+        
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .section::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            background: 
+                linear-gradient(to left, rgba(37, 99, 235, 0.05) 0%, transparent 100%),
+                linear-gradient(to top, rgba(249, 115, 22, 0.05) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .section-header i {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(249, 115, 22, 0.1));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 10px;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .product-card {
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(15, 23, 42, 0.1);
+        }
+        
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(180deg, rgba(248, 250, 252, 0.5) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .product-content::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 24px;
+            height: 24px;
+            background: 
+                linear-gradient(135deg, transparent 28%, var(--primary) 28%, var(--primary) 30%, transparent 30%),
+                linear-gradient(45deg, transparent 28%, var(--secondary) 28%, var(--secondary) 30%, transparent 30%);
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #eef2ff, #f0f9ff);
+            position: relative;
+        }
+        
+        .product-card:hover .product-image {
+            filter: brightness(1.05);
+        }
+
+        .brochure[data-product-count="3"] .product-image,
+        .brochure[data-product-count="4"] .product-image,
+        .brochure[data-product-count="5"] .product-image,
+        .brochure[data-product-count="6"] .product-image,
+        .brochure[data-product-count="7"] .product-image,
+        .brochure[data-product-count="8"] .product-image {
+            display: none;
+        }
+
+        .brochure[data-product-count="3"] .product-content,
+        .brochure[data-product-count="4"] .product-content,
+        .brochure[data-product-count="5"] .product-content,
+        .brochure[data-product-count="6"] .product-content,
+        .brochure[data-product-count="7"] .product-content,
+        .brochure[data-product-count="8"] .product-content {
+            padding: 6px;
+        }
+
+        .brochure[data-product-count="3"] .product-name,
+        .brochure[data-product-count="4"] .product-name,
+        .brochure[data-product-count="5"] .product-name,
+        .brochure[data-product-count="6"] .product-name,
+        .brochure[data-product-count="7"] .product-name,
+        .brochure[data-product-count="8"] .product-name {
+            font-size: 10px;
+            line-height: 1.2;
+        }
+
+        .brochure[data-product-count="3"] .product-description,
+        .brochure[data-product-count="4"] .product-description,
+        .brochure[data-product-count="5"] .product-description,
+        .brochure[data-product-count="6"] .product-description,
+        .brochure[data-product-count="7"] .product-description,
+        .brochure[data-product-count="8"] .product-description {
+            font-size: 8px;
+            -webkit-line-clamp: 1;
+            line-clamp: 1;
+            line-height: 1.2;
+        }
+
+        .brochure[data-product-count="3"] .product-price,
+        .brochure[data-product-count="4"] .product-price,
+        .brochure[data-product-count="5"] .product-price,
+        .brochure[data-product-count="6"] .product-price,
+        .brochure[data-product-count="7"] .product-price,
+        .brochure[data-product-count="8"] .product-price {
+            font-size: 10px;
+        }
+
+        .product-content {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .product-name {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text);
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            overflow: hidden;
+            line-height: 1.2;
+        }
+
+        .product-description {
+            font-size: 9px;
+            color: var(--muted);
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            overflow: hidden;
+            line-height: 1.2;
+        }
+
+        .product-price {
+            font-size: 11px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.3px;
+        }
+
+        .about-text {
+            font-size: 10px;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        .contact-list,
+        .social-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .contact-item,
+        .social-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 9px;
+            line-height: 1.3;
+        }
+
+        .contact-item i,
+        .social-item i {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(249, 115, 22, 0.1));
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
+        }
+
+        .social-item a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .brochure-footer {
+            margin-top: auto;
+            padding: 8px 18px 12px;
+            font-size: 8px;
+            color: var(--muted);
+            text-align: center;
+            border-top: 1px solid var(--border);
+            line-height: 1.3;
+            background: linear-gradient(180deg, transparent, rgba(248, 250, 252, 0.5));
+            position: relative;
+        }
+        
+        .brochure-footer::before {
+            content: '◆';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            color: var(--primary);
+            opacity: 0.4;
+        }
+        
+        .brochure-footer::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: 
+                radial-gradient(circle, var(--primary) 1px, transparent 1px),
+                radial-gradient(circle, var(--secondary) 1px, transparent 1px);
+            background-size: 8px 3px;
+            background-position: 0 0, 4px 0;
+            opacity: 0.15;
+        }
+
+        .brochure-footer span {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .brochure-footer span {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .print-controls {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .print-button,
+        .pdf-button {
+            border: none;
+            border-radius: 999px;
+            padding: 14px 22px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            color: #fff;
+        }
+
+        .print-button {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        .pdf-button {
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+
+        .print-button:hover,
+        .pdf-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 30px rgba(15, 23, 42, 0.25);
+        }
+
+        @media (max-width: 720px) {
+            .print-controls {
+                position: static;
+                flex-direction: row;
+                justify-content: center;
+                padding: 16px;
+            }
+
+            .brochure-stage {
+                padding: 16px;
+            }
+
+            .brochure {
+                width: 100%;
+                height: auto;
+            }
+        }
+
+        @media print {
+            @page {
+                size: 105mm 148mm;
+                margin: 0;
+            }
+
+            html, body {
+                width: 105mm !important;
+                height: 148mm !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                background: #fff !important;
+                overflow: hidden !important;
+            }
+
+            .brochure-stage {
+                width: 105mm !important;
+                height: 148mm !important;
+                padding: 0 !important;
+                min-height: 148mm !important;
+                display: flex !important;
+                align-items: flex-start !important;
+                justify-content: center !important;
+            }
+
+            .brochure {
+                width: 105mm !important;
+                height: 148mm !important;
+                max-height: 148mm !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+            }
+            
+            .brochure::before,
+            .brochure::after {
+                display: none !important;
+            }
+            
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .section,
+            .product-card {
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+
+            .print-controls {
+                display: none !important;
+            }
+
+            img {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-controls">
+        <button class="pdf-button" onclick="downloadPDF()">
+            <i class="fas fa-file-pdf"></i>
+            Descargar PDF
+        </button>
+        <button class="print-button" onclick="window.print()">
+            <i class="fas fa-print"></i>
+            Imprimir
+        </button>
+    </div>
+
+    <div class="brochure-stage">
+        <article class="brochure" data-product-count="{{ site.products | length }}">
+            <header class="brochure-header">
+                <div class="header-grid">
+                    <div class="logo-box">
+                        {% if site.logo_url %}
+                            <img src="{{ site.logo_url }}" alt="Logo del negocio">
+                        {% else %}
+                            <span class="logo-fallback">{{ site.name[:2].upper() }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="business-meta">
+                        <div class="model-pill">
+                            <i class="fas fa-award"></i>
+                            {{ site.model_label or 'Modelo Premium' }}
+                        </div>
+                        <h1 class="business-name">{{ site.name }}</h1>
+                        <p class="business-tagline">{{ site.hero_subtitle or site.description or 'Servicio profesional y cercano' }}</p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="brochure-body">
+                {% if site.products %}
+                <section class="section">
+                    <div class="section-header">
+                        <i class="fas fa-tags"></i>
+                        Productos y Servicios
+                    </div>
+                    <div class="products-grid">
+                        {% for product in site.products %}
+                        <article class="product-card">
+                            {% if product.image %}
+                                <img src="{{ product.image }}" alt="{{ product.name }}" class="product-image">
+                            {% endif %}
+                            <div class="product-content">
+                                <h3 class="product-name">{{ product.name }}</h3>
+                                {% if product.description %}
+                                <p class="product-description">{{ product.description }}</p>
+                                {% endif %}
+                                {% if product.price %}
+                                <p class="product-price">{{ product.price }}</p>
+                                {% endif %}
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+                </section>
+                {% endif %}
+
+               
+
+             
+            </div>
+
+            <footer class="brochure-footer">
+                <p>
+                    <span>{{ site.name }}</span> · {{ site.model_label or 'Servicio Premium' }}
+                    {% if site.created_at %}
+                        · Desde {{ site.created_at.strftime('%Y') }}
+                    {% endif %}
+                </p>
+            </footer>
+        </article>
+    </div>
+
+    <script>
+        function waitForImages() {
+            const images = Array.from(document.images);
+            return Promise.all(images.map(img => {
+                if (img.complete) {
+                    return Promise.resolve();
+                }
+                return new Promise(resolve => {
+                    img.addEventListener('load', resolve, { once: true });
+                    img.addEventListener('error', resolve, { once: true });
+                });
+            }));
+        }
+
+        window.addEventListener('beforeprint', () => {
+            document.body.classList.add('printing');
+        });
+
+        window.addEventListener('afterprint', () => {
+            document.body.classList.remove('printing');
+        });
+
+        async function downloadPDF() {
+            const btn = document.querySelector('.pdf-button');
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparando PDF...';
+            btn.disabled = true;
+
+            try {
+                await waitForImages();
+                const siteId = {{ site.id | default('null') | tojson }};
+                const token = localStorage.getItem('token');
+
+                if (!token) {
+                    alert('Debes iniciar sesión para descargar el PDF.');
+                    return;
+                }
+
+                const response = await fetch(`${window.location.origin}/sites/${siteId}/brochure.pdf`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al generar el PDF');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                const safeName = {{ (site.name or 'sitio') | replace(' ', '_') | tojson }};
+                link.href = url;
+                link.download = `folleto_${safeName}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                window.URL.revokeObjectURL(url);
+                link.remove();
+            } catch (error) {
+                console.error(error);
+                alert('No se pudo descargar el PDF. Intenta nuevamente.');
+            } finally {
+                btn.innerHTML = original;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
