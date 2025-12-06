@@ -9,6 +9,10 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    {% set whatsapp_link_number = '' %}
+    {% if whatsapp_number %}
+        {% set whatsapp_link_number = whatsapp_number | replace('+', '') | replace(' ', '') %}
+    {% endif %}
     <!-- Header/Navbar -->
     <header class="header">
         <nav class="navbar">
@@ -37,8 +41,8 @@
                             <li><a href="#contacto" class="nav-link" data-section="contacto">Contacto</a></li>
                         </ul>
                         
-                        {% if whatsapp_number %}
-                        <a href="https://wa.me/{{ whatsapp_number | replace('+', '') | replace(' ', '') }}?text=Hola,%20me%20interesa%20realizar%20un%20pedido" 
+                                {% if whatsapp_number %}
+                                <a href="https://wa.me/{{ whatsapp_link_number }}?text=Hola,%20me%20interesa%20realizar%20un%20pedido" 
                            class="btn-primary" 
                            target="_blank" 
                            rel="noopener">
@@ -151,9 +155,20 @@
                         <div class="menu-info">
                             <h3>{{ product.name }}</h3>
                             <p>{{ product.description }}</p>
-                            {% if product.price %}
-                            <span class="price">${{ product.price }}</span>
-                            {% endif %}
+                            <div class="menu-meta">
+                                {% if product.price %}
+                                <span class="price">${{ product.price }}</span>
+                                {% endif %}
+                                {% if whatsapp_link_number %}
+                                <a href="https://wa.me/{{ whatsapp_link_number }}?text=Hola,%20me%20interesa%20{{ (product.name or 'este producto') | urlencode }}" 
+                                   class="menu-whatsapp" 
+                                   target="_blank" 
+                                   rel="noopener">
+                                    <i class="fab fa-whatsapp"></i>
+                                    <span>Consultar</span>
+                                </a>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
@@ -301,7 +316,7 @@
 
     <!-- WhatsApp Floating Button -->
     {% if whatsapp_number %}
-    <a href="https://wa.me/{{ whatsapp_number }}?text=Hola,%20me%20gustaría%20hacer%20una%20orden" 
+    <a href="https://wa.me/{{ whatsapp_link_number }}?text=Hola,%20me%20gustaría%20hacer%20una%20orden" 
        class="whatsapp-float" 
        target="_blank" 
        rel="noopener"
