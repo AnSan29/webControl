@@ -9,6 +9,13 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    {% set whatsapp_link_number = '' %}
+    {% if whatsapp_number %}
+        {% set whatsapp_link_number = whatsapp_number | replace('+', '') | replace(' ', '') %}
+        {% if not whatsapp_link_number.startswith('57') %}
+            {% set whatsapp_link_number = '57' ~ whatsapp_link_number %}
+        {% endif %}
+    {% endif %}
     <!-- Navbar -->
     <header class="navbar">
         <div class="container">
@@ -226,7 +233,7 @@
 
     <!-- WhatsApp Floating Button -->
     {% if whatsapp_number %}
-    <a href="https://wa.me/{{ whatsapp_number }}?text=Hola,%20me%20gustaría%20agendar%20una%20cita" 
+    <a href="https://wa.me/{{ whatsapp_link_number }}?text=Hola,%20me%20gustaría%20agendar%20una%20cita" 
        class="whatsapp-float" 
        target="_blank" 
        rel="noopener"

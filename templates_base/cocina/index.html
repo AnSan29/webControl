@@ -12,6 +12,9 @@
     {% set whatsapp_link_number = '' %}
     {% if whatsapp_number %}
         {% set whatsapp_link_number = whatsapp_number | replace('+', '') | replace(' ', '') %}
+        {% if not whatsapp_link_number.startswith('57') %}
+            {% set whatsapp_link_number = '57' ~ whatsapp_link_number %}
+        {% endif %}
     {% endif %}
     <!-- Header/Navbar -->
     <header class="header">
@@ -33,6 +36,7 @@
                     </a>
 
                     <div class="nav-wrapper">
+                        <button class="nav-close" type="button" aria-label="Cerrar menú">×</button>
                         <ul class="nav-links">
                             <li><a href="#inicio" class="nav-link" data-section="inicio">Inicio</a></li>
                             <li><a href="#nosotros" class="nav-link" data-section="nosotros">Nosotros</a></li>
@@ -331,18 +335,29 @@
         const mobileToggle = document.querySelector('.mobile-toggle');
         const navWrapper = document.querySelector('.nav-wrapper');
         const navLinks = Array.from(document.querySelectorAll('.nav-link'));
+        const navClose = document.querySelector('.nav-close');
 
         if (mobileToggle && navWrapper) {
             mobileToggle.addEventListener('click', () => {
                 const isOpen = navWrapper.classList.toggle('is-open');
                 mobileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                document.body.classList.toggle('nav-open', isOpen);
             });
+
+            if (navClose) {
+                navClose.addEventListener('click', () => {
+                    navWrapper.classList.remove('is-open');
+                    mobileToggle.setAttribute('aria-expanded', 'false');
+                    document.body.classList.remove('nav-open');
+                });
+            }
 
             navWrapper.querySelectorAll('a').forEach((link) => {
                 link.addEventListener('click', () => {
                     if (navWrapper.classList.contains('is-open')) {
                         navWrapper.classList.remove('is-open');
                         mobileToggle.setAttribute('aria-expanded', 'false');
+                        document.body.classList.remove('nav-open');
                     }
                 });
             });

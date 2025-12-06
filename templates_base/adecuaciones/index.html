@@ -9,6 +9,13 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    {% set whatsapp_link_number = '' %}
+    {% if whatsapp_number %}
+        {% set whatsapp_link_number = whatsapp_number | replace('+', '') | replace(' ', '') %}
+        {% if not whatsapp_link_number.startswith('57') %}
+            {% set whatsapp_link_number = '57' ~ whatsapp_link_number %}
+        {% endif %}
+    {% endif %}
     <!-- Header -->
     <header class="header">
         <div class="container">
@@ -228,7 +235,7 @@
 
     <!-- WhatsApp Button -->
     {% if whatsapp_number %}
-    <a href="https://wa.me/{{ whatsapp_number }}?text=Hola,%20necesito%20un%20presupuesto%20para%20un%20trabajo" 
+    <a href="https://wa.me/{{ whatsapp_link_number }}?text=Hola,%20necesito%20un%20presupuesto%20para%20un%20trabajo" 
        class="whatsapp-float" 
        target="_blank" 
        rel="noopener"

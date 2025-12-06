@@ -916,9 +916,10 @@
 
         /* WhatsApp Flotante */
         .whatsapp-float {
+            --wa-offset: 24px;
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            bottom: var(--wa-offset);
+            right: var(--wa-offset);
             background: #25D366;
             color: white;
             width: 60px;
@@ -931,8 +932,18 @@
             box-shadow: var(--shadow-lg);
             cursor: pointer;
             transition: all 0.3s ease;
-            z-index: 999;
+            z-index: 9999;
             text-decoration: none;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        @supports (bottom: calc(1px + env(safe-area-inset-bottom))) {
+            .whatsapp-float {
+                bottom: calc(var(--wa-offset) + env(safe-area-inset-bottom));
+                right: calc(var(--wa-offset) + env(safe-area-inset-right));
+            }
         }
 
         .whatsapp-float:hover {
@@ -941,6 +952,15 @@
         }
 
         /* Responsive */
+        @media (max-width: 1024px) {
+            .whatsapp-float {
+                --wa-offset: 20px;
+                width: 56px;
+                height: 56px;
+                font-size: 1.8rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .nav-links {
                 display: none;
@@ -979,6 +999,12 @@
                 grid-template-columns: 1fr;
             }
 
+            .whatsapp-float {
+                --wa-offset: 18px;
+                width: 54px;
+                height: 54px;
+            }
+
             .values-grid {
                 grid-template-columns: 1fr;
             }
@@ -992,6 +1018,13 @@
     </style>
 </head>
 <body>
+    {% set whatsapp_link_number = '' %}
+    {% if whatsapp_number %}
+        {% set whatsapp_link_number = whatsapp_number | replace('+', '') | replace(' ', '') %}
+        {% if not whatsapp_link_number.startswith('57') %}
+            {% set whatsapp_link_number = '57' ~ whatsapp_link_number %}
+        {% endif %}
+    {% endif %}
     <!-- Header -->
     <header id="header">
         <nav>
@@ -1642,7 +1675,7 @@
     </footer>
 
     <!-- WhatsApp Flotante -->
-    <a href="https://wa.me/573XXXXXXXXX?text=Hola!%20Quiero%20hacer%20un%20pedido" target="_blank" class="whatsapp-float">
+    <a href="https://wa.me/{{ whatsapp_link_number }}?text=Hola!%20Quiero%20hacer%20un%20pedido" target="_blank" class="whatsapp-float">
         <i class="fab fa-whatsapp"></i>
     </a>
 
